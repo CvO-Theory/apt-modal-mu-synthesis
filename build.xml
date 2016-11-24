@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<project name="modal-mu-synthesis" default="jar" basedir=".">
+	<path id="lib">
+		<pathelement location="lib/apt.jar"/>
+	</path>
+
+	<target name="build-apt">
+		<ant dir="apt" target="jar"/>
+		<copy file="apt/apt.jar" tofile="lib/apt.jar"/>
+	</target>
+
+	<target name="javac" depends="build-apt">
+		<mkdir dir="classes/" />
+		<depend srcdir="src/" destdir="classes/" />
+		<javac includes="**" encoding="utf-8" destdir="classes" source="1.7" target="1.7" debug="true" includeantruntime="false">
+			<src path="src"/>
+			<classpath refid="lib"/>
+			<compilerarg value="-Xlint:all"/>
+		</javac>
+	</target>
+
+	<target name="jar" depends="javac">
+		<jar destfile="modal-mu-synthesis.jar">
+			<fileset dir="classes"/>
+			<manifest>
+				<attribute name="Main-Class" value="uniol.aptgui.Main" />
+				<attribute name="Class-Path" value="lib/apt.jar" />
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="clean">
+		<delete dir="classes" />
+		<delete file="modal-mu-synthesis.jar" />
+		<ant dir="apt" target="clean"/>
+	</target>
+
+	<import file="build.local.xml" optional="true"/>
+</project>
