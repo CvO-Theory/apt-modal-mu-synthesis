@@ -6,7 +6,7 @@ import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
 import uniol.synthesis.adt.mu_calculus.DisjunctionFormula;
 import uniol.synthesis.adt.mu_calculus.NegationFormula;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
-import uniol.synthesis.adt.mu_calculus.ModalFormula;
+import uniol.synthesis.adt.mu_calculus.ModalityFormula;
 import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
 
 public class PrintFormula extends FormulaWalker {
@@ -56,7 +56,7 @@ public class PrintFormula extends FormulaWalker {
 	}
 
 	@Override
-	public void walk(NonRecursive engine, ModalFormula formula) {
+	public void walk(NonRecursive engine, ModalityFormula formula) {
 		enqueue(engine, formula.getFormula());
 		enqueue(engine, formula.getModality().toString(formula.getEvent()));
 	}

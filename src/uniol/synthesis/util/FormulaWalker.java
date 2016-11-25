@@ -9,7 +9,7 @@ import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
 import uniol.synthesis.adt.mu_calculus.DisjunctionFormula;
 import uniol.synthesis.adt.mu_calculus.NegationFormula;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
-import uniol.synthesis.adt.mu_calculus.ModalFormula;
+import uniol.synthesis.adt.mu_calculus.ModalityFormula;
 import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
 
 public abstract class FormulaWalker implements NonRecursive.Walker {
@@ -31,8 +31,8 @@ public abstract class FormulaWalker implements NonRecursive.Walker {
 			walk(engine, (NegationFormula) formula);
 		} else if (formula instanceof VariableFormula) {
 			walk(engine, (VariableFormula) formula);
-		} else if (formula instanceof ModalFormula) {
-			walk(engine, (ModalFormula) formula);
+		} else if (formula instanceof ModalityFormula) {
+			walk(engine, (ModalityFormula) formula);
 		} else if (formula instanceof FixedPointFormula) {
 			walk(engine, (FixedPointFormula) formula);
 		} else {
@@ -45,6 +45,6 @@ public abstract class FormulaWalker implements NonRecursive.Walker {
 	public abstract void walk(NonRecursive engine, DisjunctionFormula formula);
 	public abstract void walk(NonRecursive engine, NegationFormula formula);
 	public abstract void walk(NonRecursive engine, VariableFormula formula);
-	public abstract void walk(NonRecursive engine, ModalFormula formula);
+	public abstract void walk(NonRecursive engine, ModalityFormula formula);
 	public abstract void walk(NonRecursive engine, FixedPointFormula formula);
 }

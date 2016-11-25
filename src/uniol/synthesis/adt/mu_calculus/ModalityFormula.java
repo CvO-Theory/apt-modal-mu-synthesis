@@ -1,11 +1,11 @@
 package uniol.synthesis.adt.mu_calculus;
 
-public abstract class ModalFormula extends AbstractFormula {
+public class ModalityFormula extends AbstractFormula {
 	final private Modality modality;
 	final private Event event;
 	final private Formula formula;
 
-	protected ModalFormula(Modality modality, Event event, Formula formula) {
+	protected ModalityFormula(Modality modality, Event event, Formula formula) {
 		this.modality = modality;
 		this.event = event;
 		this.formula = formula;
