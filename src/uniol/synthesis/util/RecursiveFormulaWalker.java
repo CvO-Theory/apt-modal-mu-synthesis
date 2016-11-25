@@ -47,8 +47,8 @@ public abstract class RecursiveFormulaWalker implements NonRecursive.Walker {
 				enter = false;
 				RecursiveFormulaWalker.this.enter(engine, formula);
 				engine.enqueue(this);
-				engine.enqueue(new RecursiveWalker(formula.getRight()));
 				engine.enqueue(new RecursiveWalker(formula.getLeft()));
+				engine.enqueue(new RecursiveWalker(formula.getRight()));
 			} else {
 				RecursiveFormulaWalker.this.exit(engine, formula);
 			}
@@ -60,8 +60,8 @@ public abstract class RecursiveFormulaWalker implements NonRecursive.Walker {
 				enter = false;
 				RecursiveFormulaWalker.this.enter(engine, formula);
 				engine.enqueue(this);
-				engine.enqueue(new RecursiveWalker(formula.getRight()));
 				engine.enqueue(new RecursiveWalker(formula.getLeft()));
+				engine.enqueue(new RecursiveWalker(formula.getRight()));
 			} else {
 				RecursiveFormulaWalker.this.exit(engine, formula);
 			}
