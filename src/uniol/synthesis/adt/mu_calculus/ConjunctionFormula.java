@@ -1,10 +1,13 @@
 package uniol.synthesis.adt.mu_calculus;
 
+import uniol.synthesis.util.FormulaCreator;
+
 public class ConjunctionFormula extends AbstractFormula {
 	final private Formula left;
 	final private Formula right;
 
-	protected ConjunctionFormula(Formula left, Formula right) {
+	protected ConjunctionFormula(FormulaCreator creator, Formula left, Formula right) {
+		super(creator);
 		this.left = left;
 		this.right = right;
 	}
@@ -15,5 +18,19 @@ public class ConjunctionFormula extends AbstractFormula {
 
 	public Formula getLeft() {
 		return left;
+	}
+
+	public static ConjunctionFormula conjunction(FormulaCreator creator, Formula left, Formula right) {
+		int hashCode = left.hashCode() ^ Integer.rotateLeft(right.hashCode(), 16);
+		for (Formula formula : creator.getFormulasWithHashCode(hashCode)) {
+			if (formula instanceof ConjunctionFormula) {
+				ConjunctionFormula result = (ConjunctionFormula) formula;
+				if (result.getLeft().equals(left) && result.getRight().equals(right))
+					return result;
+			}
+		}
+		ConjunctionFormula result = new ConjunctionFormula(creator, left, right);
+		creator.addFormulaInternal(hashCode, result);
+		return result;
 	}
 }
