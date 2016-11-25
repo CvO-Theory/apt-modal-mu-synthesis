@@ -28,15 +28,18 @@ public class GetFreeVariables extends RecursiveFormulaWalker {
 		return Collections.unmodifiableSet(freeVariables);
 	}
 
+	@Override
 	protected void visit(NonRecursive engine, VariableFormula formula) {
 		if (!currentlyBoundVariables.contains(formula))
 			freeVariables.add(formula);
 	}
 
+	@Override
 	protected void enter(NonRecursive engine, FixedPointFormula formula) {
 		currentlyBoundVariables.add(formula.getVariable());
 	}
 
+	@Override
 	protected void exit(NonRecursive engine, FixedPointFormula formula) {
 		boolean changed = currentlyBoundVariables.remove(formula.getVariable(), 1);
 		assert changed;
