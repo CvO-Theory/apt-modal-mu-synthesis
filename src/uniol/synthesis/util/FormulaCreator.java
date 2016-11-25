@@ -57,6 +57,8 @@ public class FormulaCreator {
 	public Iterable<Formula> getFormulasWithHashCode(int hashCode) {
 		cleanup();
 		final Set<MyWeakReference> set = objects.get(hashCode);
+		if (set == null)
+			return Collections.emptySet();
 		return new Iterable<Formula>() {
 			@Override
 			public Iterator<Formula> iterator() {
