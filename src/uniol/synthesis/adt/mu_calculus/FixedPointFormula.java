@@ -4,10 +4,10 @@ import uniol.synthesis.util.FormulaCreator;
 
 public class FixedPointFormula extends AbstractFormula {
 	final private FixedPoint fixedPoint;
-	final private Variable variable;
+	final private VariableFormula variable;
 	final private Formula formula;
 
-	protected FixedPointFormula(FormulaCreator creator, FixedPoint fixedPoint, Variable variable, Formula formula) {
+	protected FixedPointFormula(FormulaCreator creator, FixedPoint fixedPoint, VariableFormula variable, Formula formula) {
 		super(creator);
 		this.fixedPoint = fixedPoint;
 		this.variable = variable;
@@ -18,7 +18,7 @@ public class FixedPointFormula extends AbstractFormula {
 		return fixedPoint;
 	}
 
-	public Variable getVariable() {
+	public VariableFormula getVariable() {
 		return variable;
 	}
 
@@ -26,7 +26,7 @@ public class FixedPointFormula extends AbstractFormula {
 		return formula;
 	}
 
-	public static FixedPointFormula fixedPoint(FormulaCreator creator, FixedPoint fixedPoint, Variable variable, Formula innerFormula) {
+	public static FixedPointFormula fixedPoint(FormulaCreator creator, FixedPoint fixedPoint, VariableFormula variable, Formula innerFormula) {
 		int hashCode = fixedPoint.hashCode() ^ variable.hashCode() ^ innerFormula.hashCode();
 		for (Formula formula : creator.getFormulasWithHashCode(hashCode)) {
 			if (formula instanceof FixedPointFormula) {

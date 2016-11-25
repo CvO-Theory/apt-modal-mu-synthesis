@@ -20,7 +20,6 @@ import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.Modality;
 import uniol.synthesis.adt.mu_calculus.ModalityFormula;
 import uniol.synthesis.adt.mu_calculus.NegationFormula;
-import uniol.synthesis.adt.mu_calculus.Variable;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
 
 public class FormulaCreator {
@@ -43,11 +42,11 @@ public class FormulaCreator {
 		return DisjunctionFormula.disjunction(this, left, right);
 	}
 
-	public VariableFormula variable(Variable var) {
+	public VariableFormula variable(String var) {
 		return VariableFormula.variable(this, var);
 	}
 
-	public FixedPointFormula fixedPoint(FixedPoint fixedPoint, Variable var, Formula formula) {
+	public FixedPointFormula fixedPoint(FixedPoint fixedPoint, VariableFormula var, Formula formula) {
 		return FixedPointFormula.fixedPoint(this, fixedPoint, var, formula);
 	}
 
