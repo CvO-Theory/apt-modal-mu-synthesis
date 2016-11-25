@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <project name="modal-mu-synthesis" default="jar" basedir=".">
 	<path id="lib">
-		<pathelement location="lib/apt.jar"/>
+		<pathelement location="apt/apt.jar"/>
 	</path>
 
 	<target name="build-apt">
 		<ant dir="apt" target="jar"/>
-		<copy file="apt/apt.jar" tofile="lib/apt.jar"/>
 	</target>
 
 	<target name="javac" depends="build-apt">
@@ -24,7 +23,7 @@
 			<fileset dir="classes"/>
 			<manifest>
 				<attribute name="Main-Class" value="uniol.aptgui.Main" />
-				<attribute name="Class-Path" value="lib/apt.jar" />
+				<attribute name="Class-Path" value="apt/apt.jar" />
 			</manifest>
 		</jar>
 	</target>
