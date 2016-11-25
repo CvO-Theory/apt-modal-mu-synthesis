@@ -10,6 +10,17 @@ public enum FixedPoint {
 		this.toStringValue = toStringValue;
 	}
 
+	public FixedPoint negate() {
+		switch (this) {
+			case LEAST:
+				return GREATEST;
+			case GREATEST:
+				return LEAST;
+			default:
+				throw new AssertionError();
+		}
+	}
+
 	@Override
 	public String toString() {
 		return toStringValue;
