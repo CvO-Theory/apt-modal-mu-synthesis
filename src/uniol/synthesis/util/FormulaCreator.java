@@ -26,6 +26,7 @@ import uniol.synthesis.adt.mu_calculus.VariableFormula;
 public class FormulaCreator {
 	final private ReferenceQueue<Formula> queue = new ReferenceQueue<>();
 	final private Map<Integer, Set<MyWeakReference>> objects = new HashMap<>();
+	private int freshVariableCounter = 0;
 
 	public ConstantFormula constant(boolean value) {
 		return ConstantFormula.constant(this, value);
@@ -45,6 +46,10 @@ public class FormulaCreator {
 
 	public VariableFormula variable(String var) {
 		return VariableFormula.variable(this, var);
+	}
+
+	public VariableFormula freshVariable(String prefix) {
+		return variable("{" + prefix + freshVariableCounter++ + "}");
 	}
 
 	public FixedPointFormula fixedPoint(FixedPoint fixedPoint, VariableFormula var, Formula formula) {
