@@ -2,6 +2,7 @@
 <project name="modal-mu-synthesis" default="jar" basedir=".">
 	<path id="lib">
 		<pathelement location="apt/apt.jar"/>
+		<pathelement location="apt/lib/commons-collections4-4.0/commons-collections4-4.0.jar"/>
 	</path>
 
 	<target name="build-apt">
