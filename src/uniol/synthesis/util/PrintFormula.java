@@ -19,7 +19,10 @@ public class PrintFormula extends FormulaWalker {
 
 	@Override
 	public void walk(NonRecursive engine, ConstantFormula formula) {
-		enqueue(engine, formula.toString());
+		if (formula.getValue())
+			enqueue(engine, "true");
+		else
+			enqueue(engine, "false");
 	}
 
 	@Override

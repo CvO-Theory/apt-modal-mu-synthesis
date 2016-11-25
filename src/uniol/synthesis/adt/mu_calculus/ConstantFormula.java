@@ -1,17 +1,13 @@
 package uniol.synthesis.adt.mu_calculus;
 
-public enum ConstantFormula implements Formula {
-	TRUE("true"),
-	FALSE("false");
+public class ConstantFormula extends AbstractFormula {
+	private final boolean value;
 
-	private final String toStringValue;
-
-	ConstantFormula(String toStringValue) {
-		this.toStringValue = toStringValue;
+	protected ConstantFormula(boolean value) {
+		this.value = value;
 	}
 
-	@Override
-	public String toString() {
-		return toStringValue;
+	public boolean getValue() {
+		return value;
 	}
 }
