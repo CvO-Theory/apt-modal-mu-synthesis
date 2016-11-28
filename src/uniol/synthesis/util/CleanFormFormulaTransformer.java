@@ -17,11 +17,11 @@ import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
 public class CleanFormFormulaTransformer extends FormulaTransformer {
 	final private Map<VariableFormula, VariableFormula> variableReplacements = new HashMap<>();
 	final private Map<VariableFormula, VariableFormula> oldVariableReplacements = new HashMap<>();
-	final private Set<VariableFormula> usedVariables = new HashSet<>();
 
 	public CleanFormFormulaTransformer(Set<VariableFormula> freeVariables, Formula formula) {
 		super(formula);
-		usedVariables.addAll(freeVariables);
+		for (VariableFormula var : freeVariables)
+			variableReplacements.put(var, var);
 	}
 
 	@Override
@@ -29,16 +29,15 @@ public class CleanFormFormulaTransformer extends FormulaTransformer {
 		super.enter(engine, formula);
 
 		VariableFormula variable = formula.getVariable();
-		if (usedVariables.add(variable))
-			// Variable was new, it does not need to be replaced
-			return;
-
-		VariableFormula replacement = formula.getCreator().freshVariable(variable.getVariable());
-		boolean changed = usedVariables.add(replacement);
-		assert changed;
+		VariableFormula replacement;
+		if (variableReplacements.containsKey(variable)) {
+			replacement = formula.getCreator().freshVariable(variable.getVariable());
+		} else {
+			// Variable is new, it does not need to be replaced
+			replacement = variable;
+		}
 		VariableFormula old = variableReplacements.put(variable, replacement);
-		if (old != null)
-			oldVariableReplacements.put(replacement, old);
+		oldVariableReplacements.put(replacement, old);
 	}
 
 	@Override
