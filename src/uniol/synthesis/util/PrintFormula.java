@@ -12,7 +12,7 @@ import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
 public class PrintFormula extends FormulaWalker {
 	private final StringBuilder sb;
 
-	public PrintFormula(StringBuilder sb, Formula formula) {
+	private PrintFormula(StringBuilder sb, Formula formula) {
 		super(formula);
 		this.sb = sb;
 	}
@@ -82,5 +82,9 @@ public class PrintFormula extends FormulaWalker {
 				sb.append(string);
 			}
 		});
+	}
+
+	static public void printFormula(StringBuilder sb, Formula formula) {
+		new NonRecursive().run(new PrintFormula(sb, formula));
 	}
 }

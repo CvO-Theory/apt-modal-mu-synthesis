@@ -21,7 +21,7 @@ public abstract class AbstractFormula implements Formula {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		new NonRecursive().run(new PrintFormula(sb, this));
+		PrintFormula.printFormula(sb, this);
 		return sb.toString();
 	}
 }
