@@ -10,10 +10,12 @@ import uniol.synthesis.adt.mu_calculus.ModalityFormula;
 import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
 
 public class PositiveFormFormulaTransformer extends FormulaTransformer {
-	private boolean negated = false;
+	private boolean negated;
 
-	public PositiveFormFormulaTransformer(Formula formula) {
-		super(formula);
+	@Override
+	public void reset() {
+		super.reset();
+		negated = false;
 	}
 
 	@Override
@@ -76,8 +78,6 @@ public class PositiveFormFormulaTransformer extends FormulaTransformer {
 	}
 
 	static public Formula positiveForm(Formula formula) {
-		PositiveFormFormulaTransformer positive = new PositiveFormFormulaTransformer(formula);
-		new NonRecursive().run(positive);
-		return positive.getTransformedFormula();
+		return new PositiveFormFormulaTransformer().transform(formula);
 	}
 }

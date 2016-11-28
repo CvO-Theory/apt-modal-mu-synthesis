@@ -18,8 +18,7 @@ public class CleanFormFormulaTransformer extends FormulaTransformer {
 	final private Map<VariableFormula, VariableFormula> variableReplacements = new HashMap<>();
 	final private Map<VariableFormula, VariableFormula> oldVariableReplacements = new HashMap<>();
 
-	public CleanFormFormulaTransformer(Set<VariableFormula> freeVariables, Formula formula) {
-		super(formula);
+	private CleanFormFormulaTransformer(Set<VariableFormula> freeVariables) {
 		for (VariableFormula var : freeVariables)
 			variableReplacements.put(var, var);
 	}
@@ -69,12 +68,8 @@ public class CleanFormFormulaTransformer extends FormulaTransformer {
 		return formula;
 	}
 
-
 	static public Formula cleanForm(Formula formula) {
-		GetFreeVariables gfv = new GetFreeVariables(formula);
-		new NonRecursive().run(gfv);
-		CleanFormFormulaTransformer clean = new CleanFormFormulaTransformer(gfv.getFreeVariables(), formula);
-		new NonRecursive().run(clean);
-		return clean.getTransformedFormula();
+		Set<VariableFormula> freeVariables = GetFreeVariables.getFreeVariables(formula);
+		return new CleanFormFormulaTransformer(freeVariables).transform(formula);
 	}
 }

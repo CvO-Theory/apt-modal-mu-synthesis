@@ -20,8 +20,7 @@ public class GetFreeVariables extends RecursiveFormulaWalker {
 	final private Set<VariableFormula> freeVariables = new HashSet<>();
 	final private Bag<VariableFormula> currentlyBoundVariables = new HashBag<>();
 
-	public GetFreeVariables(Formula formula) {
-		super(formula);
+	private GetFreeVariables() {
 	}
 
 	public Set<VariableFormula> getFreeVariables() {
@@ -46,8 +45,8 @@ public class GetFreeVariables extends RecursiveFormulaWalker {
 	}
 
 	static public Set<VariableFormula> getFreeVariables(Formula formula) {
-		GetFreeVariables gfv = new GetFreeVariables(formula);
-		new NonRecursive().run(gfv);
+		GetFreeVariables gfv = new GetFreeVariables();
+		gfv.walk(formula);
 		return gfv.getFreeVariables();
 	}
 }

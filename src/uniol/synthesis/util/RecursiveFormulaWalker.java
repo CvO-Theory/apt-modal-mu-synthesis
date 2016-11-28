@@ -12,16 +12,9 @@ import uniol.synthesis.adt.mu_calculus.VariableFormula;
 import uniol.synthesis.adt.mu_calculus.ModalityFormula;
 import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
 
-public abstract class RecursiveFormulaWalker implements NonRecursive.Walker {
-	final protected Formula startFormula;
-
-	public RecursiveFormulaWalker(Formula formula) {
-		this.startFormula = formula;
-	}
-
-	@Override
-	final public void walk(NonRecursive engine) {
-		engine.enqueue(new RecursiveWalker(startFormula));
+public abstract class RecursiveFormulaWalker {
+	public void walk(Formula formula) {
+		new NonRecursive().run(new RecursiveWalker(formula));
 	}
 
 	private class RecursiveWalker extends FormulaWalker {

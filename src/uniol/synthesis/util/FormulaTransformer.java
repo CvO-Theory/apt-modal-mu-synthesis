@@ -14,20 +14,24 @@ import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
 
 public class FormulaTransformer extends RecursiveFormulaWalker {
 	private final Deque<Formula> resultStack = new ArrayDeque<>();
-	private final FormulaCreator creator;
+	private FormulaCreator creator;
 
-	public FormulaTransformer(Formula formula) {
-		super(formula);
-		this.creator = formula.getCreator();
+	public void reset() {
+	}
+
+	public Formula transform(Formula formula) {
+		resultStack.clear();
+		creator = formula.getCreator();
+		reset();
+
+		walk(formula);
+
+		assert resultStack.size() == 1;
+		return resultStack.removeLast();
 	}
 
 	public FormulaCreator getCreator() {
 		return creator;
-	}
-
-	public Formula getTransformedFormula() {
-		assert resultStack.size() == 1;
-		return resultStack.peek();
 	}
 
 	private void setResult(Formula formula) {
