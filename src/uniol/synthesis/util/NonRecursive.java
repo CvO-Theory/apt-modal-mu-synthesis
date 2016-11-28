@@ -10,7 +10,12 @@ public class NonRecursive {
 		public void walk(NonRecursive engine);
 	}
 
+	public void reset() {
+		todo.clear();
+	}
+
 	public void run(Walker walker) {
+		reset();
 		enqueue(walker);
 		run();
 	}
