@@ -35,7 +35,7 @@ public class Main3 {
 			throw new Exception("Need to be k-bounded");
 
 		FormulaCreator creator = new FormulaCreator();
-		Formula formula = Main.parse(creator, args[1]);
+		Formula formula = new Parser(creator).parse(args[1]);
 
 		System.out.println("Input: " + formula);
 		formula = cleanForm(positiveForm(formula));
