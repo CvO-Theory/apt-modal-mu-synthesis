@@ -74,7 +74,15 @@ public class PositiveFormFormulaTransformer extends FormulaTransformer {
 	protected Formula transform(FixedPointFormula formula) {
 		if (!negated)
 			return formula;
-		return getCreator().fixedPoint(formula.getFixedPoint().negate(), formula.getVariable(), formula.getFormula());
+		// Dunno how to do this nicely, so do it un-nice.
+		// !mu X.X = nu X.X, but the rest of this code generates nu
+		// X.!X. Handle this by substituting !X for X in the inner
+		// formula and calculating the positive form of that again.
+		VariableFormula var = formula.getVariable();
+		Formula inner = formula.getFormula();
+		inner = SubstitutionTransformer.substitute(inner, var, formula.getCreator().negate(var));
+		inner = new PositiveFormFormulaTransformer().transform(inner);
+		return getCreator().fixedPoint(formula.getFixedPoint().negate(), formula.getVariable(), inner);
 	}
 
 	static public Formula positiveForm(Formula formula) {
