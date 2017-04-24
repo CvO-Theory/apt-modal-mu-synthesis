@@ -93,9 +93,6 @@ public class PrintFormulaTest {
 	@Test
 	public void testFixedPoint() {
 		FormulaCreator creator = new FormulaCreator();
-		Formula True = creator.constant(true);
-		Formula False = creator.constant(false);
-		VariableFormula var = creator.variable("foo");
 		Formula formula = creator.fixedPoint(FixedPoint.LEAST, creator.variable("foo"), creator.constant(true));
 		assertThat(formula, hasToString("(mufoo.true)"));
 	}
@@ -104,10 +101,8 @@ public class PrintFormulaTest {
 	public void testModality() {
 		FormulaCreator creator = new FormulaCreator();
 		Formula True = creator.constant(true);
-		Formula False = creator.constant(false);
 		Event event = new Event("foo");
 		Formula formula = creator.modality(Modality.UNIVERSAL, event, True);
-		Formula expected = creator.modality(Modality.EXISTENTIAL, event, False);
 		assertThat(formula, hasToString("[foo]true"));
 	}
 }
