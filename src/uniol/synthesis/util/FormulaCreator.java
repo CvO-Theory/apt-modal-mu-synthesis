@@ -80,7 +80,7 @@ public class FormulaCreator {
 			objs = new HashSet<>();
 			objects.put(hashCode, objs);
 		}
-		objs.add(new MyWeakReference(hashCode, formula));
+		objs.add(new MyWeakReference(hashCode, formula, queue));
 	}
 
 	private void cleanup() {
@@ -100,7 +100,7 @@ public class FormulaCreator {
 		}
 	}
 
-	private class FormulaIterator implements Iterator<Formula> {
+	static private class FormulaIterator implements Iterator<Formula> {
 		final private Iterator<MyWeakReference> iterator;
 		private Formula nextFormula;
 
@@ -128,10 +128,10 @@ public class FormulaCreator {
 		}
 	}
 
-	private class MyWeakReference extends WeakReference<Formula> {
+	static private class MyWeakReference extends WeakReference<Formula> {
 		final private int hashCode;
 
-		public MyWeakReference(int hashCode, Formula formula) {
+		public MyWeakReference(int hashCode, Formula formula, ReferenceQueue<Formula> queue) {
 			super(formula, queue);
 			this.hashCode = hashCode;
 		}
