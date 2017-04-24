@@ -26,7 +26,7 @@ public class PositiveFormFormulaTransformer extends FormulaTransformer {
 
 	@Override
 	public void exit(NonRecursive engine, NegationFormula formula) {
-		super.enter(engine, formula);
+		super.exit(engine, formula);
 		negated = !negated;
 	}
 

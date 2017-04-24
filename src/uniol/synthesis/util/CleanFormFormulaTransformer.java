@@ -36,7 +36,9 @@ public class CleanFormFormulaTransformer extends FormulaTransformer {
 			replacement = variable;
 		}
 		VariableFormula old = variableReplacements.put(variable, replacement);
-		oldVariableReplacements.put(replacement, old);
+		VariableFormula oldOld = oldVariableReplacements.put(replacement, old);
+		// We are in clean form and thus each bound variable must be different
+		assert oldOld == null;
 	}
 
 	@Override
@@ -53,19 +55,13 @@ public class CleanFormFormulaTransformer extends FormulaTransformer {
 
 	@Override
 	protected Formula transform(VariableFormula formula) {
-		VariableFormula replacement = variableReplacements.get(formula);
-		if (replacement != null)
-			return replacement;
-		return formula;
+		return variableReplacements.get(formula);
 	}
 
 	@Override
 	protected Formula transform(FixedPointFormula formula) {
 		VariableFormula replacement = variableReplacements.get(formula.getVariable());
-		if (replacement != null) {
-			return formula.getCreator().fixedPoint(formula.getFixedPoint(), replacement, formula.getFormula());
-		}
-		return formula;
+		return formula.getCreator().fixedPoint(formula.getFixedPoint(), replacement, formula.getFormula());
 	}
 
 	static public Formula cleanForm(Formula formula) {
