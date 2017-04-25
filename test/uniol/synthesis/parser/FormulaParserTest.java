@@ -4,28 +4,28 @@ import org.testng.annotations.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
+import uniol.apt.io.parser.ParseException;
+
 import uniol.synthesis.adt.mu_calculus.Event;
 import uniol.synthesis.adt.mu_calculus.FixedPoint;
 import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.FormulaCreator;
 import uniol.synthesis.adt.mu_calculus.Modality;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
-import uniol.synthesis.experiment.ParseException;
-import uniol.synthesis.experiment.Parser;
 
-public class ParserTest {
+public class FormulaParserTest {
 	private FormulaCreator creator = new FormulaCreator();
 
 	@Test
 	public void testVariable() throws ParseException {
 		Formula expected = creator.variable("X");
-		assertThat(Parser.parse(creator, "X"), equalTo(expected));
+		assertThat(FormulaParser.parse(creator, "X"), equalTo(expected));
 	}
 
 	@Test
 	public void testNegation() throws ParseException {
 		Formula expected = creator.negate(creator.constant(false));
-		assertThat(Parser.parse(creator, "!false"), equalTo(expected));
+		assertThat(FormulaParser.parse(creator, "!false"), equalTo(expected));
 	}
 
 	@Test
@@ -38,7 +38,7 @@ public class ParserTest {
 									new Event("b"), creator.constant(true)),
 								creator.variable("Z")),
 							creator.variable("Y")))));
-		assertThat(Parser.parse(creator, "nu Z.mu Y.[a]((<b>true&&Z)||Y)"), equalTo(expected));
+		assertThat(FormulaParser.parse(creator, "nu Z.mu Y.[a]((<b>true&&Z)||Y)"), equalTo(expected));
 	}
 
 	@Test
@@ -51,7 +51,7 @@ public class ParserTest {
 									Event("b"), creator.constant(true)),
 								creator.variable("Z")),
 							creator.variable("Y")))));
-		assertThat(Parser.parse(creator, "mu Y.nu Z.[a]((<b>true||Z)&&Y)"), equalTo(expected));
+		assertThat(FormulaParser.parse(creator, "mu Y.nu Z.[a]((<b>true||Z)&&Y)"), equalTo(expected));
 	}
 
 	@Test
@@ -63,7 +63,7 @@ public class ParserTest {
 									creator.variable("Y")),
 								creator.modality(Modality.UNIVERSAL, new Event("a"),
 									creator.constant(true)))))));
-		assertThat(Parser.parse(creator, "X&&!nu X.mu X.X&&Y||[a]true"), equalTo(expected));
+		assertThat(FormulaParser.parse(creator, "X&&!nu X.mu X.X&&Y||[a]true"), equalTo(expected));
 	}
 
 	@Test
@@ -74,7 +74,7 @@ public class ParserTest {
 						creator.conjunction(creator.conjunction(x,
 								creator.fixedPoint(FixedPoint.GREATEST, x, x)),
 							x))), x);
-		assertThat(Parser.parse(creator, "X&&(nuX.X&&(nuX.X)&&X)&&X"), equalTo(expected));
+		assertThat(FormulaParser.parse(creator, "X&&(nu X.X&&(nu X.X)&&X)&&X"), equalTo(expected));
 	}
 
 	@Test
@@ -84,7 +84,7 @@ public class ParserTest {
 		Formula expected = creator.conjunction(x, creator.fixedPoint(FixedPoint.GREATEST, x,
 						creator.conjunction(x, creator.fixedPoint(FixedPoint.GREATEST, x,
 								creator.conjunction(creator.conjunction(x, x), x)))));
-		assertThat(Parser.parse(creator, "X&&nuX.X&&nuX.X&&X&&X"), equalTo(expected));
+		assertThat(FormulaParser.parse(creator, "X&&nu X.X&&nu X.X&&X&&X"), equalTo(expected));
 	}
 
 	@Test
@@ -95,7 +95,7 @@ public class ParserTest {
 						creator.disjunction(creator.disjunction(x,
 								creator.fixedPoint(FixedPoint.GREATEST, x, x)),
 							x))), x);
-		assertThat(Parser.parse(creator, "X||(nuX.X||(nuX.X)||X)||X"), equalTo(expected));
+		assertThat(FormulaParser.parse(creator, "X||(nu X.X||(nu X.X)||X)||X"), equalTo(expected));
 	}
 
 	@Test
@@ -104,21 +104,21 @@ public class ParserTest {
 		Formula expected = creator.disjunction(x, creator.fixedPoint(FixedPoint.GREATEST, x,
 						creator.disjunction(x, creator.fixedPoint(FixedPoint.GREATEST, x,
 								creator.disjunction(creator.disjunction(x, x), x)))));
-		assertThat(Parser.parse(creator, "X||nuX.X||nuX.X||X||X"), equalTo(expected));
+		assertThat(FormulaParser.parse(creator, "X||nu X.X||nu X.X||X||X"), equalTo(expected));
 	}
 
 	@Test
 	public void testPrecedence1() throws ParseException {
 		VariableFormula x = creator.variable("X");
 		Formula expected = creator.disjunction(x, creator.conjunction(x, x));
-		assertThat(Parser.parse(creator, "X||X&&X"), equalTo(expected));
+		assertThat(FormulaParser.parse(creator, "X||X&&X"), equalTo(expected));
 	}
 
 	@Test
 	public void testPrecedence2() throws ParseException {
 		VariableFormula x = creator.variable("X");
 		Formula expected = creator.disjunction(creator.conjunction(x, x), x);
-		assertThat(Parser.parse(creator, "X&&X||X"), equalTo(expected));
+		assertThat(FormulaParser.parse(creator, "X&&X||X"), equalTo(expected));
 	}
 
 	@Test
@@ -126,7 +126,7 @@ public class ParserTest {
 		// Test that muX.X||X is parsed as muX.(X||X)
 		VariableFormula x = creator.variable("X");
 		Formula expected = creator.fixedPoint(FixedPoint.LEAST, x, creator.disjunction(x, x));
-		assertThat(Parser.parse(creator, "muX.X||X"), equalTo(expected));
+		assertThat(FormulaParser.parse(creator, "mu X.X||X"), equalTo(expected));
 	}
 
 	@Test
@@ -140,24 +140,24 @@ public class ParserTest {
 							creator.constant(true)))),
 				creator.modality(ex, b, creator.modality(ex, a, creator.modality(Modality.UNIVERSAL, c,
 							creator.variable("X"))))));
-		assertThat(Parser.parse(creator, "nu X. <a><b><c>true && <b><a>[c]X"), equalTo(expected));
+		assertThat(FormulaParser.parse(creator, "nu X. <a><b><c>true && <b><a>[c]X"), equalTo(expected));
 	}
 
 	@Test
 	public void testUnicode() throws ParseException {
 		Formula expected = creator.fixedPoint(FixedPoint.LEAST, creator.variable("X"),
 				creator.fixedPoint(FixedPoint.GREATEST, creator.variable("X"), creator.variable("X")));
-		assertThat(Parser.parse(creator, "µX.νX.X"), equalTo(expected));
+		assertThat(FormulaParser.parse(creator, "µX.νX.X"), equalTo(expected));
 	}
 
 	@Test(expectedExceptions = ParseException.class)
 	public void testGarbageAfterEnd() throws ParseException {
-		Parser.parse(creator, "X X");
+		FormulaParser.parse(creator, "X X");
 	}
 
 	@Test(expectedExceptions = ParseException.class)
 	public void testMissingParenthesis() throws ParseException {
-		Parser.parse(creator, "(X");
+		FormulaParser.parse(creator, "(X");
 	}
 
 }

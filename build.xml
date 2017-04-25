@@ -5,6 +5,10 @@
 		<pathelement location="apt/lib/commons-collections4-4.0/commons-collections4-4.0.jar"/>
 	</path>
 
+	<path id="antlr">
+		<pathelement location="apt/lib/antlr-4.5.1/antlr-4.5.1-complete.jar"/>
+	</path>
+
 	<path id="test">
 		<path refid="lib" />
 		<pathelement location="classes/" />
@@ -20,11 +24,28 @@
 		<ant dir="apt" target="jar"/>
 	</target>
 
-	<target name="javac" depends="build-apt">
+	<target name="antlr.checkforchanges">
+		<uptodate property="antlr.nochanges" targetfile="generated-src/antlr.stamp"
+			srcfile="src/uniol/synthesis/parser/MuCalculusFormula.g4"/>
+	</target>
+
+	<target name="antlr" depends="antlr.checkforchanges" unless="antlr.nochanges">
+		<java classpathref="antlr" classname="org.antlr.v4.Tool" fork="true" failonerror="true">
+			<arg value="-o"/>
+			<arg path="generated-src/uniol/synthesis/parser/"/>
+			<arg value="-package"/>
+			<arg value="uniol.synthesis.parser"/>
+			<arg line="${basedir}/src/uniol/synthesis/parser/MuCalculusFormula.g4"/>
+		</java>
+		<touch file="generated-src/antlr.stamp"/>
+	</target>
+
+	<target name="javac" depends="build-apt,antlr">
 		<mkdir dir="classes/" />
-		<depend srcdir="src/" destdir="classes/" />
+		<depend srcdir="src/:generated-src/" destdir="classes/" />
 		<javac includes="**" encoding="utf-8" destdir="classes" source="1.7" target="1.7" debug="true" includeantruntime="false">
 			<src path="src"/>
+			<src path="generated-src"/>
 			<classpath refid="lib"/>
 			<compilerarg value="-Xlint:all"/>
 		</javac>
@@ -67,6 +88,7 @@
 	<target name="clean">
 		<delete dir="classes" />
 		<delete dir="test-classes" />
+		<delete dir="generated-src" />
 		<delete dir="reports" />
 		<delete file="modal-mu-synthesis.jar" />
 		<ant dir="apt" target="clean"/>

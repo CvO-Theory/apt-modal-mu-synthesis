@@ -6,6 +6,7 @@ import java.util.ArrayDeque;
 
 import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.FormulaCreator;
+import uniol.synthesis.parser.FormulaParser;
 import uniol.synthesis.tableau.TableauBuilder;
 import uniol.synthesis.tableau.TableauPrinter;
 import uniol.synthesis.tableau.Tableau;
@@ -35,7 +36,7 @@ public class Main3 {
 			throw new Exception("Need to be k-bounded");
 
 		FormulaCreator creator = new FormulaCreator();
-		Formula formula = Parser.parse(creator, args[1]);
+		Formula formula = FormulaParser.parse(creator, args[1]);
 
 		System.out.println("Input: " + formula);
 		formula = cleanForm(positiveForm(formula));
