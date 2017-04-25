@@ -67,7 +67,7 @@ public class ParserTest {
 	}
 
 	@Test
-	public void testComplexFormula4() throws ParseException {
+	public void testAssociativityConjunction1() throws ParseException {
 		VariableFormula x = creator.variable("X");
 		Formula expected = creator.conjunction(creator.conjunction(x,
 					creator.fixedPoint(FixedPoint.GREATEST, x,
@@ -75,6 +75,58 @@ public class ParserTest {
 								creator.fixedPoint(FixedPoint.GREATEST, x, x)),
 							x))), x);
 		assertThat(Parser.parse(creator, "X&&(nuX.X&&(nuX.X)&&X)&&X"), equalTo(expected));
+	}
+
+	@Test
+	public void testAssociativityConjunction2() throws ParseException {
+		// Same as in previous test, but without the parentheses
+		VariableFormula x = creator.variable("X");
+		Formula expected = creator.conjunction(x, creator.fixedPoint(FixedPoint.GREATEST, x,
+						creator.conjunction(x, creator.fixedPoint(FixedPoint.GREATEST, x,
+								creator.conjunction(creator.conjunction(x, x), x)))));
+		assertThat(Parser.parse(creator, "X&&nuX.X&&nuX.X&&X&&X"), equalTo(expected));
+	}
+
+	@Test
+	public void testAssociativityDisjunction1() throws ParseException {
+		VariableFormula x = creator.variable("X");
+		Formula expected = creator.disjunction(creator.disjunction(x,
+					creator.fixedPoint(FixedPoint.GREATEST, x,
+						creator.disjunction(creator.disjunction(x,
+								creator.fixedPoint(FixedPoint.GREATEST, x, x)),
+							x))), x);
+		assertThat(Parser.parse(creator, "X||(nuX.X||(nuX.X)||X)||X"), equalTo(expected));
+	}
+
+	@Test
+	public void testAssociativityDisjunction2() throws ParseException {
+		VariableFormula x = creator.variable("X");
+		Formula expected = creator.disjunction(x, creator.fixedPoint(FixedPoint.GREATEST, x,
+						creator.disjunction(x, creator.fixedPoint(FixedPoint.GREATEST, x,
+								creator.disjunction(creator.disjunction(x, x), x)))));
+		assertThat(Parser.parse(creator, "X||nuX.X||nuX.X||X||X"), equalTo(expected));
+	}
+
+	@Test
+	public void testPrecedence1() throws ParseException {
+		VariableFormula x = creator.variable("X");
+		Formula expected = creator.disjunction(x, creator.conjunction(x, x));
+		assertThat(Parser.parse(creator, "X||X&&X"), equalTo(expected));
+	}
+
+	@Test
+	public void testPrecedence2() throws ParseException {
+		VariableFormula x = creator.variable("X");
+		Formula expected = creator.disjunction(creator.conjunction(x, x), x);
+		assertThat(Parser.parse(creator, "X&&X||X"), equalTo(expected));
+	}
+
+	@Test
+	public void testPrecedence3() throws ParseException {
+		// Test that muX.X||X is parsed as muX.(X||X)
+		VariableFormula x = creator.variable("X");
+		Formula expected = creator.fixedPoint(FixedPoint.LEAST, x, creator.disjunction(x, x));
+		assertThat(Parser.parse(creator, "muX.X||X"), equalTo(expected));
 	}
 
 	@Test
