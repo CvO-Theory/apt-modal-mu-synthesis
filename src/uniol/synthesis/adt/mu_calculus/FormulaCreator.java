@@ -47,7 +47,9 @@ public class FormulaCreator {
 	}
 
 	public VariableFormula freshVariable(String prefix) {
-		return variable("{" + prefix + freshVariableCounter++ + "}");
+		synchronized(objects) {
+			return variable("{" + prefix + freshVariableCounter++ + "}");
+		}
 	}
 
 	public FixedPointFormula fixedPoint(FixedPoint fixedPoint, VariableFormula var, Formula formula) {
