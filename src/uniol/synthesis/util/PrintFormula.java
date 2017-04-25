@@ -67,6 +67,7 @@ public class PrintFormula extends FormulaWalker {
 		enqueue(engine, formula.getFormula());
 		enqueue(engine, ".");
 		enqueue(engine, formula.getVariable().toString());
+		enqueue(engine, " ");
 		enqueue(engine, formula.getFixedPoint().toString());
 		enqueue(engine, "(");
 	}

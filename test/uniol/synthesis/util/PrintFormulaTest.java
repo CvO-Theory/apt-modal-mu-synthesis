@@ -30,7 +30,7 @@ public class PrintFormulaTest {
 	public void testFixedPointFormula() {
 		FormulaCreator creator = new FormulaCreator();
 		Formula formula = creator.fixedPoint(FixedPoint.LEAST, creator.variable("foo"), creator.constant(true));
-		assertThat(formula, hasToString("(mufoo.true)"));
+		assertThat(formula, hasToString("(mu foo.true)"));
 	}
 
 	@Test
@@ -38,7 +38,7 @@ public class PrintFormulaTest {
 		FormulaCreator creator = new FormulaCreator();
 		VariableFormula var = creator.variable("foo");
 		Formula formula = creator.fixedPoint(FixedPoint.LEAST, var, var);
-		assertThat(formula, hasToString("(mufoo.foo)"));
+		assertThat(formula, hasToString("(mu foo.foo)"));
 	}
 
 	@Test
@@ -47,7 +47,7 @@ public class PrintFormulaTest {
 		VariableFormula var = creator.variable("foo");
 		VariableFormula var2 = creator.variable("bar");
 		Formula formula = creator.fixedPoint(FixedPoint.LEAST, var, var2);
-		assertThat(formula, hasToString("(mufoo.bar)"));
+		assertThat(formula, hasToString("(mu foo.bar)"));
 	}
 
 	@Test
@@ -56,7 +56,7 @@ public class PrintFormulaTest {
 		VariableFormula var = creator.variable("foo");
 		Formula formula = creator.fixedPoint(FixedPoint.GREATEST, var,
 				creator.fixedPoint(FixedPoint.LEAST, var, var));
-		assertThat(formula, hasToString("(nufoo.(mufoo.foo))"));
+		assertThat(formula, hasToString("(nu foo.(mu foo.foo))"));
 	}
 
 	@Test
@@ -95,7 +95,7 @@ public class PrintFormulaTest {
 	public void testFixedPoint() {
 		FormulaCreator creator = new FormulaCreator();
 		Formula formula = creator.fixedPoint(FixedPoint.LEAST, creator.variable("foo"), creator.constant(true));
-		assertThat(formula, hasToString("(mufoo.true)"));
+		assertThat(formula, hasToString("(mu foo.true)"));
 	}
 
 	@Test
