@@ -15,11 +15,15 @@ public class Parser {
 
 	private static final char EOF = Character.MAX_VALUE;
 
-	public Parser(FormulaCreator creator) {
+	private Parser(FormulaCreator creator) {
 		this.creator = creator;
 	}
 
-	public Formula parse(String str) throws ParseException {
+	static public Formula parse(FormulaCreator creator, String str) throws ParseException {
+		return new Parser(creator).parse(str);
+	}
+
+	private Formula parse(String str) throws ParseException {
 		this.str = str;
 		this.offset = 0;
 
@@ -57,9 +61,7 @@ public class Parser {
 
 	private Formula parseDisjunction() throws ParseException {
 		Formula result = parseConjunction();
-		while (true) {
-			if (lookAhead != '|')
-				break;
+		while (lookAhead == '|') {
 			expect("||");
 			result = creator.disjunction(result, parseConjunction());
 		}
@@ -68,9 +70,7 @@ public class Parser {
 
 	private Formula parseConjunction() throws ParseException {
 		Formula result = parseAtomOrUnary();
-		while (true) {
-			if (lookAhead != '&')
-				break;
+		while (lookAhead == '&') {
 			expect("&&");
 			result = creator.conjunction(result, parseAtomOrUnary());
 		}
@@ -80,8 +80,10 @@ public class Parser {
 	private Formula parseAtomOrUnary() throws ParseException {
 		switch (lookAhead) {
 			case 'm':
+			case 'µ':
 				return parseLeastFixedPoint();
 			case 'n':
+			case 'ν':
 				return parseGreatestFixedPoint();
 			case 'f':
 				return parseConstant("false", creator.constant(false));
@@ -104,7 +106,10 @@ public class Parser {
 	}
 
 	private Formula parseLeastFixedPoint() throws ParseException {
-		expect("mu");
+		if (lookAhead == 'µ')
+			expect("µ");
+		else
+			expect("mu");
 		VariableFormula variable = parseVariable();
 		expect(".");
 		Formula formula = parse();
@@ -112,7 +117,10 @@ public class Parser {
 	}
 
 	private Formula parseGreatestFixedPoint() throws ParseException {
-		expect("nu");
+		if (lookAhead == 'ν')
+			expect("ν");
+		else
+			expect("nu");
 		VariableFormula variable = parseVariable();
 		expect(".");
 		Formula formula = parse();
