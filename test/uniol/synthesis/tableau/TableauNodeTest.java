@@ -5,6 +5,7 @@ import uniol.apt.adt.ts.TransitionSystem;
 
 import uniol.synthesis.adt.mu_calculus.Event;
 import uniol.synthesis.adt.mu_calculus.FixedPoint;
+import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
 import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.FormulaCreator;
 import uniol.synthesis.adt.mu_calculus.Modality;
@@ -79,6 +80,20 @@ public class TableauNodeTest {
 
 		state = getABCState();
 		assertThat(new TableauNode(state, creator.constant(true)), not(equalTo(node1)));
+
+		assertThat(node1.addExpansion(creator.variable("x"), creator.constant(false)), not(equalTo(node1)));
+	}
+
+	@Test
+	public void testEqualsExpansion() {
+		FormulaCreator creator = new FormulaCreator();
+		State state = getABCState();
+		State afterA = state.getPostsetNodesByLabel("a").iterator().next();
+		VariableFormula x = creator.variable("x");
+
+		TableauNode node1 = new TableauNode(state, x).addExpansion(x, x);
+		assertThat(node1.createChild(afterA, x), not(equalTo(node1)));
+		assertThat(node1.createChild(afterA, x).addExpansion(x, x).createChild(state, x), not(equalTo(node1)));
 	}
 
 	@Test
@@ -118,5 +133,63 @@ public class TableauNodeTest {
 		TableauNode node3 = node1.createChild(formula2);
 		assertThat(node3, hasState(sameInstance(state1)));
 		assertThat(node3, hasFormula(sameInstance(formula2)));
+	}
+
+	@Test
+	public void testExpandFixedPoint() {
+		FormulaCreator creator = new FormulaCreator();
+		State state = getABCState();
+		VariableFormula x = creator.variable("X");
+		VariableFormula fresh = creator.freshVariable("X");
+		Formula formula = creator.fixedPoint(FixedPoint.GREATEST, x, creator.constant(true));
+
+		TableauNode node = new TableauNode(state, formula);
+		assertThat(node.getDefinition(fresh), nullValue());
+		assertThat(node.getDefinition(x), nullValue());
+		assertThat(node.wasAlreadyExpanded(), is(false));
+
+		TableauNode next = node.addExpansion(fresh, formula);
+		assertThat(next, not(equalTo(node)));
+		assertThat(next, hasState(equalTo(state)));
+		assertThat(next, hasFormula(equalTo(formula)));
+		assertThat(next.getDefinition(fresh), equalTo(formula));
+		assertThat(next.getDefinition(x), nullValue());
+		assertThat(next.wasAlreadyExpanded(), is(false));
+	}
+
+	@Test(expectedExceptions = IllegalArgumentException.class)
+	public void testDoubleExpansion() {
+		FormulaCreator creator = new FormulaCreator();
+		State state = getABCState();
+		VariableFormula x = creator.variable("X");
+		VariableFormula fresh = creator.freshVariable("X");
+		Formula formula = creator.fixedPoint(FixedPoint.GREATEST, x, creator.constant(true));
+
+		TableauNode node = new TableauNode(state, formula);
+		Object o = node.addExpansion(fresh, formula).addExpansion(fresh, x);
+		throw new RuntimeException(o.toString() + "this code should not be reached");
+	}
+
+	@Test
+	public void testWasAlreadyExpanded() {
+		FormulaCreator creator = new FormulaCreator();
+		State state = getABCState();
+		State afterA = state.getPostsetNodesByLabel("a").iterator().next();
+		VariableFormula x = creator.variable("X");
+
+		TableauNode node0 = new TableauNode(state, x);
+		assertThat(node0.wasAlreadyExpanded(), is(false));
+
+		TableauNode node1 = node0.addExpansion(x, x);
+		assertThat(node1.wasAlreadyExpanded(), is(true));
+
+		TableauNode node2 = node1.createChild(afterA, x);
+		assertThat(node2.wasAlreadyExpanded(), is(false));
+
+		TableauNode node3 = node2.addExpansion(x, x).createChild(state, x);
+		assertThat(node3.wasAlreadyExpanded(), is(true));
+
+		TableauNode node4 = node3.createChild(state, x);
+		assertThat(node4.wasAlreadyExpanded(), is(true));
 	}
 }
