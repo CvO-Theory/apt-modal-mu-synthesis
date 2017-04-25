@@ -11,11 +11,10 @@ import uniol.synthesis.adt.mu_calculus.FormulaCreator;
 import uniol.synthesis.adt.mu_calculus.Modality;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
 
-import org.hamcrest.FeatureMatcher;
-import org.hamcrest.Matcher;
 import org.testng.annotations.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static uniol.synthesis.tableau.TableauMatchers.*;
 
 public class TableauNodeTest {
 	private State getABCState() {
@@ -26,33 +25,6 @@ public class TableauNodeTest {
 		ts.createArc("s1", "s2", "b");
 		ts.createArc("s2", "s3", "c");
 		return ts.getNode("s0");
-	}
-
-	private Matcher<TableauNode> isSuccessful(final boolean expected) {
-		return new FeatureMatcher<TableauNode, Boolean>(equalTo(expected), "isSuccessful", "isSuccessful") {
-			@Override
-			protected Boolean featureValueOf(TableauNode node) {
-				return node.isSuccessful();
-			}
-		};
-	}
-
-	private Matcher<TableauNode> hasState(final Matcher<State> stateMatcher) {
-		return new FeatureMatcher<TableauNode, State>(stateMatcher, "getState", "getState") {
-			@Override
-			protected State featureValueOf(TableauNode node) {
-				return node.getState();
-			}
-		};
-	}
-
-	private Matcher<TableauNode> hasFormula(final Matcher<Formula> formulaMatcher) {
-		return new FeatureMatcher<TableauNode, Formula>(formulaMatcher, "getFormula", "getFormula") {
-			@Override
-			protected Formula featureValueOf(TableauNode node) {
-				return node.getFormula();
-			}
-		};
 	}
 
 	@Test
