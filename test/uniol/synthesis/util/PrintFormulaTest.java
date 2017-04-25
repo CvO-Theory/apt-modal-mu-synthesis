@@ -10,100 +10,107 @@ import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.FormulaCreator;
 import uniol.synthesis.adt.mu_calculus.Modality;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
+import uniol.synthesis.parser.FormulaParser;
 
 public class PrintFormulaTest {
-	@Test
-	public void testConstantFormula() {
-		FormulaCreator creator = new FormulaCreator();
-		assertThat(creator.constant(true), hasToString("true"));
-		assertThat(creator.constant(false), hasToString("false"));
+	private void test(Formula formula, String expected) throws Exception {
+		assertThat(formula, hasToString(expected));
+		// Test that the result is parsable
+		assertThat(FormulaParser.parse(formula.getCreator(), expected), equalTo(formula));
 	}
 
 	@Test
-	public void testVariableFormula() {
+	public void testConstantFormula() throws Exception {
+		FormulaCreator creator = new FormulaCreator();
+		test(creator.constant(true), "true");
+		test(creator.constant(false), "false");
+	}
+
+	@Test
+	public void testVariableFormula() throws Exception {
 		FormulaCreator creator = new FormulaCreator();
 		Formula formula = creator.variable("foo");
-		assertThat(formula, hasToString("foo"));
+		test(formula, "foo");
 	}
 
 	@Test
-	public void testFixedPointFormula() {
+	public void testFixedPointFormula() throws Exception {
 		FormulaCreator creator = new FormulaCreator();
 		Formula formula = creator.fixedPoint(FixedPoint.LEAST, creator.variable("foo"), creator.constant(true));
-		assertThat(formula, hasToString("(mu foo.true)"));
+		test(formula, "(mu foo.true)");
 	}
 
 	@Test
-	public void testFixedPointFormula2() {
+	public void testFixedPointFormula2() throws Exception {
 		FormulaCreator creator = new FormulaCreator();
 		VariableFormula var = creator.variable("foo");
 		Formula formula = creator.fixedPoint(FixedPoint.LEAST, var, var);
-		assertThat(formula, hasToString("(mu foo.foo)"));
+		test(formula, "(mu foo.foo)");
 	}
 
 	@Test
-	public void testFixedPointFormula3() {
+	public void testFixedPointFormula3() throws Exception {
 		FormulaCreator creator = new FormulaCreator();
 		VariableFormula var = creator.variable("foo");
 		VariableFormula var2 = creator.variable("bar");
 		Formula formula = creator.fixedPoint(FixedPoint.LEAST, var, var2);
-		assertThat(formula, hasToString("(mu foo.bar)"));
+		test(formula, "(mu foo.bar)");
 	}
 
 	@Test
-	public void testFixedPointFormula4() {
+	public void testFixedPointFormula4() throws Exception {
 		FormulaCreator creator = new FormulaCreator();
 		VariableFormula var = creator.variable("foo");
 		Formula formula = creator.fixedPoint(FixedPoint.GREATEST, var,
 				creator.fixedPoint(FixedPoint.LEAST, var, var));
-		assertThat(formula, hasToString("(nu foo.(mu foo.foo))"));
+		test(formula, "(nu foo.(mu foo.foo))");
 	}
 
 	@Test
-	public void testDoubleNegation() {
+	public void testDoubleNegation() throws Exception {
 		FormulaCreator creator = new FormulaCreator();
 		Formula inner = creator.variable("var");
 		Formula formula = creator.negate(creator.negate(inner));
-		assertThat(formula, hasToString("(!(!var))"));
+		test(formula, "(!(!var))");
 	}
 
 	@Test
-	public void testNegate() {
+	public void testNegate() throws Exception {
 		FormulaCreator creator = new FormulaCreator();
 		Formula var = creator.variable("var");
 		Formula formula = creator.negate(var);
-		assertThat(formula, hasToString("(!var)"));
+		test(formula, "(!var)");
 	}
 
 	@Test
-	public void testConjunction() {
+	public void testConjunction() throws Exception {
 		FormulaCreator creator = new FormulaCreator();
 		Formula formula = creator.conjunction(creator.constant(true), creator.constant(false));
-		assertThat(formula, hasToString("(true&&false)"));
-		assertThat(creator.negate(formula), hasToString("(!(true&&false))"));
+		test(formula, "(true&&false)");
+		test(creator.negate(formula), "(!(true&&false))");
 	}
 
 	@Test
-	public void testDisjunction() {
+	public void testDisjunction() throws Exception {
 		FormulaCreator creator = new FormulaCreator();
 		Formula formula = creator.disjunction(creator.constant(true), creator.constant(false));
-		assertThat(formula, hasToString("(true||false)"));
-		assertThat(creator.negate(formula), hasToString("(!(true||false))"));
+		test(formula, "(true||false)");
+		test(creator.negate(formula), "(!(true||false))");
 	}
 
 	@Test
-	public void testFixedPoint() {
+	public void testFixedPoint() throws Exception {
 		FormulaCreator creator = new FormulaCreator();
 		Formula formula = creator.fixedPoint(FixedPoint.LEAST, creator.variable("foo"), creator.constant(true));
-		assertThat(formula, hasToString("(mu foo.true)"));
+		test(formula, "(mu foo.true)");
 	}
 
 	@Test
-	public void testModality() {
+	public void testModality() throws Exception {
 		FormulaCreator creator = new FormulaCreator();
 		Formula True = creator.constant(true);
 		Event event = new Event("foo");
 		Formula formula = creator.modality(Modality.UNIVERSAL, event, True);
-		assertThat(formula, hasToString("[foo]true"));
+		test(formula, "[foo]true");
 	}
 }
