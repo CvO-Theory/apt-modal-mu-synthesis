@@ -16,6 +16,14 @@ public class TableauNode {
 		this.formula = formula;
 	}
 
+	public State getState() {
+		return state;
+	}
+
+	public Formula getFormula() {
+		return formula;
+	}
+
 	/// Return true if this node as a leave corresponds to a successful tableau
 	public boolean isSuccessful() {
 		if (formula instanceof ModalityFormula) {
@@ -29,12 +37,12 @@ public class TableauNode {
 		return false;
 	}
 
-	public State getState() {
-		return state;
+	public TableauNode createChild(State st, Formula fm) {
+		return new TableauNode(st, fm);
 	}
 
-	public Formula getFormula() {
-		return formula;
+	public TableauNode createChild(Formula fm) {
+		return new TableauNode(this.state, fm);
 	}
 
 	@Override

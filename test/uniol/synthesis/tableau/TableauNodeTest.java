@@ -101,4 +101,22 @@ public class TableauNodeTest {
 		assertThat(new TableauNode(state, creator.modality(Modality.EXISTENTIAL, new Event("a"), someFormula)), isSuccessful(false));
 		assertThat(new TableauNode(state, creator.modality(Modality.UNIVERSAL,   new Event("a"), someFormula)), isSuccessful(false));
 	}
+
+	@Test
+	public void testCreateChild() {
+		FormulaCreator creator = new FormulaCreator();
+		State state1 = getABCState();
+		State state2 = getABCState();
+		Formula formula1 = creator.constant(true);
+		Formula formula2 = creator.constant(true);
+
+		TableauNode node1 = new TableauNode(state1, formula1);
+		TableauNode node2 = node1.createChild(state2, formula2);
+		assertThat(node2, hasState(sameInstance(state2)));
+		assertThat(node2, hasFormula(sameInstance(formula2)));
+
+		TableauNode node3 = node1.createChild(formula2);
+		assertThat(node3, hasState(sameInstance(state1)));
+		assertThat(node3, hasFormula(sameInstance(formula2)));
+	}
 }
