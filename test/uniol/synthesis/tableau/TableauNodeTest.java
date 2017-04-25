@@ -36,6 +36,24 @@ public class TableauNodeTest {
 		};
 	}
 
+	private Matcher<TableauNode> hasState(final Matcher<State> stateMatcher) {
+		return new FeatureMatcher<TableauNode, State>(stateMatcher, "getState", "getState") {
+			@Override
+			protected State featureValueOf(TableauNode node) {
+				return node.getState();
+			}
+		};
+	}
+
+	private Matcher<TableauNode> hasFormula(final Matcher<Formula> formulaMatcher) {
+		return new FeatureMatcher<TableauNode, Formula>(formulaMatcher, "getFormula", "getFormula") {
+			@Override
+			protected Formula featureValueOf(TableauNode node) {
+				return node.getFormula();
+			}
+		};
+	}
+
 	@Test
 	public void testConstructor() {
 		FormulaCreator creator = new FormulaCreator();
@@ -43,8 +61,8 @@ public class TableauNodeTest {
 		Formula formula = creator.constant(true);
 
 		TableauNode node = new TableauNode(state, formula);
-		assertThat(node.getState(), sameInstance(state));
-		assertThat(node.getFormula(), sameInstance(formula));
+		assertThat(node, hasState(sameInstance(state)));
+		assertThat(node, hasFormula(sameInstance(formula)));
 	}
 
 	@Test
