@@ -53,7 +53,8 @@ public class TableauNodeTest {
 		state = getABCState();
 		assertThat(new TableauNode(state, creator.constant(true)), not(equalTo(node1)));
 
-		assertThat(node1.addExpansion(creator.variable("x"), creator.constant(false)), not(equalTo(node1)));
+		FixedPointFormula fp = creator.fixedPoint(FixedPoint.LEAST, creator.variable("x"), creator.constant(false));
+		assertThat(node1.addExpansion(creator.variable("x"), fp), not(equalTo(node1)));
 	}
 
 	@Test
@@ -62,10 +63,11 @@ public class TableauNodeTest {
 		State state = getABCState();
 		State afterA = state.getPostsetNodesByLabel("a").iterator().next();
 		VariableFormula x = creator.variable("x");
+		FixedPointFormula fp = creator.fixedPoint(FixedPoint.GREATEST, x, x);
 
-		TableauNode node1 = new TableauNode(state, x).addExpansion(x, x);
+		TableauNode node1 = new TableauNode(state, x).addExpansion(x, fp);
 		assertThat(node1.createChild(afterA, x), not(equalTo(node1)));
-		assertThat(node1.createChild(afterA, x).addExpansion(x, x).createChild(state, x), not(equalTo(node1)));
+		assertThat(node1.createChild(afterA, x).addExpansion(x, fp).createChild(state, x), not(equalTo(node1)));
 	}
 
 	@Test
@@ -113,7 +115,7 @@ public class TableauNodeTest {
 		State state = getABCState();
 		VariableFormula x = creator.variable("X");
 		VariableFormula fresh = creator.freshVariable("X");
-		Formula formula = creator.fixedPoint(FixedPoint.GREATEST, x, creator.constant(true));
+		FixedPointFormula formula = creator.fixedPoint(FixedPoint.GREATEST, x, creator.constant(true));
 
 		TableauNode node = new TableauNode(state, formula);
 		assertThat(node.getDefinition(fresh), nullValue());
@@ -123,7 +125,7 @@ public class TableauNodeTest {
 		TableauNode next = node.addExpansion(fresh, formula);
 		assertThat(next, not(equalTo(node)));
 		assertThat(next, hasState(equalTo(state)));
-		assertThat(next, hasFormula(equalTo(formula)));
+		assertThat(next, hasFormula(equalTo((Formula) formula)));
 		assertThat(next.getDefinition(fresh), equalTo(formula));
 		assertThat(next.getDefinition(x), nullValue());
 		assertThat(next.wasAlreadyExpanded(), is(false));
@@ -135,10 +137,11 @@ public class TableauNodeTest {
 		State state = getABCState();
 		VariableFormula x = creator.variable("X");
 		VariableFormula fresh = creator.freshVariable("X");
-		Formula formula = creator.fixedPoint(FixedPoint.GREATEST, x, creator.constant(true));
+		FixedPointFormula formula = creator.fixedPoint(FixedPoint.GREATEST, x, creator.constant(true));
+		FixedPointFormula otherFp = creator.fixedPoint(FixedPoint.LEAST, x, creator.constant(true));
 
 		TableauNode node = new TableauNode(state, formula);
-		Object o = node.addExpansion(fresh, formula).addExpansion(fresh, x);
+		Object o = node.addExpansion(fresh, formula).addExpansion(fresh, otherFp);
 		throw new RuntimeException(o.toString() + "this code should not be reached");
 	}
 
@@ -148,17 +151,18 @@ public class TableauNodeTest {
 		State state = getABCState();
 		State afterA = state.getPostsetNodesByLabel("a").iterator().next();
 		VariableFormula x = creator.variable("X");
+		FixedPointFormula fp = creator.fixedPoint(FixedPoint.LEAST, x, x);
 
 		TableauNode node0 = new TableauNode(state, x);
 		assertThat(node0.wasAlreadyExpanded(), is(false));
 
-		TableauNode node1 = node0.addExpansion(x, x);
+		TableauNode node1 = node0.addExpansion(x, fp).createChild(x);
 		assertThat(node1.wasAlreadyExpanded(), is(true));
 
 		TableauNode node2 = node1.createChild(afterA, x);
 		assertThat(node2.wasAlreadyExpanded(), is(false));
 
-		TableauNode node3 = node2.addExpansion(x, x).createChild(state, x);
+		TableauNode node3 = node2.addExpansion(x, fp).createChild(state, x);
 		assertThat(node3.wasAlreadyExpanded(), is(true));
 
 		TableauNode node4 = node3.createChild(state, x);

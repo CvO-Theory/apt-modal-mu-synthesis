@@ -10,6 +10,7 @@ import uniol.apt.adt.ts.State;
 import uniol.apt.util.Pair;
 
 import uniol.synthesis.adt.mu_calculus.ConstantFormula;
+import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
 import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.Modality;
 import uniol.synthesis.adt.mu_calculus.ModalityFormula;
@@ -18,10 +19,10 @@ import uniol.synthesis.adt.mu_calculus.VariableFormula;
 public class TableauNode {
 	final private State state;
 	final private Formula formula;
-	final private Map<VariableFormula, Formula> constantDefinitions;
+	final private Map<VariableFormula, FixedPointFormula> constantDefinitions;
 	final private Set<Pair<State, VariableFormula>> expansionsAbove;
 
-	private TableauNode(State state, Formula formula, Map<VariableFormula, Formula> constantDefinitions,
+	private TableauNode(State state, Formula formula, Map<VariableFormula, FixedPointFormula> constantDefinitions,
 			Set<Pair<State, VariableFormula>> expansionsAbove) {
 		this.state = state;
 		this.formula = formula;
@@ -65,8 +66,8 @@ public class TableauNode {
 		return new TableauNode(this.state, fm, constantDefinitions, expansionsAbove);
 	}
 
-	public TableauNode addExpansion(VariableFormula var, Formula inner) {
-		Map<VariableFormula, Formula> newConstantDefinitions = new HashMap<>(constantDefinitions);
+	public TableauNode addExpansion(VariableFormula var, FixedPointFormula inner) {
+		Map<VariableFormula, FixedPointFormula> newConstantDefinitions = new HashMap<>(constantDefinitions);
 		Set<Pair<State, VariableFormula>> newExpansions = new HashSet<>(expansionsAbove);
 		Pair<State, VariableFormula> pair = new Pair<>(state, var);
 		Formula old = newConstantDefinitions.put(var, inner);
@@ -83,7 +84,7 @@ public class TableauNode {
 		return expansionsAbove.contains(new Pair<State, VariableFormula>(state, var));
 	}
 
-	public Formula getDefinition(VariableFormula var) {
+	public FixedPointFormula getDefinition(VariableFormula var) {
 		return constantDefinitions.get(var);
 	}
 
