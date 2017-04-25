@@ -17,23 +17,33 @@ public class FormulaCreator {
 	private int freshVariableCounter = 0;
 
 	public ConstantFormula constant(boolean value) {
-		return ConstantFormula.constant(this, value);
+		synchronized(objects) {
+			return ConstantFormula.constant(this, value);
+		}
 	}
 
 	public NegationFormula negate(Formula formula) {
-		return NegationFormula.negate(this, formula);
+		synchronized(objects) {
+			return NegationFormula.negate(this, formula);
+		}
 	}
 
 	public ConjunctionFormula conjunction(Formula left, Formula right) {
-		return ConjunctionFormula.conjunction(this, left, right);
+		synchronized(objects) {
+			return ConjunctionFormula.conjunction(this, left, right);
+		}
 	}
 
 	public DisjunctionFormula disjunction(Formula left, Formula right) {
-		return DisjunctionFormula.disjunction(this, left, right);
+		synchronized(objects) {
+			return DisjunctionFormula.disjunction(this, left, right);
+		}
 	}
 
 	public VariableFormula variable(String var) {
-		return VariableFormula.variable(this, var);
+		synchronized(objects) {
+			return VariableFormula.variable(this, var);
+		}
 	}
 
 	public VariableFormula freshVariable(String prefix) {
@@ -41,14 +51,18 @@ public class FormulaCreator {
 	}
 
 	public FixedPointFormula fixedPoint(FixedPoint fixedPoint, VariableFormula var, Formula formula) {
-		return FixedPointFormula.fixedPoint(this, fixedPoint, var, formula);
+		synchronized(objects) {
+			return FixedPointFormula.fixedPoint(this, fixedPoint, var, formula);
+		}
 	}
 
 	public ModalityFormula modality(Modality modality, Event event, Formula formula) {
-		return ModalityFormula.modality(this, modality, event, formula);
+		synchronized(objects) {
+			return ModalityFormula.modality(this, modality, event, formula);
+		}
 	}
 
-	public Iterable<Formula> getFormulasWithHashCode(int hashCode) {
+	Iterable<Formula> getFormulasWithHashCode(int hashCode) {
 		cleanup();
 		final Set<MyWeakReference> set = objects.get(hashCode);
 		if (set == null)
@@ -61,7 +75,7 @@ public class FormulaCreator {
 		};
 	}
 
-	public void addFormulaInternal(int hashCode, Formula formula) {
+	void addFormulaInternal(int hashCode, Formula formula) {
 		cleanup();
 		Set<MyWeakReference> objs = objects.get(hashCode);
 		if (objs == null) {

@@ -56,7 +56,7 @@
 
 	<target name="test" depends="javac.test">
 		<taskdef name="testng" classname="org.testng.TestNGAntTask" classpathref="test" />
-		<testng outputdir="reports/testng" verbose="2" haltonfailure="true">
+		<testng outputdir="reports/testng" verbose="2" haltonfailure="true" parallel="methods">
 			<!-- enable assertions -->
 			<jvmarg value="-ea" />
 			<classpath refid="test" />
@@ -67,6 +67,7 @@
 	<target name="clean">
 		<delete dir="classes" />
 		<delete dir="test-classes" />
+		<delete dir="reports" />
 		<delete file="modal-mu-synthesis.jar" />
 		<ant dir="apt" target="clean"/>
 	</target>
