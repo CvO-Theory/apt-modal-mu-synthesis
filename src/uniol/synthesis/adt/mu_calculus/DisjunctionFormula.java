@@ -1,7 +1,5 @@
 package uniol.synthesis.adt.mu_calculus;
 
-import uniol.synthesis.util.FormulaCreator;
-
 public class DisjunctionFormula extends AbstractFormula {
 	final private Formula left;
 	final private Formula right;
@@ -20,7 +18,7 @@ public class DisjunctionFormula extends AbstractFormula {
 		return left;
 	}
 
-	public static DisjunctionFormula disjunction(FormulaCreator creator, Formula left, Formula right) {
+	static DisjunctionFormula disjunction(FormulaCreator creator, Formula left, Formula right) {
 		int hashCode = ~(left.hashCode() ^ Integer.rotateLeft(right.hashCode(), 16));
 		for (Formula formula : creator.getFormulasWithHashCode(hashCode)) {
 			if (formula instanceof DisjunctionFormula) {

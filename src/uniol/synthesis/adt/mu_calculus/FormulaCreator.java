@@ -1,4 +1,4 @@
-package uniol.synthesis.util;
+package uniol.synthesis.adt.mu_calculus;
 
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
@@ -10,18 +10,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
-
-import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
-import uniol.synthesis.adt.mu_calculus.ConstantFormula;
-import uniol.synthesis.adt.mu_calculus.DisjunctionFormula;
-import uniol.synthesis.adt.mu_calculus.Event;
-import uniol.synthesis.adt.mu_calculus.FixedPoint;
-import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
-import uniol.synthesis.adt.mu_calculus.Formula;
-import uniol.synthesis.adt.mu_calculus.Modality;
-import uniol.synthesis.adt.mu_calculus.ModalityFormula;
-import uniol.synthesis.adt.mu_calculus.NegationFormula;
-import uniol.synthesis.adt.mu_calculus.VariableFormula;
 
 public class FormulaCreator {
 	final private ReferenceQueue<Formula> queue = new ReferenceQueue<>();

@@ -1,4 +1,4 @@
-package uniol.synthesis.util;
+package uniol.synthesis.adt.mu_calculus;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;

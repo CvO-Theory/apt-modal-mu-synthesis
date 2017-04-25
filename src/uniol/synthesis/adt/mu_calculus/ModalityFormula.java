@@ -1,7 +1,5 @@
 package uniol.synthesis.adt.mu_calculus;
 
-import uniol.synthesis.util.FormulaCreator;
-
 public class ModalityFormula extends AbstractFormula {
 	final private Modality modality;
 	final private Event event;
@@ -26,7 +24,7 @@ public class ModalityFormula extends AbstractFormula {
 		return formula;
 	}
 
-	public static ModalityFormula modality(FormulaCreator creator, Modality modality, Event event, Formula innerFormula) {
+	static ModalityFormula modality(FormulaCreator creator, Modality modality, Event event, Formula innerFormula) {
 		int hashCode = modality.hashCode() ^ event.hashCode() ^ innerFormula.hashCode();
 		for (Formula formula : creator.getFormulasWithHashCode(hashCode)) {
 			if (formula instanceof ModalityFormula) {

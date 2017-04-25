@@ -4,13 +4,14 @@ import java.util.Deque;
 import java.util.ArrayDeque;
 
 import uniol.synthesis.adt.mu_calculus.Formula;
-import uniol.synthesis.adt.mu_calculus.ConstantFormula;
 import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
+import uniol.synthesis.adt.mu_calculus.ConstantFormula;
 import uniol.synthesis.adt.mu_calculus.DisjunctionFormula;
+import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
+import uniol.synthesis.adt.mu_calculus.FormulaCreator;
+import uniol.synthesis.adt.mu_calculus.ModalityFormula;
 import uniol.synthesis.adt.mu_calculus.NegationFormula;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
-import uniol.synthesis.adt.mu_calculus.ModalityFormula;
-import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
 
 public class FormulaTransformer extends RecursiveFormulaWalker {
 	private final Deque<Formula> resultStack = new ArrayDeque<>();

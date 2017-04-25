@@ -1,7 +1,5 @@
 package uniol.synthesis.adt.mu_calculus;
 
-import uniol.synthesis.util.FormulaCreator;
-
 public class NegationFormula extends AbstractFormula {
 	final private Formula formula;
 
@@ -14,7 +12,7 @@ public class NegationFormula extends AbstractFormula {
 		return formula;
 	}
 
-	public static NegationFormula negate(FormulaCreator creator, Formula innerFormula) {
+	static NegationFormula negate(FormulaCreator creator, Formula innerFormula) {
 		int hashCode = ~innerFormula.hashCode();
 		for (Formula formula : creator.getFormulasWithHashCode(hashCode)) {
 			if (formula instanceof NegationFormula) {

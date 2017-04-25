@@ -1,7 +1,5 @@
 package uniol.synthesis.adt.mu_calculus;
 
-import uniol.synthesis.util.FormulaCreator;
-
 public class VariableFormula extends AbstractFormula {
 	private final String var;
 
@@ -14,7 +12,7 @@ public class VariableFormula extends AbstractFormula {
 		return var;
 	}
 
-	public static VariableFormula variable(FormulaCreator creator, String var) {
+	static VariableFormula variable(FormulaCreator creator, String var) {
 		int hashCode = var.hashCode();
 		for (Formula formula : creator.getFormulasWithHashCode(hashCode)) {
 			if (formula instanceof VariableFormula) {

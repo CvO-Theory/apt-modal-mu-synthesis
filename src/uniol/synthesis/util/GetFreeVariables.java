@@ -8,6 +8,7 @@ import org.apache.commons.collections4.Bag;
 import org.apache.commons.collections4.bag.HashBag;
 
 import uniol.synthesis.adt.mu_calculus.Formula;
+import uniol.synthesis.adt.mu_calculus.FormulaCreator;
 import uniol.synthesis.adt.mu_calculus.ConstantFormula;
 import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
 import uniol.synthesis.adt.mu_calculus.DisjunctionFormula;

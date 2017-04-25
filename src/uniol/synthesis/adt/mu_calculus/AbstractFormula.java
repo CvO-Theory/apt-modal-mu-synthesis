@@ -2,7 +2,6 @@ package uniol.synthesis.adt.mu_calculus;
 
 import java.util.Deque;
 
-import uniol.synthesis.util.FormulaCreator;
 import uniol.synthesis.util.NonRecursive;
 import uniol.synthesis.util.PrintFormula;
 

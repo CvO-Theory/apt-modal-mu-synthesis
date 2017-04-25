@@ -7,11 +7,11 @@ import static org.hamcrest.Matchers.*;
 import uniol.synthesis.adt.mu_calculus.Event;
 import uniol.synthesis.adt.mu_calculus.FixedPoint;
 import uniol.synthesis.adt.mu_calculus.Formula;
+import uniol.synthesis.adt.mu_calculus.FormulaCreator;
 import uniol.synthesis.adt.mu_calculus.Modality;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
 import uniol.synthesis.experiment.ParseException;
 import uniol.synthesis.experiment.Parser;
-import uniol.synthesis.util.FormulaCreator;
 
 public class ParserTest {
 	private FormulaCreator creator = new FormulaCreator();

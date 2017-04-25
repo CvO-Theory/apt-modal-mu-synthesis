@@ -1,7 +1,5 @@
 package uniol.synthesis.adt.mu_calculus;
 
-import uniol.synthesis.util.FormulaCreator;
-
 public class ConstantFormula extends AbstractFormula {
 	private final boolean value;
 
@@ -14,7 +12,7 @@ public class ConstantFormula extends AbstractFormula {
 		return value;
 	}
 
-	public static ConstantFormula constant(FormulaCreator creator, boolean value) {
+	static ConstantFormula constant(FormulaCreator creator, boolean value) {
 		int hashCode = Boolean.valueOf(value).hashCode();
 		for (Formula formula : creator.getFormulasWithHashCode(hashCode)) {
 			if (formula instanceof ConstantFormula) {

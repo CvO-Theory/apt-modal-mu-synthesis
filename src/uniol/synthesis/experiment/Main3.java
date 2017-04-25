@@ -5,7 +5,7 @@ import java.util.Deque;
 import java.util.ArrayDeque;
 
 import uniol.synthesis.adt.mu_calculus.Formula;
-import uniol.synthesis.util.FormulaCreator;
+import uniol.synthesis.adt.mu_calculus.FormulaCreator;
 import uniol.synthesis.tableau.TableauBuilder;
 import uniol.synthesis.tableau.TableauPrinter;
 import uniol.synthesis.tableau.Tableau;

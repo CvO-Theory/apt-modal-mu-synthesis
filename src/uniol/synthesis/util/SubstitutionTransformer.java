@@ -8,6 +8,7 @@ import org.apache.commons.collections4.bag.HashBag;
 
 import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
 import uniol.synthesis.adt.mu_calculus.Formula;
+import uniol.synthesis.adt.mu_calculus.FormulaCreator;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
 
 public class SubstitutionTransformer extends FormulaTransformer {
