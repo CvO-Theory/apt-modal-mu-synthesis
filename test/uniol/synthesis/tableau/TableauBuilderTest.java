@@ -460,4 +460,39 @@ public class TableauBuilderTest {
 		assertThat(new TableauBuilder().createTableaus(s, f), containsInAnyOrder(
 					isSuccessfulTableau(false), isSuccessfulTableau(false)));
 	}
+
+	@Test
+	public void testABCWord() {
+		State s0 = getABCState();
+		State s1 = s0.getPostsetNodesByLabel("a").iterator().next();
+		State s2 = s1.getPostsetNodesByLabel("b").iterator().next();
+		State s3 = s2.getPostsetNodesByLabel("c").iterator().next();
+
+		FormulaCreator creator = new FormulaCreator();
+		Formula inner = creator.modality(Modality.UNIVERSAL, new Event("z"), creator.constant(false));
+		Formula formula = creator.fixedPoint(FixedPoint.LEAST, creator.variable("X"),
+				creator.disjunction(creator.modality(Modality.EXISTENTIAL, new Event("a"), creator.variable("X")),
+					creator.disjunction(creator.modality(Modality.EXISTENTIAL, new Event("b"), creator.variable("X")),
+						creator.disjunction(creator.modality(Modality.EXISTENTIAL, new Event("c"), creator.variable("X")),
+							inner))));
+
+		assertThat(new TableauBuilder().createTableaus(s0, formula), containsInAnyOrder(
+					isSuccessfulTableau(false), isSuccessfulTableau(false),
+					isSuccessfulTableau(false), isSuccessfulTableau(false),
+					isSuccessfulTableau(false), isSuccessfulTableau(false),
+					isSuccessfulTableau(false), isSuccessfulTableau(false),
+					isSuccessfulTableau(false),
+					both(isSuccessfulTableau(true)).and(hasLeaves(contains(
+								both(hasFormula(inner))
+								.and(hasState(s0))))),
+					both(isSuccessfulTableau(true)).and(hasLeaves(contains(
+								both(hasFormula(inner))
+								.and(hasState(s1))))),
+					both(isSuccessfulTableau(true)).and(hasLeaves(contains(
+								both(hasFormula(inner))
+								.and(hasState(s2))))),
+					both(isSuccessfulTableau(true)).and(hasLeaves(contains(
+								both(hasFormula(inner))
+								.and(hasState(s3)))))));
+	}
 }
