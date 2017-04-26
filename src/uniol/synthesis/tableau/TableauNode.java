@@ -72,9 +72,16 @@ public class TableauNode {
 		Pair<State, VariableFormula> pair = new Pair<>(state, var);
 		Formula old = newConstantDefinitions.put(var, inner);
 		newExpansions.add(pair);
-		if (old != null && !old.equals(inner))
+		if (old != null)
 			throw new IllegalArgumentException();
-		return new TableauNode(this.state, inner, newConstantDefinitions, newExpansions);
+		return new TableauNode(this.state, var, newConstantDefinitions, newExpansions);
+	}
+
+	public TableauNode recordExpansion(VariableFormula var, Formula inner) {
+		Set<Pair<State, VariableFormula>> newExpansions = new HashSet<>(expansionsAbove);
+		Pair<State, VariableFormula> pair = new Pair<>(state, var);
+		newExpansions.add(pair);
+		return new TableauNode(this.state, inner, this.constantDefinitions, newExpansions);
 	}
 
 	public boolean wasAlreadyExpanded() {

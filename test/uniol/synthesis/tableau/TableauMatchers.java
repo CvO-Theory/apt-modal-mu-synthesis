@@ -24,7 +24,7 @@ public class TableauMatchers {
 		};
 	}
 
-	static public Matcher<TableauNode> hasState(final Matcher<State> stateMatcher) {
+	static public Matcher<TableauNode> hasState(final Matcher<? super State> stateMatcher) {
 		return new FeatureMatcher<TableauNode, State>(stateMatcher, "getState", "getState") {
 			@Override
 			protected State featureValueOf(TableauNode node) {
@@ -33,7 +33,11 @@ public class TableauMatchers {
 		};
 	}
 
-	static public Matcher<TableauNode> hasFormula(final Matcher<Formula> formulaMatcher) {
+	static public Matcher<TableauNode> hasState(State state) {
+		return hasState(equalTo(state));
+	}
+
+	static public Matcher<TableauNode> hasFormula(final Matcher<? super Formula> formulaMatcher) {
 		return new FeatureMatcher<TableauNode, Formula>(formulaMatcher, "getFormula", "getFormula") {
 			@Override
 			protected Formula featureValueOf(TableauNode node) {

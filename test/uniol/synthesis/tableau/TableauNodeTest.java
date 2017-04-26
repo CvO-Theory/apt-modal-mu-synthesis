@@ -44,6 +44,7 @@ public class TableauNodeTest {
 		State state = getABCState();
 
 		TableauNode node1 = new TableauNode(state, creator.constant(true));
+		assertThat(node1, equalTo(node1));
 		assertThat(node1, not(equalTo((Object) "foo")));
 		assertThat(new TableauNode(state, creator.constant(true)), equalTo(node1));
 		assertThat(new TableauNode(state, creator.constant(true)).hashCode(), equalTo(node1.hashCode()));
@@ -53,8 +54,11 @@ public class TableauNodeTest {
 		state = getABCState();
 		assertThat(new TableauNode(state, creator.constant(true)), not(equalTo(node1)));
 
+		State afterA = state.getPostsetNodesByLabel("a").iterator().next();
 		FixedPointFormula fp = creator.fixedPoint(FixedPoint.LEAST, creator.variable("x"), creator.constant(false));
-		assertThat(node1.addExpansion(creator.variable("x"), fp), not(equalTo(node1)));
+		TableauNode node2 = node1.addExpansion(creator.variable("x"), fp).createChild(state, fp);
+		TableauNode node3 = node1.createChild(afterA, fp).addExpansion(creator.variable("x"), fp).createChild(state, fp);
+		assertThat(node2, not(equalTo(node3)));
 	}
 
 	@Test
@@ -65,9 +69,8 @@ public class TableauNodeTest {
 		VariableFormula x = creator.variable("x");
 		FixedPointFormula fp = creator.fixedPoint(FixedPoint.GREATEST, x, x);
 
-		TableauNode node1 = new TableauNode(state, x).addExpansion(x, fp);
-		assertThat(node1.createChild(afterA, x), not(equalTo(node1)));
-		assertThat(node1.createChild(afterA, x).addExpansion(x, fp).createChild(state, x), not(equalTo(node1)));
+		TableauNode node1 = new TableauNode(state, x);
+		assertThat(node1.addExpansion(x, fp), not(equalTo(node1)));
 	}
 
 	@Test
@@ -125,10 +128,10 @@ public class TableauNodeTest {
 		TableauNode next = node.addExpansion(fresh, formula);
 		assertThat(next, not(equalTo(node)));
 		assertThat(next, hasState(equalTo(state)));
-		assertThat(next, hasFormula(equalTo((Formula) formula)));
+		assertThat(next, hasFormula(equalTo((Formula) fresh)));
 		assertThat(next.getDefinition(fresh), equalTo(formula));
 		assertThat(next.getDefinition(x), nullValue());
-		assertThat(next.wasAlreadyExpanded(), is(false));
+		assertThat(next.createChild(formula).wasAlreadyExpanded(), is(false));
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
@@ -162,7 +165,7 @@ public class TableauNodeTest {
 		TableauNode node2 = node1.createChild(afterA, x);
 		assertThat(node2.wasAlreadyExpanded(), is(false));
 
-		TableauNode node3 = node2.addExpansion(x, fp).createChild(state, x);
+		TableauNode node3 = node2.recordExpansion(x, fp).createChild(state, x);
 		assertThat(node3.wasAlreadyExpanded(), is(true));
 
 		TableauNode node4 = node3.createChild(state, x);
