@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.collections4.Transformer;
+
 import uniol.apt.adt.ts.State;
 import uniol.apt.util.Pair;
 
@@ -56,6 +58,15 @@ public class TableauNode {
 			return ((ConstantFormula) formula).getValue();
 		}
 		return false;
+	}
+
+	public TableauNode transform(Transformer<State, State> transformer) {
+		Set<Pair<State, VariableFormula>> newExpansions = new HashSet<>();
+		for (Pair<State, VariableFormula> pair : this.expansionsAbove) {
+			newExpansions.add(new Pair<State, VariableFormula>(
+						transformer.transform(pair.getFirst()), pair.getSecond()));
+		}
+		return new TableauNode(transformer.transform(state), formula, this.constantDefinitions, newExpansions);
 	}
 
 	public TableauNode createChild(State st, Formula fm) {

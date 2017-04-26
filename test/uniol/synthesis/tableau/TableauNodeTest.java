@@ -1,5 +1,7 @@
 package uniol.synthesis.tableau;
 
+import org.apache.commons.collections4.TransformerUtils;
+
 import uniol.apt.adt.ts.State;
 import uniol.apt.adt.ts.TransitionSystem;
 
@@ -165,5 +167,33 @@ public class TableauNodeTest {
 
 		TableauNode node5 = node4.createChild(state, x);
 		assertThat(node5.wasAlreadyExpanded(), is(true));
+	}
+
+	@Test
+	public void testTransformSimple() {
+		Formula formula = new FormulaCreator().constant(true);
+		State oldState = getABCState();
+		State newState = getABCState();
+
+		assertThat(oldState, not(equalTo(newState)));
+		TableauNode oldNode = new TableauNode(oldState, formula);
+		TableauNode newNode = oldNode.transform(TransformerUtils.<State, State>constantTransformer(newState));
+
+		assertThat(newNode, hasStateAndFormula(newState, formula));
+	}
+
+	@Test
+	public void testTransformWithExpansion() {
+		VariableFormula formula = new FormulaCreator().variable("X");
+		State oldState = getABCState();
+		State newState = getABCState();
+
+		assertThat(oldState, not(equalTo(newState)));
+		TableauNode oldNode = new TableauNode(oldState, formula).recordExpansion(formula, formula);
+		TableauNode newNode = oldNode.transform(TransformerUtils.<State, State>constantTransformer(newState));
+
+		assertThat(newNode, hasStateAndFormula(newState, formula));
+		assertThat(newNode.wasAlreadyExpanded(), is(true));
+		assertThat(newNode.createChild(oldState, formula).wasAlreadyExpanded(), is(false));
 	}
 }
