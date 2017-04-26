@@ -1,4 +1,4 @@
-package uniol.synthesis.tableau;
+package uniol.synthesis.expansion;
 
 import static java.util.Collections.singleton;
 
@@ -14,6 +14,8 @@ import uniol.synthesis.adt.mu_calculus.Event;
 import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.FormulaCreator;
 import uniol.synthesis.adt.mu_calculus.Modality;
+import uniol.synthesis.tableau.Tableau;
+import uniol.synthesis.tableau.TableauNode;
 
 public class MissingArcsFinderTest {
 	@Test

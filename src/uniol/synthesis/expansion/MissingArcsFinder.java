@@ -1,4 +1,4 @@
-package uniol.synthesis.tableau;
+package uniol.synthesis.expansion;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -9,6 +9,8 @@ import uniol.apt.util.Pair;
 import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.Modality;
 import uniol.synthesis.adt.mu_calculus.ModalityFormula;
+import uniol.synthesis.tableau.Tableau;
+import uniol.synthesis.tableau.TableauNode;
 
 public class MissingArcsFinder {
 	public Set<Pair<State, String>> findMissing(Tableau tableau) {

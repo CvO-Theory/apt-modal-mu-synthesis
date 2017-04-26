@@ -15,8 +15,8 @@ import uniol.apt.module.ModuleOutput;
 import uniol.apt.module.ModuleOutputSpec;
 import uniol.apt.module.exception.ModuleException;
 import uniol.synthesis.adt.mu_calculus.Formula;
+import uniol.synthesis.expansion.MissingArcsFinder;
 import uniol.synthesis.tableau.GraphvizProgressCallback;
-import uniol.synthesis.tableau.MissingArcsFinder;
 import uniol.synthesis.tableau.Tableau;
 import uniol.synthesis.tableau.TableauBuilder;
 
