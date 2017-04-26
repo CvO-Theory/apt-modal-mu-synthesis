@@ -412,4 +412,52 @@ public class TableauBuilderTest {
 		assertThat(new TableauBuilder().createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
 					.and(hasLeaves(contains(new TableauNode(state, formula))))));
 	}
+
+	private State getExampleFromPaper() {
+		// See Stirling, Walker, "Local model checking in the modal mu-calculus", Theoretical Computer Science
+		// 89 (1991) 161-177, Elsevier. The examples from page 168f were slightly modified.
+		TransitionSystem ts = new TransitionSystem();
+		ts.createStates("s", "t", "u");
+		ts.setInitialState("s");
+		ts.createArc("s", "t", "a");
+		ts.createArc("t", "s", "a");
+		ts.createArc("t", "u", "b");
+		return ts.getNode("s");
+	}
+
+	@Test
+	public void testExampleFromPaper1() {
+		State s = getExampleFromPaper();
+		FormulaCreator creator = new FormulaCreator();
+		Formula f = creator.fixedPoint(FixedPoint.GREATEST, creator.variable("Z"),
+				creator.fixedPoint(FixedPoint.LEAST, creator.variable("Y"),
+					creator.modality(Modality.UNIVERSAL, new Event("a"), creator.disjunction(
+							creator.conjunction(
+								creator.modality(Modality.EXISTENTIAL, new Event("b"),
+									creator.constant(true)),
+								creator.variable("Z")), creator.variable("Y")))));
+
+		// There are a total of five tableaus according to the definition of the paper, one of which is
+		// successful. However, this implementation 'optimises' and does not generate tableaus which fail
+		// because a least fixed point recursed to itself. That leaves one successful and two failing tableaus.
+
+		assertThat(new TableauBuilder().createTableaus(s, f), containsInAnyOrder(isSuccessfulTableau(true),
+					isSuccessfulTableau(false), isSuccessfulTableau(false)));
+	}
+
+	@Test
+	public void testExampleFromPaper2() {
+		State s = getExampleFromPaper();
+		FormulaCreator creator = new FormulaCreator();
+		Formula f = creator.fixedPoint(FixedPoint.LEAST, creator.variable("Y"),
+				creator.fixedPoint(FixedPoint.GREATEST, creator.variable("Z"),
+					creator.modality(Modality.UNIVERSAL, new Event("a"), creator.conjunction(
+							creator.disjunction(
+								creator.modality(Modality.EXISTENTIAL, new Event("b"),
+									creator.constant(true)),
+								creator.variable("Y")), creator.variable("Z")))));
+
+		assertThat(new TableauBuilder().createTableaus(s, f), containsInAnyOrder(
+					isSuccessfulTableau(false), isSuccessfulTableau(false)));
+	}
 }
