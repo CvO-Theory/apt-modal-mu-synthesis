@@ -15,7 +15,7 @@ import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.apt.adt.ts.State;
 
 public class TableauMatchers {
-	static public Matcher<TableauNode> isSuccessful(final boolean expected) {
+	static public Matcher<TableauNode> isSuccessfulNode(final boolean expected) {
 		return new FeatureMatcher<TableauNode, Boolean>(equalTo(expected), "isSuccessful", "isSuccessful") {
 			@Override
 			protected Boolean featureValueOf(TableauNode node) {
@@ -50,11 +50,20 @@ public class TableauMatchers {
 		return hasFormula(equalTo(formula));
 	}
 
-	static public Matcher<Tableau> hasLeaves(final Matcher<Set<TableauNode>> nodesMatcher) {
+	static public Matcher<Tableau> hasLeaves(final Matcher<Iterable<? extends TableauNode>> nodesMatcher) {
 		return new FeatureMatcher<Tableau, Set<TableauNode>>(nodesMatcher, "getLeaves", "getLeaves") {
 			@Override
-			protected Set<TableauNode> featureValueOf(Tableau node) {
-				return node.getLeaves();
+			protected Set<TableauNode> featureValueOf(Tableau tableau) {
+				return tableau.getLeaves();
+			}
+		};
+	}
+
+	static public Matcher<Tableau> isSuccessfulTableau(final boolean expected) {
+		return new FeatureMatcher<Tableau, Boolean>(equalTo(expected), "isSuccessful", "isSuccessful") {
+			@Override
+			protected Boolean featureValueOf(Tableau tableau) {
+				return tableau.isSuccessful();
 			}
 		};
 	}

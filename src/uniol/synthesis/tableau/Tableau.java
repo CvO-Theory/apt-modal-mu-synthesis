@@ -15,4 +15,11 @@ public class Tableau {
 	public Set<TableauNode> getLeaves() {
 		return leaves;
 	}
+
+	public boolean isSuccessful() {
+		for (TableauNode node : leaves)
+			if (!node.isSuccessful())
+				return false;
+		return true;
+	}
 }

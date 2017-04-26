@@ -78,19 +78,19 @@ public class TableauNodeTest {
 		State state = getABCState();
 		VariableFormula someFormula = creator.variable("X");
 
-		assertThat(new TableauNode(state, creator.constant(false)), isSuccessful(false));
-		assertThat(new TableauNode(state, creator.constant(true)), isSuccessful(true));
-		assertThat(new TableauNode(state, creator.negate(someFormula)), isSuccessful(false));
-		assertThat(new TableauNode(state, creator.conjunction(someFormula, someFormula)), isSuccessful(false));
-		assertThat(new TableauNode(state, creator.disjunction(someFormula, someFormula)), isSuccessful(false));
-		assertThat(new TableauNode(state, creator.variable("X")), isSuccessful(false));
-		assertThat(new TableauNode(state, creator.fixedPoint(FixedPoint.LEAST, someFormula, someFormula)), isSuccessful(false));
+		assertThat(new TableauNode(state, creator.constant(false)), isSuccessfulNode(false));
+		assertThat(new TableauNode(state, creator.constant(true)), isSuccessfulNode(true));
+		assertThat(new TableauNode(state, creator.negate(someFormula)), isSuccessfulNode(false));
+		assertThat(new TableauNode(state, creator.conjunction(someFormula, someFormula)), isSuccessfulNode(false));
+		assertThat(new TableauNode(state, creator.disjunction(someFormula, someFormula)), isSuccessfulNode(false));
+		assertThat(new TableauNode(state, creator.variable("X")), isSuccessfulNode(false));
+		assertThat(new TableauNode(state, creator.fixedPoint(FixedPoint.LEAST, someFormula, someFormula)), isSuccessfulNode(false));
 
-		assertThat(new TableauNode(state, creator.modality(Modality.EXISTENTIAL, new Event("z"), someFormula)), isSuccessful(false));
-		assertThat(new TableauNode(state, creator.modality(Modality.UNIVERSAL,   new Event("z"), someFormula)), isSuccessful(true));
+		assertThat(new TableauNode(state, creator.modality(Modality.EXISTENTIAL, new Event("z"), someFormula)), isSuccessfulNode(false));
+		assertThat(new TableauNode(state, creator.modality(Modality.UNIVERSAL,   new Event("z"), someFormula)), isSuccessfulNode(true));
 
-		assertThat(new TableauNode(state, creator.modality(Modality.EXISTENTIAL, new Event("a"), someFormula)), isSuccessful(false));
-		assertThat(new TableauNode(state, creator.modality(Modality.UNIVERSAL,   new Event("a"), someFormula)), isSuccessful(false));
+		assertThat(new TableauNode(state, creator.modality(Modality.EXISTENTIAL, new Event("a"), someFormula)), isSuccessfulNode(false));
+		assertThat(new TableauNode(state, creator.modality(Modality.UNIVERSAL,   new Event("a"), someFormula)), isSuccessfulNode(false));
 	}
 
 	@Test
