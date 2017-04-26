@@ -1,2 +1,5 @@
 classes/
+test-classes/
+generated-src/
+reports/
 modal-mu-synthesis.jar
