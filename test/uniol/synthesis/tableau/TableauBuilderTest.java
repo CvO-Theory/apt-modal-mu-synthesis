@@ -217,8 +217,6 @@ public class TableauBuilderTest {
 		assertThat(TableauBuilder.expandNode(node), contains(empty()));
 	}
 
-
-	/*
 	@Test
 	public void testFalse() {
 		State state = getABCState();
@@ -232,7 +230,186 @@ public class TableauBuilderTest {
 		State state = getABCState();
 		Formula formula = new FormulaCreator().constant(true);
 
-		assertThat(new TableauBuilder().createTableaus(state, formula), hasNSuccessfulTableaus(1));
+		assertThat(new TableauBuilder().createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
+					.and(hasLeaves(contains(new TableauNode(state, formula))))));
 	}
-	*/
+
+	@Test
+	public void testConjuncton1() {
+		State state = getABCState();
+		FormulaCreator creator = new FormulaCreator();
+		Formula True = creator.constant(true);
+		Formula False = creator.constant(false);
+		Formula formula = creator.conjunction(True, False);
+
+		assertThat(new TableauBuilder().createTableaus(state, formula), hasNSuccessfulTableaus(0));
+	}
+
+	@Test
+	public void testConjuncton2() {
+		State state = getABCState();
+		FormulaCreator creator = new FormulaCreator();
+		Formula True = creator.constant(true);
+		Formula formula = creator.conjunction(True, True);
+
+		assertThat(new TableauBuilder().createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
+					.and(hasLeaves(contains(new TableauNode(state, True))))));
+	}
+
+	@Test
+	public void testConjuncton3() {
+		State state = getABCState();
+		FormulaCreator creator = new FormulaCreator();
+		Formula True = creator.constant(true);
+		Formula right = creator.modality(Modality.UNIVERSAL, new Event("z"), True);
+		Formula formula = creator.conjunction(True, right);
+		assertThat(new TableauBuilder().createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
+					.and(hasLeaves(containsInAnyOrder(new TableauNode(state, True),
+								new TableauNode(state, right))))));
+	}
+
+	@Test
+	public void testDisjunction0() {
+		State state = getABCState();
+		FormulaCreator creator = new FormulaCreator();
+		Formula False = creator.constant(false);
+		Formula formula = creator.disjunction(False, False);
+
+		assertThat(new TableauBuilder().createTableaus(state, formula), hasNSuccessfulTableaus(0));
+	}
+
+	@Test
+	public void testDisjunction1() {
+		State state = getABCState();
+		FormulaCreator creator = new FormulaCreator();
+		Formula True = creator.constant(true);
+		Formula False = creator.constant(false);
+		Formula formula = creator.disjunction(True, False);
+
+		assertThat(new TableauBuilder().createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
+					.and(hasLeaves(contains(new TableauNode(state, True))))));
+	}
+
+	@Test
+	public void testDisjunction2() {
+		State state = getABCState();
+		FormulaCreator creator = new FormulaCreator();
+		Formula True = creator.constant(true);
+		Formula formula = creator.disjunction(True, True);
+
+		assertThat(new TableauBuilder().createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
+					.and(hasLeaves(contains(new TableauNode(state, True))))));
+	}
+
+	@Test
+	public void testDisjunction3() {
+		State state = getABCState();
+		FormulaCreator creator = new FormulaCreator();
+		Formula True = creator.constant(true);
+		Formula right = creator.modality(Modality.UNIVERSAL, new Event("z"), True);
+		Formula formula = creator.disjunction(True, right);
+		assertThat(new TableauBuilder().createTableaus(state, formula), containsInAnyOrder(
+					both(isSuccessfulTableau(true)).and(hasLeaves(contains(
+								new TableauNode(state, True)))),
+					both(isSuccessfulTableau(true)).and(hasLeaves(contains(
+								new TableauNode(state, right))))));
+	}
+
+	@Test
+	public void testFixedPointFormula1() {
+		State state = getABCState();
+		FormulaCreator creator = new FormulaCreator();
+		Formula formula = creator.fixedPoint(FixedPoint.GREATEST, creator.variable("X"), creator.constant(true));
+
+		assertThat(new TableauBuilder().createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
+					.and(hasLeaves(contains(both(hasState(state))
+								.and(hasFormula(creator.constant(true))))))));
+	}
+
+	@Test
+	public void testFixedPointFormula2() {
+		State state = getABCState();
+		FormulaCreator creator = new FormulaCreator();
+		Formula formula = creator.fixedPoint(FixedPoint.LEAST, creator.variable("X"), creator.constant(true));
+
+		assertThat(new TableauBuilder().createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
+					.and(hasLeaves(contains(both(hasState(state))
+								.and(hasFormula(creator.constant(true))))))));
+	}
+
+	@Test
+	public void testFixedPointFormula3() {
+		TransitionSystem ts = new TransitionSystem();
+		ts.createStates("s0");
+		ts.setInitialState("s0");
+		ts.createArc("s0", "s0", "a");
+		State state = ts.getNode("s0");
+
+		FormulaCreator creator = new FormulaCreator();
+		VariableFormula x = creator.variable("X");
+		Formula formula = creator.fixedPoint(FixedPoint.GREATEST, x,
+				creator.modality(Modality.EXISTENTIAL, new Event("a"), x));
+
+		assertThat(new TableauBuilder().createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
+					.and(hasLeaves(contains(both(hasState(state))
+								.and(hasFormula(creator.constant(true))))))));
+	}
+
+	@Test
+	public void testFixedPointFormula4() {
+		TransitionSystem ts = new TransitionSystem();
+		ts.createStates("s0");
+		ts.setInitialState("s0");
+		ts.createArc("s0", "s0", "a");
+		State state = ts.getNode("s0");
+
+		FormulaCreator creator = new FormulaCreator();
+		VariableFormula x = creator.variable("X");
+		Formula formula = creator.fixedPoint(FixedPoint.LEAST, x,
+				creator.modality(Modality.EXISTENTIAL, new Event("a"), x));
+
+		assertThat(new TableauBuilder().createTableaus(state, formula), hasNSuccessfulTableaus(0));
+	}
+
+	@Test
+	public void testModality1() {
+		State state = getABCState();
+		State afterA = state.getPostsetNodesByLabel("a").iterator().next();
+		FormulaCreator creator = new FormulaCreator();
+		Formula formula = creator.modality(Modality.EXISTENTIAL, new Event("a"), creator.constant(true));
+
+		assertThat(new TableauBuilder().createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
+					.and(hasLeaves(contains(new TableauNode(afterA, creator.constant(true)))))));
+	}
+
+	@Test
+	public void testModality2() {
+		State state = getABCState();
+		State afterA = state.getPostsetNodesByLabel("a").iterator().next();
+		FormulaCreator creator = new FormulaCreator();
+		Formula formula = creator.modality(Modality.UNIVERSAL, new Event("a"), creator.constant(true));
+
+		assertThat(new TableauBuilder().createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
+					.and(hasLeaves(contains(new TableauNode(afterA, creator.constant(true)))))));
+	}
+
+	@Test
+	public void testModality3() {
+		State state = getABCState();
+		FormulaCreator creator = new FormulaCreator();
+		Formula formula = creator.modality(Modality.EXISTENTIAL, new Event("z"), creator.constant(true));
+
+		assertThat(new TableauBuilder().createTableaus(state, formula), contains(both(isSuccessfulTableau(false))
+					.and(hasLeaves(contains(new TableauNode(state, formula))))));
+	}
+
+	@Test
+	public void testModality4() {
+		State state = getABCState();
+		FormulaCreator creator = new FormulaCreator();
+		Formula formula = creator.modality(Modality.UNIVERSAL, new Event("z"), creator.constant(true));
+
+		assertThat(new TableauBuilder().createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
+					.and(hasLeaves(contains(new TableauNode(state, formula))))));
+	}
 }

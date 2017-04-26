@@ -1,8 +1,10 @@
 package uniol.synthesis.tableau;
 
+import java.util.ArrayDeque;
 import java.util.Collections;
-import java.util.Set;
 import java.util.HashSet;
+import java.util.Queue;
+import java.util.Set;
 
 import uniol.apt.adt.ts.State;
 
@@ -19,19 +21,90 @@ import uniol.synthesis.util.NonRecursive;
 import static uniol.synthesis.util.SubstitutionTransformer.substitute;
 
 public class TableauBuilder {
+	public Set<Tableau> createTableaus(State state, Formula formula) {
+		return expandTableau(new TableauNode(state, formula));
+	}
+
+	public Set<Tableau> expandTableau(TableauNode node) {
+		Set<Tableau> result = new HashSet<>();
+		new NonRecursive().run(new CreateTableaus(result, node));
+		return result;
+	}
+
+	static private class CreateTableaus implements NonRecursive.Walker {
+		private final Set<Tableau> result;
+		private final Set<TableauNode> leaves = new HashSet<>();
+		private final Queue<ExpandNodeWalker> todo = new ArrayDeque<>();
+
+		private CreateTableaus(Set<Tableau> result, TableauNode node) {
+			this.result = result;
+			this.todo.add(new ExpandNodeWalker(node));
+		}
+
+		private CreateTableaus(CreateTableaus toCopy) {
+			this.result = toCopy.result;
+			this.leaves.addAll(toCopy.leaves);
+			this.todo.addAll(toCopy.todo);
+		}
+
+		@Override
+		public void walk(NonRecursive engine) {
+			ExpandNodeWalker next = todo.poll();
+			if (next == null) {
+				// We are done creating a tableau
+				result.add(new Tableau(leaves));
+				return;
+			}
+
+			next.walk(engine);
+			Set<Set<TableauNode>> expansion = next.getExpansion();
+			if (expansion == null)
+				// This is false / does not hold.
+				return;
+
+			if (expansion.size() == 1) {
+				// A conjunction of nodes. Follow them.
+				Set<TableauNode> children = expansion.iterator().next();
+				if (children.isEmpty()) {
+					// No children, thus this is a leave
+					leaves.add(next.getNode());
+				} else {
+					for (TableauNode child : children) {
+						todo.add(new ExpandNodeWalker(child));
+					}
+				}
+				// Continue handling the children
+				engine.enqueue(this);
+			} else {
+				// A disjunction of nodes, we have to split
+				for (Set<TableauNode> part : expansion) {
+					CreateTableaus split = new CreateTableaus(this);
+					for (TableauNode child : part) {
+						split.todo.add(new ExpandNodeWalker(child));
+					}
+					engine.enqueue(split);
+				}
+			}
+		}
+	}
+
 	static Set<Set<TableauNode>> expandNode(TableauNode node) {
 		ExpandNodeWalker walker = new ExpandNodeWalker(node);
 		walker.walk(null);
 		return walker.getExpansion();
 	}
 
-	static class ExpandNodeWalker extends FormulaWalker {
+	static private class ExpandNodeWalker extends FormulaWalker {
 		private final TableauNode node;
 		private Set<Set<TableauNode>> expansion;
 
 		private ExpandNodeWalker(TableauNode node) {
 			super(node.getFormula());
 			this.node = node;
+		}
+
+		private TableauNode getNode() {
+			return node;
 		}
 
 		Set<Set<TableauNode>> getExpansion() {
@@ -81,7 +154,9 @@ public class TableauBuilder {
 						expansion = null;
 						break;
 					case GREATEST:
-						expansion = Collections.singleton(Collections.<TableauNode>emptySet());
+						expansion = Collections.singleton(Collections.singleton(
+									node.createChild(definition.getCreator()
+										.constant(true))));
 						break;
 				}
 			} else {
