@@ -50,6 +50,10 @@ public class TableauMatchers {
 		return hasFormula(equalTo(formula));
 	}
 
+	static public Matcher<TableauNode> hasStateAndFormula(State state, Formula formula) {
+		return both(hasState(state)).and(hasFormula(formula));
+	}
+
 	static public Matcher<Tableau> hasLeaves(final Matcher<Iterable<? extends TableauNode>> nodesMatcher) {
 		return new FeatureMatcher<Tableau, Set<TableauNode>>(nodesMatcher, "getLeaves", "getLeaves") {
 			@Override

@@ -182,7 +182,7 @@ public class TableauBuilderTest {
 		TableauNode node = new TableauNode(state, formula);
 
 		assertThat(TableauBuilder.expandNode(node), contains(contains(
-						both(hasFormula(creator.constant(true))).and(hasState(afterA)))));
+						hasStateAndFormula(afterA, creator.constant(true)))));
 	}
 
 	@Test
@@ -204,7 +204,7 @@ public class TableauBuilderTest {
 		TableauNode node = new TableauNode(state, formula);
 
 		assertThat(TableauBuilder.expandNode(node), contains(contains(
-						both(hasFormula(creator.constant(true))).and(hasState(afterA)))));
+						hasStateAndFormula(afterA, creator.constant(true)))));
 	}
 
 	@Test
@@ -322,8 +322,7 @@ public class TableauBuilderTest {
 		Formula formula = creator.fixedPoint(FixedPoint.GREATEST, creator.variable("X"), creator.constant(true));
 
 		assertThat(new TableauBuilder().createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
-					.and(hasLeaves(contains(both(hasState(state))
-								.and(hasFormula(creator.constant(true))))))));
+					.and(hasLeaves(contains(hasStateAndFormula(state, creator.constant(true)))))));
 	}
 
 	@Test
@@ -333,8 +332,7 @@ public class TableauBuilderTest {
 		Formula formula = creator.fixedPoint(FixedPoint.LEAST, creator.variable("X"), creator.constant(true));
 
 		assertThat(new TableauBuilder().createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
-					.and(hasLeaves(contains(both(hasState(state))
-								.and(hasFormula(creator.constant(true))))))));
+					.and(hasLeaves(contains(hasStateAndFormula(state, creator.constant(true)))))));
 	}
 
 	@Test
@@ -351,8 +349,7 @@ public class TableauBuilderTest {
 				creator.modality(Modality.EXISTENTIAL, new Event("a"), x));
 
 		assertThat(new TableauBuilder().createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
-					.and(hasLeaves(contains(both(hasState(state))
-								.and(hasFormula(creator.constant(true))))))));
+					.and(hasLeaves(contains(hasStateAndFormula(state, creator.constant(true)))))));
 	}
 
 	@Test
@@ -483,16 +480,12 @@ public class TableauBuilderTest {
 					isSuccessfulTableau(false), isSuccessfulTableau(false),
 					isSuccessfulTableau(false),
 					both(isSuccessfulTableau(true)).and(hasLeaves(contains(
-								both(hasFormula(inner))
-								.and(hasState(s0))))),
+								hasStateAndFormula(s0, inner)))),
 					both(isSuccessfulTableau(true)).and(hasLeaves(contains(
-								both(hasFormula(inner))
-								.and(hasState(s1))))),
+								hasStateAndFormula(s1, inner)))),
 					both(isSuccessfulTableau(true)).and(hasLeaves(contains(
-								both(hasFormula(inner))
-								.and(hasState(s2))))),
+								hasStateAndFormula(s2, inner)))),
 					both(isSuccessfulTableau(true)).and(hasLeaves(contains(
-								both(hasFormula(inner))
-								.and(hasState(s3)))))));
+								hasStateAndFormula(s3, inner))))));
 	}
 }

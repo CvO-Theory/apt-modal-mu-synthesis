@@ -34,8 +34,7 @@ public class TableauNodeTest {
 		Formula formula = creator.constant(true);
 
 		TableauNode node = new TableauNode(state, formula);
-		assertThat(node, hasState(sameInstance(state)));
-		assertThat(node, hasFormula(sameInstance(formula)));
+		assertThat(node, hasStateAndFormula(state, formula));
 	}
 
 	@Test
@@ -100,12 +99,10 @@ public class TableauNodeTest {
 
 		TableauNode node1 = new TableauNode(state1, formula1);
 		TableauNode node2 = node1.createChild(state2, formula2);
-		assertThat(node2, hasState(sameInstance(state2)));
-		assertThat(node2, hasFormula(sameInstance(formula2)));
+		assertThat(node2, hasStateAndFormula(state2, formula2));
 
 		TableauNode node3 = node1.createChild(formula2);
-		assertThat(node3, hasState(sameInstance(state1)));
-		assertThat(node3, hasFormula(sameInstance(formula2)));
+		assertThat(node3, hasStateAndFormula(state1, formula2));
 	}
 
 	@Test
@@ -123,8 +120,7 @@ public class TableauNodeTest {
 
 		TableauNode next = node.addExpansion(fresh, formula);
 		assertThat(next, not(equalTo(node)));
-		assertThat(next, hasState(equalTo(state)));
-		assertThat(next, hasFormula(equalTo((Formula) fresh)));
+		assertThat(next, hasStateAndFormula(state, fresh));
 		assertThat(next.getDefinition(fresh), equalTo(formula));
 		assertThat(next.getDefinition(x), nullValue());
 		assertThat(next.createChild(formula).wasAlreadyExpanded(), is(false));
