@@ -65,7 +65,6 @@ public class TableauNodeTest {
 	public void testEqualsExpansion() {
 		FormulaCreator creator = new FormulaCreator();
 		State state = getABCState();
-		State afterA = state.getPostsetNodesByLabel("a").iterator().next();
 		VariableFormula x = creator.variable("x");
 		FixedPointFormula fp = creator.fixedPoint(FixedPoint.GREATEST, x, x);
 
