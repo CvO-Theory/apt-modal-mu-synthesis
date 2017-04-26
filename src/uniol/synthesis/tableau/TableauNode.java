@@ -68,13 +68,10 @@ public class TableauNode {
 
 	public TableauNode addExpansion(VariableFormula var, FixedPointFormula inner) {
 		Map<VariableFormula, FixedPointFormula> newConstantDefinitions = new HashMap<>(constantDefinitions);
-		Set<Pair<State, VariableFormula>> newExpansions = new HashSet<>(expansionsAbove);
-		Pair<State, VariableFormula> pair = new Pair<>(state, var);
 		Formula old = newConstantDefinitions.put(var, inner);
-		newExpansions.add(pair);
 		if (old != null)
 			throw new IllegalArgumentException();
-		return new TableauNode(this.state, var, newConstantDefinitions, newExpansions);
+		return new TableauNode(this.state, var, newConstantDefinitions, this.expansionsAbove);
 	}
 
 	public TableauNode recordExpansion(VariableFormula var, Formula inner) {

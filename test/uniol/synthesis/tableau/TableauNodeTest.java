@@ -54,11 +54,8 @@ public class TableauNodeTest {
 		state = getABCState();
 		assertThat(new TableauNode(state, creator.constant(true)), not(equalTo(node1)));
 
-		State afterA = state.getPostsetNodesByLabel("a").iterator().next();
-		FixedPointFormula fp = creator.fixedPoint(FixedPoint.LEAST, creator.variable("x"), creator.constant(false));
-		TableauNode node2 = node1.addExpansion(creator.variable("x"), fp).createChild(state, fp);
-		TableauNode node3 = node1.createChild(afterA, fp).addExpansion(creator.variable("x"), fp).createChild(state, fp);
-		assertThat(node2, not(equalTo(node3)));
+		TableauNode node2 = node1.recordExpansion(creator.variable("X"), creator.constant(true));
+		assertThat(node1, not(equalTo(node2)));
 	}
 
 	@Test
@@ -159,15 +156,18 @@ public class TableauNodeTest {
 		assertThat(node0.wasAlreadyExpanded(), is(false));
 
 		TableauNode node1 = node0.addExpansion(x, fp).createChild(x);
-		assertThat(node1.wasAlreadyExpanded(), is(true));
+		assertThat(node1.wasAlreadyExpanded(), is(false));
 
-		TableauNode node2 = node1.createChild(afterA, x);
-		assertThat(node2.wasAlreadyExpanded(), is(false));
+		TableauNode node2 = node1.recordExpansion(x, x);
+		assertThat(node2.wasAlreadyExpanded(), is(true));
 
-		TableauNode node3 = node2.recordExpansion(x, fp).createChild(state, x);
-		assertThat(node3.wasAlreadyExpanded(), is(true));
+		TableauNode node3 = node2.createChild(afterA, x);
+		assertThat(node3.wasAlreadyExpanded(), is(false));
 
-		TableauNode node4 = node3.createChild(state, x);
+		TableauNode node4 = node3.recordExpansion(x, fp).createChild(state, x);
 		assertThat(node4.wasAlreadyExpanded(), is(true));
+
+		TableauNode node5 = node4.createChild(state, x);
+		assertThat(node5.wasAlreadyExpanded(), is(true));
 	}
 }

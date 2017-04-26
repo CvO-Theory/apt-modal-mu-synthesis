@@ -84,7 +84,7 @@ public class TableauBuilderTest {
 		Set<Set<TableauNode>> expanded = TableauBuilder.expandNode(node);
 		assertThat(expanded, contains(contains(hasFormula(instanceOf(VariableFormula.class)))));
 		TableauNode expandedNode = expanded.iterator().next().iterator().next();
-		assertThat(expandedNode.wasAlreadyExpanded(), is(true));
+		assertThat(expandedNode.getDefinition((VariableFormula) expandedNode.getFormula()), equalTo(formula));
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
@@ -140,7 +140,8 @@ public class TableauBuilderTest {
 		FormulaCreator creator = new FormulaCreator();
 		VariableFormula formula = creator.variable("X");
 		FixedPointFormula fixedpoint = creator.fixedPoint(FixedPoint.LEAST, formula, formula);
-		TableauNode node = new TableauNode(state, formula).addExpansion(formula, fixedpoint).createChild(formula);
+		TableauNode node = new TableauNode(state, formula).addExpansion(formula, fixedpoint)
+			.recordExpansion(formula, formula);
 
 		assertThat(TableauBuilder.expandNode(node), nullValue());
 	}
@@ -151,9 +152,10 @@ public class TableauBuilderTest {
 		FormulaCreator creator = new FormulaCreator();
 		VariableFormula formula = creator.variable("X");
 		FixedPointFormula fixedpoint = creator.fixedPoint(FixedPoint.GREATEST, formula, formula);
-		TableauNode node = new TableauNode(state, formula).addExpansion(formula, fixedpoint).createChild(formula);
+		TableauNode node = new TableauNode(state, formula).addExpansion(formula, fixedpoint)
+			.recordExpansion(formula, formula);
 
-		assertThat(TableauBuilder.expandNode(node), contains(empty()));
+		assertThat(TableauBuilder.expandNode(node), contains(contains(hasFormula(creator.constant(true)))));
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
