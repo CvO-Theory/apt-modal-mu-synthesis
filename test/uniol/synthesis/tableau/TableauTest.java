@@ -3,11 +3,14 @@ package uniol.synthesis.tableau;
 import java.util.Collections;
 import static java.util.Arrays.asList;
 
+import org.apache.commons.collections4.Transformer;
+
+import uniol.apt.adt.ts.State;
+
 import org.testng.annotations.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static uniol.synthesis.tableau.TableauMatchers.*;
 
 public class TableauTest {
@@ -57,5 +60,24 @@ public class TableauTest {
 		when(n3.isSuccessful()).thenReturn(true);
 		Tableau t = new Tableau(asList(n1, n2, n3));
 		assertThat(t, isSuccessfulTableau(false));
+	}
+
+	@Test
+	public void testTransform() {
+		TableauNode n1 = mock(TableauNode.class);
+		TableauNode n2 = mock(TableauNode.class);
+		TableauNode n3 = mock(TableauNode.class);
+		TableauNode mapped1 = mock(TableauNode.class);
+		TableauNode mapped2 = mock(TableauNode.class);
+		TableauNode mapped3 = mock(TableauNode.class);
+		Transformer<State, State> transformer = mock(Transformer.class);
+
+		when(n1.transform(transformer)).thenReturn(mapped1);
+		when(n2.transform(transformer)).thenReturn(mapped2);
+		when(n3.transform(transformer)).thenReturn(mapped3);
+
+		Tableau t = new Tableau(asList(n1, n2, n3));
+
+		assertThat(t.transform(transformer).getLeaves(), containsInAnyOrder(mapped1, mapped2, mapped3));
 	}
 }
