@@ -71,7 +71,7 @@
 		<jar destfile="modal-mu-synthesis.jar">
 			<fileset dir="classes"/>
 			<manifest>
-				<attribute name="Main-Class" value="uniol.aptgui.Main" />
+				<attribute name="Main-Class" value="uniol.apt.APT" />
 				<attribute name="Class-Path" value="apt/apt.jar" />
 			</manifest>
 		</jar>
