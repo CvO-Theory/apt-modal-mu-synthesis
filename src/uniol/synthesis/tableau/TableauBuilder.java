@@ -18,6 +18,8 @@ import uniol.synthesis.adt.mu_calculus.NegationFormula;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
 import uniol.synthesis.util.FormulaWalker;
 import uniol.synthesis.util.NonRecursive;
+import static uniol.synthesis.util.CleanFormFormulaTransformer.cleanForm;
+import static uniol.synthesis.util.PositiveFormFormulaTransformer.positiveForm;
 import static uniol.synthesis.util.SubstitutionTransformer.substitute;
 
 public class TableauBuilder {
@@ -42,6 +44,7 @@ public class TableauBuilder {
 	}
 
 	public Set<Tableau> createTableaus(State state, Formula formula) {
+		formula = cleanForm(positiveForm(formula));
 		return expandTableau(new TableauNode(state, formula));
 	}
 

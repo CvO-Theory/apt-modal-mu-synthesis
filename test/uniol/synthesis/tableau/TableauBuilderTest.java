@@ -235,6 +235,16 @@ public class TableauBuilderTest {
 	}
 
 	@Test
+	public void testNegation() {
+		State state = getABCState();
+		FormulaCreator creator = new FormulaCreator();
+		Formula formula = creator.negate(creator.constant(false));
+
+		assertThat(new TableauBuilder().createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
+					.and(hasLeaves(contains(new TableauNode(state, creator.constant(true)))))));
+	}
+
+	@Test
 	public void testConjuncton1() {
 		State state = getABCState();
 		FormulaCreator creator = new FormulaCreator();
