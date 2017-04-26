@@ -488,4 +488,73 @@ public class TableauBuilderTest {
 					both(isSuccessfulTableau(true)).and(hasLeaves(contains(
 								hasStateAndFormula(s3, inner))))));
 	}
+
+	@Test
+	public void testProgressCallback1() {
+		final State s0 = getABCState();
+		final State s1 = s0.getPostsetNodesByLabel("a").iterator().next();
+		final State s2 = s1.getPostsetNodesByLabel("b").iterator().next();
+		final State s3 = s2.getPostsetNodesByLabel("c").iterator().next();
+
+		FormulaCreator creator = new FormulaCreator();
+		final Formula formula3 = creator.modality(Modality.UNIVERSAL, new Event("z"), creator.constant(false));
+		final Formula formula2 = creator.modality(Modality.EXISTENTIAL, new Event("c"), formula3);
+		final Formula formula1 = creator.modality(Modality.EXISTENTIAL, new Event("b"), formula2);
+		final Formula formula0 = creator.modality(Modality.EXISTENTIAL, new Event("a"), formula1);
+
+		final int callCount[] = new int[1];
+		TableauBuilder.ProgressCallback callback = new TableauBuilder.ProgressCallback() {
+			@Override
+			public void children(TableauNode node, Set<Set<TableauNode>> children) {
+				switch (callCount[0]++) {
+					case 0:
+						assertThat(node, hasStateAndFormula(s0, formula0));
+						assertThat(children, contains(contains(hasStateAndFormula(s1, formula1))));
+						break;
+					case 1:
+						assertThat(node, hasStateAndFormula(s1, formula1));
+						assertThat(children, contains(contains(hasStateAndFormula(s2, formula2))));
+						break;
+					case 2:
+						assertThat(node, hasStateAndFormula(s2, formula2));
+						assertThat(children, contains(contains(hasStateAndFormula(s3, formula3))));
+						break;
+					case 3:
+						assertThat(node, hasStateAndFormula(s3, formula3));
+						assertThat(children, contains(empty()));
+						break;
+					default:
+						throw new AssertionError("Too many calls to callback");
+				}
+			}
+		};
+		new TableauBuilder(callback).createTableaus(s0, formula0);
+
+		assertThat(callCount[0], equalTo(4));
+	}
+
+	@Test
+	public void testProgressCallback2() {
+		final State s = getABCState();
+		FormulaCreator creator = new FormulaCreator();
+		final Formula formula = creator.constant(false);
+
+		final int callCount[] = new int[1];
+		TableauBuilder.ProgressCallback callback = new TableauBuilder.ProgressCallback() {
+			@Override
+			public void children(TableauNode node, Set<Set<TableauNode>> children) {
+				switch (callCount[0]++) {
+					case 0:
+						assertThat(node, hasStateAndFormula(s, formula));
+						assertThat(children, nullValue());
+						break;
+					default:
+						throw new AssertionError("Too many calls to callback");
+				}
+			}
+		};
+		new TableauBuilder(callback).createTableaus(s, formula);
+
+		assertThat(callCount[0], equalTo(1));
+	}
 }

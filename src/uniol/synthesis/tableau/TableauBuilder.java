@@ -21,27 +21,50 @@ import uniol.synthesis.util.NonRecursive;
 import static uniol.synthesis.util.SubstitutionTransformer.substitute;
 
 public class TableauBuilder {
+	public interface ProgressCallback {
+		public void children(TableauNode node, Set<Set<TableauNode>> children);
+	}
+
+	static private final ProgressCallback NOP_PROGRESS = new ProgressCallback() {
+		@Override
+		public void children(TableauNode node, Set<Set<TableauNode>> children) {
+		}
+	};
+
+	private final ProgressCallback callback;
+
+	public TableauBuilder() {
+		this(NOP_PROGRESS);
+	}
+
+	public TableauBuilder(ProgressCallback callback) {
+		this.callback = callback;
+	}
+
 	public Set<Tableau> createTableaus(State state, Formula formula) {
 		return expandTableau(new TableauNode(state, formula));
 	}
 
 	public Set<Tableau> expandTableau(TableauNode node) {
 		Set<Tableau> result = new HashSet<>();
-		new NonRecursive().run(new CreateTableaus(result, node));
+		new NonRecursive().run(new CreateTableaus(callback, result, node));
 		return result;
 	}
 
 	static private class CreateTableaus implements NonRecursive.Walker {
+		private final ProgressCallback callback;
 		private final Set<Tableau> result;
 		private final Set<TableauNode> leaves = new HashSet<>();
 		private final Queue<ExpandNodeWalker> todo = new ArrayDeque<>();
 
-		private CreateTableaus(Set<Tableau> result, TableauNode node) {
+		private CreateTableaus(ProgressCallback callback, Set<Tableau> result, TableauNode node) {
+			this.callback = callback;
 			this.result = result;
 			this.todo.add(new ExpandNodeWalker(node));
 		}
 
 		private CreateTableaus(CreateTableaus toCopy) {
+			this.callback = toCopy.callback;
 			this.result = toCopy.result;
 			this.leaves.addAll(toCopy.leaves);
 			this.todo.addAll(toCopy.todo);
@@ -58,6 +81,7 @@ public class TableauBuilder {
 
 			next.walk(engine);
 			Set<Set<TableauNode>> expansion = next.getExpansion();
+			callback.children(next.getNode(), expansion);
 			if (expansion == null)
 				// This is false / does not hold.
 				return;
