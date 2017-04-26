@@ -1,5 +1,7 @@
 package uniol.synthesis.modules;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import uniol.apt.adt.ts.TransitionSystem;
@@ -14,6 +16,7 @@ import uniol.apt.module.ModuleOutputSpec;
 import uniol.apt.module.exception.ModuleException;
 import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.tableau.GraphvizProgressCallback;
+import uniol.synthesis.tableau.MissingArcsFinder;
 import uniol.synthesis.tableau.Tableau;
 import uniol.synthesis.tableau.TableauBuilder;
 
@@ -38,6 +41,7 @@ public class ModelCheckerModule extends AbstractModule implements Module {
 	@Override
 	public void provide(ModuleOutputSpec outputSpec) {
 		outputSpec.addReturnValue("result", Boolean.class, ModuleOutputSpec.PROPERTY_SUCCESS);
+		outputSpec.addReturnValue("missing_arcs", String.class);
 		outputSpec.addReturnValue("dot", String.class,
 				ModuleOutputSpec.PROPERTY_FILE, ModuleOutputSpec.PROPERTY_RAW);
 	}
@@ -52,13 +56,17 @@ public class ModelCheckerModule extends AbstractModule implements Module {
 			.createTableaus(lts.getInitialState(), formula);
 
 		boolean success = false;
+		List<String> missingArcs = new ArrayList<>();
 		for (Tableau tableau : tableaus) {
 			success |= tableau.isSuccessful();
 			callback.tableau(tableau);
+			missingArcs.add(new MissingArcsFinder().findMissing(tableau).toString());
 		}
 		String dot = callback.toString();
+		String missing = missingArcs.toString();
 
 		output.setReturnValue("result", Boolean.class, success);
+		output.setReturnValue("missing_arcs", String.class, missing);
 		output.setReturnValue("dot", String.class, dot);
 	}
 
