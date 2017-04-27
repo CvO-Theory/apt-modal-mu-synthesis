@@ -11,6 +11,7 @@ import uniol.apt.adt.ts.State;
 import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
 import uniol.synthesis.adt.mu_calculus.ConstantFormula;
 import uniol.synthesis.adt.mu_calculus.DisjunctionFormula;
+import uniol.synthesis.adt.mu_calculus.FixedPoint;
 import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
 import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.ModalityFormula;
@@ -180,16 +181,12 @@ public class TableauBuilder {
 						+ formula.toString());
 			if (node.wasAlreadyExpanded()) {
 				// We already expanded this fixed point in this state. Thus, we can now use this to
-				// derive the result.
-				switch (definition.getFixedPoint()) {
-					case LEAST:
-						expansion = null;
-						break;
-					case GREATEST:
-						expansion = Collections.singleton(Collections.singleton(
-									node.createChild(definition.getCreator()
-										.constant(true))));
-						break;
+				// derive the result. For LEAST, we have a failure and we have nothing to do since
+				// this.expansion is already null. Thus, only GREATEST needs to be handled.
+				if (FixedPoint.GREATEST.equals(definition.getFixedPoint())) {
+					expansion = Collections.singleton(Collections.singleton(
+								node.createChild(definition.getCreator()
+									.constant(true))));
 				}
 			} else {
 				Formula inner = substitute(definition.getFormula(), definition.getVariable(), formula);
