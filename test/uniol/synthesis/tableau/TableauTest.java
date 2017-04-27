@@ -70,6 +70,7 @@ public class TableauTest {
 		TableauNode mapped1 = mock(TableauNode.class);
 		TableauNode mapped2 = mock(TableauNode.class);
 		TableauNode mapped3 = mock(TableauNode.class);
+		@SuppressWarnings("unchecked")
 		Transformer<State, State> transformer = mock(Transformer.class);
 
 		when(n1.transform(transformer)).thenReturn(mapped1);
