@@ -47,6 +47,22 @@ public class RealiseFormulaTest {
 		}
 	}
 
+	static class NeverCalledRealisationCallback implements RealiseFormula.RealisationCallback {
+		@Override
+		public void foundRealisation(TransitionSystem ts, Tableau tableau) {
+			fail();
+		}
+	}
+
+	static class AddToSetRealisationCallback implements RealiseFormula.RealisationCallback {
+		public Set<Pair<TransitionSystem, Tableau>> result = new HashSet<>();
+
+		@Override
+		public void foundRealisation(TransitionSystem ts, Tableau tableau) {
+			result.add(new Pair<>(ts, tableau));
+		}
+	}
+
 	static private Tableau mockTableau(boolean successfull) {
 		Tableau tableau = mock(Tableau.class);
 		when(tableau.isSuccessful()).thenReturn(successfull);
@@ -66,10 +82,10 @@ public class RealiseFormulaTest {
 		State state = mock(State.class);
 		when(ts.getInitialState()).thenReturn(state);
 
-		Set<Pair<TransitionSystem, Tableau>> result = new HashSet<>();
-		new RealiseFormula(result, ts, tableau, null, null, null, null).walk(null);
+		AddToSetRealisationCallback addToSet = new AddToSetRealisationCallback();
+		new RealiseFormula(ts, tableau, addToSet, null, null, null, null).walk(null);
 
-		assertThat(result, contains(pairWith(ts, tableau)));
+		assertThat(addToSet.result, contains(pairWith(ts, tableau)));
 	}
 
 	@Test
@@ -86,11 +102,10 @@ public class RealiseFormulaTest {
 		when(missingArcsFinder.findMissing(tableau)).thenReturn(Collections.<Pair<State, String>>emptySet());
 		when(continueTableauFactory.continueTableau(tableau)).thenReturn(Collections.<Tableau>emptySet());
 
-		Set<Pair<TransitionSystem, Tableau>> result = new HashSet<>();
-		new RealiseFormula(result, ts, tableau, missingArcsFinder, new StateWithSameNameTransformerFactory(),
-				continueTableauFactory, new NOPOverapproximateTS()).walk(null);
+		new RealiseFormula(ts, tableau, new NeverCalledRealisationCallback(), missingArcsFinder, new
+				StateWithSameNameTransformerFactory(), continueTableauFactory,
+				new NOPOverapproximateTS()).walk(null);
 
-		assertThat(result, empty());
 		verify(missingArcsFinder, times(1)).findMissing(tableau);
 		verify(continueTableauFactory, times(1)).continueTableau((Tableau) anyObject());
 	}
@@ -105,8 +120,9 @@ public class RealiseFormulaTest {
 		when(missingArcsFinder.findMissing(tableau)).thenReturn(missingArcs);
 		when(continueTableauFactory.continueTableau(tableau)).thenReturn(Collections.<Tableau>emptySet());
 
-		new RealiseFormula(null, ts, tableau, missingArcsFinder, new StateWithSameNameTransformerFactory(),
-				continueTableauFactory, overapproximateTS).walk(null);
+		new RealiseFormula(ts, tableau, new NeverCalledRealisationCallback(), missingArcsFinder,
+				new StateWithSameNameTransformerFactory(), continueTableauFactory,
+				overapproximateTS).walk(null);
 
 		verify(missingArcsFinder, times(1)).findMissing(tableau);
 		verify(continueTableauFactory, times(1)).continueTableau((Tableau) anyObject());
@@ -145,11 +161,10 @@ public class RealiseFormulaTest {
 		when(continueTableauFactory.continueTableau((Tableau) anyObject())).thenReturn(new HashSet<Tableau>(
 					Arrays.asList(tableau1, tableau2)));
 
-		Set<Pair<TransitionSystem, Tableau>> result = new HashSet<>();
-		new RealiseFormula(result, ts, tableau, missingArcsFinder, new StateWithSameNameTransformerFactory(),
-				continueTableauFactory, new NOPOverapproximateTS()).walk(engine);
+		new RealiseFormula(ts, tableau, new NeverCalledRealisationCallback(), missingArcsFinder,
+				new StateWithSameNameTransformerFactory(), continueTableauFactory,
+				new NOPOverapproximateTS()).walk(engine);
 
-		assertThat(result, empty());
 		verify(missingArcsFinder, times(1)).findMissing(tableau);
 		verify(continueTableauFactory, times(1)).continueTableau((Tableau) anyObject());
 		verify(engine, times(2)).enqueue(Mockito.isA(RealiseFormula.class));

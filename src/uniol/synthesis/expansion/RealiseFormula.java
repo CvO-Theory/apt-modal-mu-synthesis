@@ -65,9 +65,13 @@ public class RealiseFormula implements NonRecursive.Walker {
 		}
 	}
 
-	private final Set<Pair<TransitionSystem, Tableau>> realisations;
+	static public interface RealisationCallback {
+		public void foundRealisation(TransitionSystem ts, Tableau tableau);
+	}
+
 	private final TransitionSystem ts;
 	private final Tableau tableau;
+	private final RealisationCallback realisationCallback;
 	private final MissingArcsFinder missingArcsFinder;
 	private final ReachingWordTransformerFactory reachingWordTransformerFactory;
 	private final ContinueTableauFactory continueTableauFactory;
@@ -79,31 +83,30 @@ public class RealiseFormula implements NonRecursive.Walker {
 		return ts;
 	}
 
-	public RealiseFormula(Set<Pair<TransitionSystem, Tableau>> realisations, PNProperties properties,
-			Formula formula) {
+	public RealiseFormula(PNProperties properties, Formula formula, RealisationCallback realisationCallback) {
 		// Create an empty TS, the default implementations for factories and forward to next constructor
-		this(realisations, getEmptyTS(), formula, new MissingArcsFinder(),
+		this(getEmptyTS(), formula, realisationCallback, new MissingArcsFinder(),
 				new DefaultReachingWordTransformerFactory(), new DefaultContinueTableauFactory(),
 				new DefaultOverapproximateTS(properties));
 	}
 
-	private RealiseFormula(Set<Pair<TransitionSystem, Tableau>> realisations, TransitionSystem ts, Formula formula,
+	private RealiseFormula(TransitionSystem ts, Formula formula, RealisationCallback realisationCallback,
 			MissingArcsFinder missingArcsFinder, ReachingWordTransformerFactory
 			reachingWordTransformerFactory, ContinueTableauFactory continueTableauFactory,
 			OverapproximateTS overapproximateTS) {
 		// Create a tableau that relates the initial state to the whole formula and call next constructor
-		this(realisations, ts, new Tableau(Collections.singleton( new TableauNode(ts.getInitialState(),
-							formula))), missingArcsFinder, reachingWordTransformerFactory,
+		this(ts, new Tableau(Collections.singleton(new TableauNode(ts.getInitialState(), formula))),
+				realisationCallback, missingArcsFinder, reachingWordTransformerFactory,
 				continueTableauFactory, overapproximateTS);
 	}
 
-	RealiseFormula(Set<Pair<TransitionSystem, Tableau>> realisations, TransitionSystem ts, Tableau tableau,
+	RealiseFormula(TransitionSystem ts, Tableau tableau, RealisationCallback realisationCallback,
 			MissingArcsFinder missingArcsFinder, ReachingWordTransformerFactory
 			reachingWordTransformerFactory, ContinueTableauFactory continueTableauFactory,
 			OverapproximateTS overapproximateTS) {
-		this.realisations = realisations;
 		this.ts = ts;
 		this.tableau = tableau;
+		this.realisationCallback = realisationCallback;
 		this.missingArcsFinder = missingArcsFinder;
 		this.reachingWordTransformerFactory = reachingWordTransformerFactory;
 		this.continueTableauFactory = continueTableauFactory;
@@ -111,15 +114,15 @@ public class RealiseFormula implements NonRecursive.Walker {
 	}
 
 	private RealiseFormula(RealiseFormula parent, TransitionSystem ts, Tableau tableau) {
-		this(parent.realisations, ts, tableau, parent.missingArcsFinder, parent.reachingWordTransformerFactory,
-				parent.continueTableauFactory, parent.overapproximateTS);
+		this(ts, tableau, parent.realisationCallback, parent.missingArcsFinder,
+				parent.reachingWordTransformerFactory, parent.continueTableauFactory,
+				parent.overapproximateTS);
 	}
 
 	@Override
 	public void walk(NonRecursive engine) {
 		if (tableau.isSuccessful()) {
-			Pair<TransitionSystem, Tableau> pair = new Pair<>(ts, tableau);
-			realisations.add(pair);
+			realisationCallback.foundRealisation(ts, tableau);
 			return;
 		}
 		TransitionSystem newTS = new TransitionSystem(ts);

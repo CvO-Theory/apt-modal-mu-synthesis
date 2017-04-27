@@ -25,6 +25,7 @@ import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.testng.annotations.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.testng.Assert.fail;
 import static uniol.apt.util.matcher.Matchers.pairWith;
 import static uniol.synthesis.tableau.TableauMatchers.*;
 
@@ -54,11 +55,22 @@ public class RealiseFormulaIntegrationTest {
 	}
 
 	private Pair<TransitionSystem, Tableau> realiseUnique(PNProperties properties, Formula formula) {
-		Set<Pair<TransitionSystem, Tableau>> result = new HashSet<>();
-		new NonRecursive().run(new RealiseFormula(result, properties, formula));
+		final TransitionSystem[] resultTS = new TransitionSystem[1];
+		final Tableau[] resultTab = new Tableau[1];
+		new NonRecursive().run(new RealiseFormula(properties, formula,
+					new RealiseFormula.RealisationCallback() {
+						@Override
+						public void foundRealisation(TransitionSystem ts, Tableau tableau) {
+							assertThat(resultTS[0], nullValue());
+							assertThat(resultTab[0], nullValue());
+							resultTS[0] = ts;
+							resultTab[0] = tableau;
+						}
+		}));
 
-		assertThat(result, hasSize(1));
-		return result.iterator().next();
+		assertThat(resultTS, not(nullValue()));
+		assertThat(resultTab, not(nullValue()));
+		return new Pair<>(resultTS[0], resultTab[0]);
 	}
 
 	@Test
@@ -181,10 +193,13 @@ public class RealiseFormulaIntegrationTest {
 
 		PNProperties properties = new PNProperties().requireKBounded(3);
 
-		Set<Pair<TransitionSystem, Tableau>> result = new HashSet<>();
-		new NonRecursive().run(new RealiseFormula(result, properties, formula));
-
-		assertThat(result, hasSize(0));
+		new NonRecursive().run(new RealiseFormula(properties, formula,
+					new RealiseFormula.RealisationCallback() {
+						@Override
+						public void foundRealisation(TransitionSystem ts, Tableau tableau) {
+							fail();
+						}
+					}));
 	}
 
 	@Test
@@ -202,8 +217,14 @@ public class RealiseFormulaIntegrationTest {
 
 		PNProperties properties = new PNProperties().requireKBounded(1);
 
-		Set<Pair<TransitionSystem, Tableau>> result = new HashSet<>();
-		new NonRecursive().run(new RealiseFormula(result, properties, formula));
+		final Set<Pair<TransitionSystem, Tableau>> result = new HashSet<>();
+		new NonRecursive().run(new RealiseFormula(properties, formula,
+					new RealiseFormula.RealisationCallback() {
+						@Override
+						public void foundRealisation(TransitionSystem ts, Tableau tableau) {
+							result.add(new Pair<>(ts, tableau));
+						}
+					}));
 
 		// Create the expected ts
 		TransitionSystem expected1 = new TransitionSystem();
