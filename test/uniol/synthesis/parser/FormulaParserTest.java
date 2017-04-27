@@ -169,4 +169,9 @@ public class FormulaParserTest {
 	public void testWildClosingParanthesis() throws ParseException {
 		FormulaParser.parse(creator, "X&&)");
 	}
+
+	@Test(expectedExceptions = ParseException.class)
+	public void testInvalidCharacter() throws ParseException {
+		FormulaParser.parse(creator, "\u2622");
+	}
 }
