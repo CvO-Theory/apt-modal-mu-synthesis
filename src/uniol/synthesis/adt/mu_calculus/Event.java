@@ -1,6 +1,6 @@
 package uniol.synthesis.adt.mu_calculus;
 
-public class Event implements Comparable<Event> {
+public class Event {
 
 	private final String label;
 
@@ -10,11 +10,6 @@ public class Event implements Comparable<Event> {
 
 	public String getLabel() {
 		return label;
-	}
-
-	@Override
-	public int compareTo(Event other) {
-		return label.compareTo(other.label);
 	}
 
 	@Override

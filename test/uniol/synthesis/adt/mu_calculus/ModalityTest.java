@@ -17,4 +17,15 @@ public class ModalityTest {
 		assertThat(Modality.UNIVERSAL.toString(event), equalTo("[event]"));
 		assertThat(Modality.EXISTENTIAL.toString(event), equalTo("<event>"));
 	}
+
+	@Test
+	public void testValues() {
+		assertThat(Modality.values(), arrayContainingInAnyOrder(Modality.EXISTENTIAL, Modality.UNIVERSAL));
+	}
+
+	@Test
+	public void testValueOf() {
+		assertThat(Modality.valueOf("UNIVERSAL"), is(Modality.UNIVERSAL));
+		assertThat(Modality.valueOf("EXISTENTIAL"), is(Modality.EXISTENTIAL));
+	}
 }
