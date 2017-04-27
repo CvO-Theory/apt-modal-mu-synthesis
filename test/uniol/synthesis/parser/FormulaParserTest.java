@@ -151,8 +151,13 @@ public class FormulaParserTest {
 	}
 
 	@Test(expectedExceptions = ParseException.class)
-	public void testGarbageAfterEnd() throws ParseException {
+	public void testGarbageAfterEnd1() throws ParseException {
 		FormulaParser.parse(creator, "X X");
+	}
+
+	@Test(expectedExceptions = ParseException.class)
+	public void testGarbageAfterEnd2() throws ParseException {
+		FormulaParser.parse(creator, "(X) X");
 	}
 
 	@Test(expectedExceptions = ParseException.class)
@@ -160,4 +165,8 @@ public class FormulaParserTest {
 		FormulaParser.parse(creator, "(X");
 	}
 
+	@Test(expectedExceptions = ParseException.class)
+	public void testWildClosingParanthesis() throws ParseException {
+		FormulaParser.parse(creator, "X&&)");
+	}
 }

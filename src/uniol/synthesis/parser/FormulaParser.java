@@ -40,20 +40,12 @@ public class FormulaParser {
 
 		@Override
 		public void exitTermDisjunction(MuCalculusFormulaParser.TermDisjunctionContext ctx) {
-			Formula formula = formulas.get(ctx.term(0));
-			ParseTree right = ctx.term(1);
-			if (right != null)
-				formula = creator.disjunction(formula, formulas.get(right));
-			formulas.put(ctx, formula);
+			formulas.put(ctx, creator.disjunction(formulas.get(ctx.term(0)), formulas.get(ctx.term(1))));
 		}
 
 		@Override
 		public void exitTermConjunction(MuCalculusFormulaParser.TermConjunctionContext ctx) {
-			Formula formula = formulas.get(ctx.term(0));
-			ParseTree right = ctx.term(1);
-			if (right != null)
-				formula = creator.conjunction(formula, formulas.get(right));
-			formulas.put(ctx, formula);
+			formulas.put(ctx, creator.conjunction(formulas.get(ctx.term(0)), formulas.get(ctx.term(1))));
 		}
 
 		@Override

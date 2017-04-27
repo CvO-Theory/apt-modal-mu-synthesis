@@ -3,6 +3,7 @@ package uniol.synthesis.adt.mu_calculus;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.testng.annotations.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -73,6 +74,12 @@ public class FormulaCreatorTest {
 		formula2 = null;
 		clearSoftReferences();
 		assertThat(creator.getFormulasWithHashCode(42), emptyIterable());
+	}
+
+	@Test(expectedExceptions = NoSuchElementException.class)
+	public void testNoSuchElement() {
+		FormulaCreator creator = new FormulaCreator();
+		creator.getFormulasWithHashCode(0).iterator().next();
 	}
 
 	@Test
