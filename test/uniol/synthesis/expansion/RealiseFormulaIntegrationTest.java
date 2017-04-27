@@ -242,4 +242,27 @@ public class RealiseFormulaIntegrationTest {
 					pairWith(isomorphicTo(expected1), hasLeaves(contains(hasFormula(True)))),
 					pairWith(isomorphicTo(expected2), hasLeaves(contains(hasFormula(True))))));
 	}
+
+	@Test
+	public void testNegation() {
+		final FormulaCreator creator = new FormulaCreator();
+		Formula formula = creator.negate(creator.constant(false));
+		PNProperties properties = new PNProperties().requireKBounded(1);
+
+		final TransitionSystem expectedTS = new TransitionSystem();
+		expectedTS.setInitialState(expectedTS.createState());
+
+		final boolean[] alreadyCalled = new boolean[1];
+		new NonRecursive().run(new RealiseFormula(properties, formula,
+					new RealiseFormula.RealisationCallback() {
+						@Override
+						public void foundRealisation(TransitionSystem ts, Tableau tableau) {
+							assertThat(alreadyCalled[0], is(false));
+							alreadyCalled[0] = true;
+							assertThat(ts, isomorphicTo(expectedTS));
+							assertThat(tableau, hasLeaves(contains(hasStateAndFormula(ts.getInitialState(), creator.constant(true)))));
+						}
+					}));
+		assertThat(alreadyCalled[0], is(true));
+	}
 }
