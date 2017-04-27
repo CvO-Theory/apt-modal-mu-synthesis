@@ -2,12 +2,14 @@ package uniol.synthesis.adt.mu_calculus;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.testng.annotations.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.testng.Assert.fail;
 
 import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
 import uniol.synthesis.adt.mu_calculus.ConstantFormula;
@@ -76,10 +78,28 @@ public class FormulaCreatorTest {
 		assertThat(creator.getFormulasWithHashCode(42), emptyIterable());
 	}
 
-	@Test(expectedExceptions = NoSuchElementException.class)
+	@Test
 	public void testNoSuchElement() {
-		FormulaCreator creator = new FormulaCreator();
-		creator.getFormulasWithHashCode(0).iterator().next();
+		final FormulaCreator creator = new FormulaCreator();
+		Formula formula1 = new Formula() {
+			@Override
+			public FormulaCreator getCreator() {
+				return creator;
+			}
+		};
+		creator.addFormulaInternal(42, formula1);
+		Iterator<Formula> iterator = creator.getFormulasWithHashCode(42).iterator();
+
+		assertThat(iterator.hasNext(), is(true));
+		assertThat(iterator.next(), sameInstance(formula1));
+
+		assertThat(iterator.hasNext(), is(false));
+		try {
+			iterator.next();
+			fail();
+		} catch (NoSuchElementException e) {
+			// Good!
+		}
 	}
 
 	@Test

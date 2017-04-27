@@ -125,7 +125,6 @@ public class FormulaCreator {
 		public Formula next() {
 			if (!hasNext())
 				throw new NoSuchElementException();
-			assert nextFormula != null;
 			Formula result = nextFormula;
 			nextFormula = null;
 			return result;
