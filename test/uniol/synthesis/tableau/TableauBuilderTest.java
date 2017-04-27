@@ -1,5 +1,6 @@
 package uniol.synthesis.tableau;
 
+import java.util.Collections;
 import java.util.Set;
 
 import uniol.apt.adt.ts.State;
@@ -418,6 +419,20 @@ public class TableauBuilderTest {
 
 		assertThat(new TableauBuilder().createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
 					.and(hasLeaves(contains(new TableauNode(state, formula))))));
+	}
+
+	@Test
+	public void testContinueTableau() {
+		State state = getABCState();
+		FormulaCreator creator = new FormulaCreator();
+		Formula True = creator.constant(true);
+		Formula right = creator.modality(Modality.UNIVERSAL, new Event("z"), True);
+		Formula formula = creator.conjunction(True, right);
+		TableauNode node = new TableauNode(state, formula);
+		Tableau tableau = new Tableau(Collections.singleton(node));
+
+		assertThat(new TableauBuilder().continueTableau(tableau), contains(hasLeaves(containsInAnyOrder(
+						hasStateAndFormula(state, True), hasStateAndFormula(state, right)))));
 	}
 
 	private State getExampleFromPaper() {

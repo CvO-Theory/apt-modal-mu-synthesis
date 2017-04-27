@@ -45,12 +45,16 @@ public class TableauBuilder {
 
 	public Set<Tableau> createTableaus(State state, Formula formula) {
 		formula = cleanForm(positiveForm(formula));
-		return expandTableau(new TableauNode(state, formula));
+		return expandTableau(Collections.singleton(new TableauNode(state, formula)));
 	}
 
-	public Set<Tableau> expandTableau(TableauNode node) {
+	public Set<Tableau> continueTableau(Tableau tableau) {
+		return expandTableau(tableau.getLeaves());
+	}
+
+	private Set<Tableau> expandTableau(Set<TableauNode> nodes) {
 		Set<Tableau> result = new HashSet<>();
-		new NonRecursive().run(new CreateTableaus(callback, result, node));
+		new NonRecursive().run(new CreateTableaus(callback, result, nodes));
 		return result;
 	}
 
@@ -60,10 +64,11 @@ public class TableauBuilder {
 		private final Set<TableauNode> leaves = new HashSet<>();
 		private final Queue<ExpandNodeWalker> todo = new ArrayDeque<>();
 
-		private CreateTableaus(ProgressCallback callback, Set<Tableau> result, TableauNode node) {
+		private CreateTableaus(ProgressCallback callback, Set<Tableau> result, Set<TableauNode> nodes) {
 			this.callback = callback;
 			this.result = result;
-			this.todo.add(new ExpandNodeWalker(node));
+			for (TableauNode node : nodes)
+				this.todo.add(new ExpandNodeWalker(node));
 		}
 
 		private CreateTableaus(CreateTableaus toCopy) {
