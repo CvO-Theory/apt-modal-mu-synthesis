@@ -1,0 +1,214 @@
+package uniol.synthesis.mts;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+
+import uniol.apt.adt.ts.Arc;
+import uniol.apt.adt.ts.State;
+import uniol.apt.adt.ts.TransitionSystem;
+
+import uniol.synthesis.adt.mu_calculus.FixedPoint;
+import uniol.synthesis.adt.mu_calculus.Formula;
+import uniol.synthesis.adt.mu_calculus.FormulaCreator;
+import uniol.synthesis.adt.mu_calculus.Modality;
+import uniol.synthesis.adt.mu_calculus.VariableFormula;
+
+import org.testng.annotations.Test;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.mockito.Mockito.*;
+
+public class MTSToFormulaTest {
+	@Test
+	public void testConjunction() {
+		FormulaCreator creator = new FormulaCreator();
+		Formula True = creator.constant(true);
+		Formula False = creator.constant(false);
+
+		MTSToFormula m = new MTSToFormula();
+		assertThat(m.conjunction(True, True), is(True));
+		assertThat(m.conjunction(True, False), is(False));
+		assertThat(m.conjunction(False, True), is(False));
+		assertThat(m.conjunction(False, False), is((Formula) creator.conjunction(False, False)));
+	}
+
+	@Test
+	public void testDisjunction() {
+		FormulaCreator creator = new FormulaCreator();
+		Formula True = creator.constant(true);
+		Formula False = creator.constant(false);
+
+		MTSToFormula m = new MTSToFormula();
+		assertThat(m.disjunction(True, True), is((Formula) creator.disjunction(True, True)));
+		assertThat(m.disjunction(True, False), is(True));
+		assertThat(m.disjunction(False, True), is(True));
+		assertThat(m.disjunction(False, False), is(False));
+	}
+
+	@Test
+	public void testSimpleCreateVariables() {
+		FormulaCreator creator = new FormulaCreator();
+		TransitionSystem mts = new TransitionSystem();
+		mts.createStates("s0", "s1", "s2", "s3");
+
+		Map<State, VariableFormula> result = new MTSToFormula().createVariables(creator, mts);
+		assertThat(result, allOf(
+					hasEntry(mts.getNode("s0"), creator.variable("s0")),
+					hasEntry(mts.getNode("s1"), creator.variable("s1")),
+					hasEntry(mts.getNode("s2"), creator.variable("s2")),
+					hasEntry(mts.getNode("s3"), creator.variable("s3"))));
+		assertThat(result.entrySet(), hasSize(4));
+	}
+
+	@Test
+	public void testFilterMustArcs() {
+		Arc arc1 = mock(Arc.class);
+		Arc arc2 = mock(Arc.class);
+		Arc arc3 = mock(Arc.class);
+		Arc arc4 = mock(Arc.class);
+
+		when(arc1.hasExtension("may")).thenReturn(true);
+		when(arc2.hasExtension("may")).thenReturn(false);
+		when(arc3.hasExtension("may")).thenReturn(true);
+		when(arc4.hasExtension("may")).thenReturn(false);
+
+		Set<Arc> arcs = new LinkedHashSet<>(Arrays.asList(arc1, arc2, arc3, arc4));
+		assertThat(new MTSToFormula().filterMustArcs(arcs), containsInAnyOrder(arc2, arc4));
+	}
+
+	@Test
+	public void testStateToFormulaEmpty() {
+		FormulaCreator creator = new FormulaCreator();
+		State state = mock(State.class);
+		TransitionSystem ts = mock(TransitionSystem.class);
+		Set<String> alphabet = Collections.emptySet();
+
+		when(ts.getAlphabet()).thenReturn(alphabet);
+		when(state.getGraph()).thenReturn(ts);
+
+		assertThat(new MTSToFormula().stateToFormula(creator, state, null), is((Formula) creator.constant(true)));
+	}
+
+	@Test
+	public void testStateToFormulaNoEdges() {
+		FormulaCreator creator = new FormulaCreator();
+		State state = mock(State.class);
+		TransitionSystem ts = mock(TransitionSystem.class);
+		Set<String> alphabet = new LinkedHashSet<>(Arrays.asList("a", "b"));
+
+		when(ts.getAlphabet()).thenReturn(alphabet);
+		when(state.getGraph()).thenReturn(ts);
+
+		Formula expected = creator.conjunction(
+				creator.modality(Modality.UNIVERSAL, "a", creator.constant(false)),
+				creator.modality(Modality.UNIVERSAL, "b", creator.constant(false)));
+		assertThat(new MTSToFormula().stateToFormula(creator, state, null), is(expected));
+	}
+
+	@Test
+	public void testStateToFormulaThreeMustEdges() {
+		Modality ex = Modality.EXISTENTIAL;
+		Modality un = Modality.UNIVERSAL;
+		FormulaCreator creator = new FormulaCreator();
+		State state = mock(State.class);
+		State target1 = mock(State.class);
+		State target2 = mock(State.class);
+		Arc arcA1 = mock(Arc.class);
+		Arc arcA2 = mock(Arc.class);
+		Arc arcB = mock(Arc.class);
+		TransitionSystem ts = mock(TransitionSystem.class);
+
+		Set<String> alphabet = new LinkedHashSet<>(Arrays.asList("a", "b"));
+		when(ts.getAlphabet()).thenReturn(alphabet);
+		when(arcA1.getTarget()).thenReturn(target1);
+		when(arcA2.getTarget()).thenReturn(target2);
+		when(arcB.getTarget()).thenReturn(target1);
+		when(state.getGraph()).thenReturn(ts);
+		Set<Arc> aPostset = new LinkedHashSet<>(Arrays.asList(arcA1, arcA2));
+		when(state.getPostsetEdgesByLabel("a")).thenReturn(aPostset);
+		when(state.getPostsetEdgesByLabel("b")).thenReturn(Collections.singleton(arcB));
+
+		Map<State, VariableFormula> variables = new HashMap<>();
+		VariableFormula x1 = creator.variable("X1");
+		VariableFormula x2 = creator.variable("X2");
+		variables.put(target1, x1);
+		variables.put(target2, x2);
+
+		Formula expected = creator.conjunction(
+				// Part for a
+				creator.conjunction(
+					// must-part for a
+					creator.conjunction(
+						creator.modality(ex, "a", x1),
+						creator.modality(ex, "a", x2)),
+					// may-part for a
+					creator.modality(un, "a", creator.disjunction(x1, x2))),
+				// Part for b
+				creator.conjunction(
+					// must-part for b
+					creator.modality(ex, "b", x1),
+					// may-part for b
+					creator.modality(un, "b", x1)));
+		assertThat(new MTSToFormula().stateToFormula(creator, state, variables), is(expected));
+	}
+
+	@Test
+	public void testMTSToEquationSystemSimple() {
+		FormulaCreator creator = new FormulaCreator();
+		VariableFormula x0 = creator.variable("X0");
+
+		TransitionSystem mts = new TransitionSystem();
+		mts.createStates("s0");
+		mts.setInitialState("s0");
+
+		Map<State, VariableFormula> variables = new HashMap<>();
+		variables.put(mts.getNode("s0"), x0);
+
+		Map<VariableFormula, Formula> result = new MTSToFormula().mtsToEquationSystem(creator, mts, variables);
+		assertThat(result, hasEntry(x0, (Formula) creator.constant(true)));
+		assertThat(result.entrySet(), hasSize(1));
+	}
+
+	@Test
+	public void testMTSToFormulaSimple() {
+		FormulaCreator creator = new FormulaCreator();
+		TransitionSystem mts = new TransitionSystem();
+		mts.createStates("s0");
+		mts.setInitialState("s0");
+
+		Formula formula = new MTSToFormula().mtsToFormula(creator, mts);
+		assertThat(formula, is((Formula) creator.constant(true)));
+	}
+
+	@Test
+	public void testMTSToFormula() {
+		Modality ex = Modality.EXISTENTIAL;
+		Modality un = Modality.UNIVERSAL;
+		FormulaCreator creator = new FormulaCreator();
+		TransitionSystem mts = new TransitionSystem();
+		mts.createStates("s0", "s1", "s2");
+		mts.setInitialState("s0");
+		mts.createArc("s0", "s1", "a");
+		mts.createArc("s1", "s2", "b").putExtension("may", "may");
+		mts.createArc("s2", "s2", "a").putExtension("may", "may");
+
+		Formula expectedS2 = creator.fixedPoint(FixedPoint.GREATEST, creator.variable("s2"),
+				creator.conjunction(
+					creator.modality(un, "a", creator.variable("s2")),
+					creator.modality(un, "b", creator.constant(false))));
+		Formula expectedS1 = creator.conjunction(
+				creator.modality(un, "a", creator.constant(false)),
+				creator.modality(un, "b", expectedS2));
+		Formula expected = creator.conjunction(
+				creator.conjunction(
+					creator.modality(ex, "a", expectedS1),
+					creator.modality(un, "a", expectedS1)),
+				creator.modality(un, "b", creator.constant(false)));
+
+		assertThat(new MTSToFormula().mtsToFormula(creator, mts), is(expected));
+	}
+}
