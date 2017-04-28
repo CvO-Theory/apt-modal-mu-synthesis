@@ -13,9 +13,8 @@ public class ModalityTest {
 
 	@Test
 	public void testToString() {
-		Event event = new Event("event");
-		assertThat(Modality.UNIVERSAL.toString(event), equalTo("[event]"));
-		assertThat(Modality.EXISTENTIAL.toString(event), equalTo("<event>"));
+		assertThat(Modality.UNIVERSAL.toString("event"), equalTo("[event]"));
+		assertThat(Modality.EXISTENTIAL.toString("event"), equalTo("<event>"));
 	}
 
 	@Test

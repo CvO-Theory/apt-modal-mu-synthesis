@@ -58,7 +58,7 @@ public class FormulaCreator {
 		}
 	}
 
-	public ModalityFormula modality(Modality modality, Event event, Formula formula) {
+	public ModalityFormula modality(Modality modality, String event, Formula formula) {
 		synchronized(objects) {
 			return ModalityFormula.modality(this, modality, event, formula);
 		}

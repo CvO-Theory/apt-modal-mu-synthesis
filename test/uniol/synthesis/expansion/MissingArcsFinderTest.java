@@ -10,7 +10,6 @@ import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.*;
 import static uniol.apt.util.matcher.Matchers.pairWith;
 
-import uniol.synthesis.adt.mu_calculus.Event;
 import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.FormulaCreator;
 import uniol.synthesis.adt.mu_calculus.Modality;
@@ -39,7 +38,7 @@ public class MissingArcsFinderTest {
 		TableauNode node = mock(TableauNode.class);
 		when(node.getState()).thenReturn(state);
 		when(node.getFormula()).thenReturn(
-				creator.modality(Modality.UNIVERSAL, new Event("a"), creator.constant(true)));
+				creator.modality(Modality.UNIVERSAL, "a", creator.constant(true)));
 
 		Tableau tableau = mock(Tableau.class);
 		when(tableau.getLeaves()).thenReturn(singleton(node));
@@ -55,7 +54,7 @@ public class MissingArcsFinderTest {
 		TableauNode node = mock(TableauNode.class);
 		when(node.getState()).thenReturn(state);
 		when(node.getFormula()).thenReturn(
-				creator.modality(Modality.EXISTENTIAL, new Event("a"), creator.constant(true)));
+				creator.modality(Modality.EXISTENTIAL, "a", creator.constant(true)));
 
 		Tableau tableau = mock(Tableau.class);
 		when(tableau.getLeaves()).thenReturn(singleton(node));

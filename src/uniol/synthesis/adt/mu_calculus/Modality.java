@@ -8,7 +8,7 @@ public enum Modality {
 		}
 
 		@Override
-		public String toString(Event event) {
+		public String toString(String event) {
 			return "[" + event + "]";
 		}
 	},
@@ -19,11 +19,11 @@ public enum Modality {
 		}
 
 		@Override
-		public String toString(Event event) {
+		public String toString(String event) {
 			return "<" + event + ">";
 		}
 	};
 
 	abstract public Modality negate();
-	abstract public String toString(Event event);
+	abstract public String toString(String event);
 }

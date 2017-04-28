@@ -128,8 +128,8 @@ public class FormulaFactoryTest {
 	@Test
 	public void testModalityMiss() {
 		FormulaCreator creator = mock(FormulaCreator.class);
-		Event event = mock(Event.class);
-		Event otherEvent = mock(Event.class);
+		String event = "event";
+		String otherEvent = "otherEvent";
 		Formula child = mock(Formula.class);
 		Formula other = mock(Formula.class);
 		stubCreator(creator, new ModalityFormula(creator, Modality.UNIVERSAL, event, child),
@@ -145,7 +145,7 @@ public class FormulaFactoryTest {
 	@Test
 	public void testModalityHit() {
 		FormulaCreator creator = mock(FormulaCreator.class);
-		Event event = mock(Event.class);
+		String event = "event";
 		Formula child = mock(Formula.class);
 		ModalityFormula expected = new ModalityFormula(creator, Modality.UNIVERSAL, event, child);
 		stubCreator(creator, expected);

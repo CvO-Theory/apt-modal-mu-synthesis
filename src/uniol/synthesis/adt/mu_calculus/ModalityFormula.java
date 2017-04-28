@@ -2,10 +2,10 @@ package uniol.synthesis.adt.mu_calculus;
 
 public class ModalityFormula extends AbstractFormula {
 	final private Modality modality;
-	final private Event event;
+	final private String event;
 	final private Formula formula;
 
-	protected ModalityFormula(FormulaCreator creator, Modality modality, Event event, Formula formula) {
+	protected ModalityFormula(FormulaCreator creator, Modality modality, String event, Formula formula) {
 		super(creator);
 		this.modality = modality;
 		this.event = event;
@@ -16,7 +16,7 @@ public class ModalityFormula extends AbstractFormula {
 		return modality;
 	}
 
-	public Event getEvent() {
+	public String getEvent() {
 		return event;
 	}
 
@@ -24,7 +24,7 @@ public class ModalityFormula extends AbstractFormula {
 		return formula;
 	}
 
-	static ModalityFormula modality(FormulaCreator creator, Modality modality, Event event, Formula innerFormula) {
+	static ModalityFormula modality(FormulaCreator creator, Modality modality, String event, Formula innerFormula) {
 		int hashCode = modality.hashCode() ^ event.hashCode() ^ innerFormula.hashCode();
 		for (Formula formula : creator.getFormulasWithHashCode(hashCode)) {
 			if (formula instanceof ModalityFormula) {

@@ -10,7 +10,6 @@ import uniol.apt.io.renderer.RenderException;
 import uniol.apt.io.renderer.impl.DotLTSRenderer;
 import uniol.apt.util.Pair;
 
-import uniol.synthesis.adt.mu_calculus.Event;
 import uniol.synthesis.adt.mu_calculus.FixedPoint;
 import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.FormulaCreator;
@@ -77,13 +76,10 @@ public class RealiseFormulaIntegrationTest {
 	public void testMyFavoriteExample() {
 		FormulaCreator creator = new FormulaCreator();
 		Modality ex = Modality.EXISTENTIAL;
-		Event a = new Event("a");
-		Event b = new Event("b");
-		Event c = new Event("c");
 		Formula formula = creator.fixedPoint(FixedPoint.GREATEST, creator.variable("X"), creator.conjunction(
-				creator.modality(ex, a, creator.modality(ex, b, creator.modality(ex, c,
+				creator.modality(ex, "a", creator.modality(ex, "b", creator.modality(ex, "c",
 							creator.constant(true)))),
-				creator.modality(ex, b, creator.modality(ex, a, creator.modality(Modality.UNIVERSAL, c,
+				creator.modality(ex, "b", creator.modality(ex, "a", creator.modality(Modality.UNIVERSAL, "c",
 							creator.variable("X"))))));
 
 		// Just for documentation: This is the formula that is being solved
@@ -112,10 +108,8 @@ public class RealiseFormulaIntegrationTest {
 	public void testABBAA3Bounded() {
 		FormulaCreator creator = new FormulaCreator();
 		Modality ex = Modality.EXISTENTIAL;
-		Event a = new Event("a");
-		Event b = new Event("b");
-		Formula formula = creator.modality(ex, a, creator.modality(ex, b, creator.modality(ex, b,
-						creator.modality(ex, a, creator.modality(ex, a,
+		Formula formula = creator.modality(ex, "a", creator.modality(ex, "b", creator.modality(ex, "b",
+						creator.modality(ex, "a", creator.modality(ex, "a",
 								creator.constant(true))))));
 
 		// Just for documentation: This is the formula that is being solved
@@ -145,10 +139,8 @@ public class RealiseFormulaIntegrationTest {
 	public void testABBAA2Bounded() {
 		FormulaCreator creator = new FormulaCreator();
 		Modality ex = Modality.EXISTENTIAL;
-		Event a = new Event("a");
-		Event b = new Event("b");
-		Formula formula = creator.modality(ex, a, creator.modality(ex, b, creator.modality(ex, b,
-						creator.modality(ex, a, creator.modality(ex, a,
+		Formula formula = creator.modality(ex, "a", creator.modality(ex, "b", creator.modality(ex, "b",
+						creator.modality(ex, "a", creator.modality(ex, "a",
 								creator.constant(true))))));
 
 		// Just for documentation: This is the formula that is being solved
@@ -181,11 +173,9 @@ public class RealiseFormulaIntegrationTest {
 	public void testABBAANoSideArm() {
 		FormulaCreator creator = new FormulaCreator();
 		Modality ex = Modality.EXISTENTIAL;
-		Event a = new Event("a");
-		Event b = new Event("b");
-		Formula formula = creator.modality(ex, a, creator.modality(ex, b, creator.conjunction(
-					creator.modality(Modality.UNIVERSAL, a, creator.constant(false)),
-					creator.modality(ex, b, creator.modality(ex, a, creator.modality(ex, a,
+		Formula formula = creator.modality(ex, "a", creator.modality(ex, "b", creator.conjunction(
+					creator.modality(Modality.UNIVERSAL, "a", creator.constant(false)),
+					creator.modality(ex, "b", creator.modality(ex, "a", creator.modality(ex, "a",
 								creator.constant(true)))))));
 
 		// Just for documentation: This is the formula that is being solved
@@ -206,11 +196,9 @@ public class RealiseFormulaIntegrationTest {
 	public void testDisjunction() {
 		FormulaCreator creator = new FormulaCreator();
 		Modality ex = Modality.EXISTENTIAL;
-		Event a = new Event("a");
-		Event b = new Event("b");
 		Formula formula = creator.disjunction(
-				creator.modality(ex, a, creator.constant(true)),
-				creator.modality(ex, b, creator.constant(true)));
+				creator.modality(ex, "a", creator.constant(true)),
+				creator.modality(ex, "b", creator.constant(true)));
 
 		// Just for documentation: This is the formula that is being solved
 		assertThat(formula, hasToString("(<a>true||<b>true)"));

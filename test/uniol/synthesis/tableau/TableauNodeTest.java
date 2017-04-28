@@ -5,7 +5,6 @@ import org.apache.commons.collections4.TransformerUtils;
 import uniol.apt.adt.ts.State;
 import uniol.apt.adt.ts.TransitionSystem;
 
-import uniol.synthesis.adt.mu_calculus.Event;
 import uniol.synthesis.adt.mu_calculus.FixedPoint;
 import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
 import uniol.synthesis.adt.mu_calculus.Formula;
@@ -84,11 +83,11 @@ public class TableauNodeTest {
 		assertThat(new TableauNode(state, creator.variable("X")), isSuccessfulNode(false));
 		assertThat(new TableauNode(state, creator.fixedPoint(FixedPoint.LEAST, someFormula, someFormula)), isSuccessfulNode(false));
 
-		assertThat(new TableauNode(state, creator.modality(Modality.EXISTENTIAL, new Event("z"), someFormula)), isSuccessfulNode(false));
-		assertThat(new TableauNode(state, creator.modality(Modality.UNIVERSAL,   new Event("z"), someFormula)), isSuccessfulNode(true));
+		assertThat(new TableauNode(state, creator.modality(Modality.EXISTENTIAL, "z", someFormula)), isSuccessfulNode(false));
+		assertThat(new TableauNode(state, creator.modality(Modality.UNIVERSAL,   "z", someFormula)), isSuccessfulNode(true));
 
-		assertThat(new TableauNode(state, creator.modality(Modality.EXISTENTIAL, new Event("a"), someFormula)), isSuccessfulNode(false));
-		assertThat(new TableauNode(state, creator.modality(Modality.UNIVERSAL,   new Event("a"), someFormula)), isSuccessfulNode(false));
+		assertThat(new TableauNode(state, creator.modality(Modality.EXISTENTIAL, "a", someFormula)), isSuccessfulNode(false));
+		assertThat(new TableauNode(state, creator.modality(Modality.UNIVERSAL,   "a", someFormula)), isSuccessfulNode(false));
 	}
 
 	@Test

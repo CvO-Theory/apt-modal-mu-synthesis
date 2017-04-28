@@ -196,7 +196,7 @@ public class TableauBuilder {
 
 		@Override
 		public void walk(NonRecursive engine, ModalityFormula formula) {
-			String event = formula.getEvent().getLabel();
+			String event = formula.getEvent();
 			Set<State> states = node.getState().getPostsetNodesByLabel(event);
 			if (states.isEmpty()) {
 				expansion = Collections.singleton(Collections.<TableauNode>emptySet());

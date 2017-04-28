@@ -14,7 +14,6 @@ import static org.testng.Assert.fail;
 import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
 import uniol.synthesis.adt.mu_calculus.ConstantFormula;
 import uniol.synthesis.adt.mu_calculus.DisjunctionFormula;
-import uniol.synthesis.adt.mu_calculus.Event;
 import uniol.synthesis.adt.mu_calculus.FixedPoint;
 import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
 import uniol.synthesis.adt.mu_calculus.Formula;
@@ -180,7 +179,7 @@ public class FormulaCreatorTest {
 	public void testModality() {
 		FormulaCreator creator = new FormulaCreator();
 		Formula True = creator.constant(true);
-		Event event = new Event("foo");
+		String event = "foo";
 		ModalityFormula mf = creator.modality(Modality.UNIVERSAL, event, True);
 		assertThat(mf.getModality(), equalTo(Modality.UNIVERSAL));
 		assertThat(mf.getEvent(), sameInstance(event));

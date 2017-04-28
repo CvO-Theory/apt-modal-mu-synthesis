@@ -25,7 +25,7 @@ public class MissingArcsFinder {
 			if (modality.getModality().equals(Modality.UNIVERSAL))
 				continue;
 
-			Pair<State, String> pair = new Pair<>(node.getState(), modality.getEvent().getLabel());
+			Pair<State, String> pair = new Pair<>(node.getState(), modality.getEvent());
 			result.add(pair);
 		}
 

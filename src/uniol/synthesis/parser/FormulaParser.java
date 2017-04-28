@@ -12,7 +12,6 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import uniol.apt.io.parser.ParseException;
 
-import uniol.synthesis.adt.mu_calculus.Event;
 import uniol.synthesis.adt.mu_calculus.FixedPoint;
 import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.FormulaCreator;
@@ -79,7 +78,7 @@ public class FormulaParser {
 
 		private void modality(MuCalculusFormulaParser.TermContext ctx, Modality mod, String event,
 				MuCalculusFormulaParser.TermContext inner) {
-			formulas.put(ctx, creator.modality(mod, new Event(event), formulas.get(inner)));
+			formulas.put(ctx, creator.modality(mod, event, formulas.get(inner)));
 		}
 
 		@Override

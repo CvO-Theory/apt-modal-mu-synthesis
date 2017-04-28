@@ -4,7 +4,6 @@ import org.testng.annotations.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
-import uniol.synthesis.adt.mu_calculus.Event;
 import uniol.synthesis.adt.mu_calculus.FixedPoint;
 import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.FormulaCreator;
@@ -109,8 +108,7 @@ public class PrintFormulaTest {
 	public void testModality() throws Exception {
 		FormulaCreator creator = new FormulaCreator();
 		Formula True = creator.constant(true);
-		Event event = new Event("foo");
-		Formula formula = creator.modality(Modality.UNIVERSAL, event, True);
+		Formula formula = creator.modality(Modality.UNIVERSAL, "foo", True);
 		test(formula, "[foo]true");
 	}
 }

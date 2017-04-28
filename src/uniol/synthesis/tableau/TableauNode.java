@@ -52,7 +52,7 @@ public class TableauNode {
 		if (formula instanceof ModalityFormula) {
 			ModalityFormula modf = (ModalityFormula) formula;
 			return modf.getModality().equals(Modality.UNIVERSAL) &&
-				state.getPostsetEdgesByLabel(modf.getEvent().getLabel()).isEmpty();
+				state.getPostsetEdgesByLabel(modf.getEvent()).isEmpty();
 		}
 		if (formula instanceof ConstantFormula) {
 			return ((ConstantFormula) formula).getValue();
