@@ -19,11 +19,8 @@ import uniol.synthesis.adt.mu_calculus.VariableFormula;
 import uniol.synthesis.util.SolveEquationSystem;
 
 public class MTSToFormula {
-	protected Map<State, VariableFormula> createVariables(FormulaCreator creator, TransitionSystem mts) {
-		Map<State, VariableFormula> result = new HashMap<>();
-		for (State state : mts.getNodes())
-			result.put(state, creator.variable(state.getId()));
-		return result;
+	protected VariableFormula getVariable(FormulaCreator creator, State state) {
+		return creator.variable(state.getId());
 	}
 
 	protected Collection<Arc> filterMustArcs(Collection<Arc> arcs) {
@@ -52,7 +49,7 @@ public class MTSToFormula {
 		return a.getCreator().disjunction(a, b);
 	}
 
-	protected Formula stateToFormula(FormulaCreator creator, State state, Map<State, VariableFormula> variables) {
+	protected Formula stateToFormula(FormulaCreator creator, State state) {
 		Formula result = creator.constant(true);
 		for (String event : state.getGraph().getAlphabet()) {
 			Collection<Arc> mayArcs = state.getPostsetEdgesByLabel(event);
@@ -61,7 +58,7 @@ public class MTSToFormula {
 			// Each must arc must have an implementation, so we have a conjunction of existential modalities
 			Formula mustFormula = creator.constant(true);
 			for (Arc arc : mustArcs) {
-				VariableFormula target = variables.get(arc.getTarget());
+				VariableFormula target = getVariable(creator, arc.getTarget());
 				Formula part = creator.modality(Modality.EXISTENTIAL, event, target);
 				mustFormula = conjunction(mustFormula, part);
 			}
@@ -69,7 +66,7 @@ public class MTSToFormula {
 			// Each arc must be allowed by a may arc, so we have a disjunction inside a universal modality
 			Formula mayFormula = creator.constant(false);
 			for (Arc arc : mayArcs) {
-				Formula part = variables.get(arc.getTarget());
+				Formula part = getVariable(creator, arc.getTarget());
 				mayFormula = disjunction(mayFormula, part);
 			}
 			mayFormula = creator.modality(Modality.UNIVERSAL, event, mayFormula);
@@ -80,19 +77,16 @@ public class MTSToFormula {
 		return result;
 	}
 
-	protected Map<VariableFormula, Formula> mtsToEquationSystem(FormulaCreator creator, TransitionSystem mts,
-			Map<State, VariableFormula> variables) {
+	protected Map<VariableFormula, Formula> mtsToEquationSystem(FormulaCreator creator, TransitionSystem mts) {
 		Map<VariableFormula, Formula> result = new HashMap<>();
 		for (State state : mts.getNodes()) {
-			result.put(variables.get(state), stateToFormula(creator, state, variables));
+			result.put(getVariable(creator, state), stateToFormula(creator, state));
 		}
 		return result;
 	}
 
 	public Formula mtsToFormula(FormulaCreator creator, TransitionSystem mts) {
-		Map<State, VariableFormula> variables = createVariables(creator, mts);
-		return new SolveEquationSystem().solve(FixedPoint.GREATEST,
-				mtsToEquationSystem(creator, mts, variables))
-			.get(variables.get(mts.getInitialState()));
+		return new SolveEquationSystem().solve(FixedPoint.GREATEST, mtsToEquationSystem(creator, mts))
+			.get(getVariable(creator, mts.getInitialState()));
 	}
 }
