@@ -148,6 +148,11 @@ public class FormulaCreator {
 			nextFormula = null;
 			return result;
 		}
+
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
 	}
 
 	static private class MyWeakReference extends WeakReference<Formula> {
