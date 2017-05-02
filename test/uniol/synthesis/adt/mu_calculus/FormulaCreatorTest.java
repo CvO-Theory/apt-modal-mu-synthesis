@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import org.testng.SkipException;
 import org.testng.annotations.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -67,8 +68,15 @@ public class FormulaCreatorTest {
 		assertThat(creator.getFormulasWithHashCode(42), emptyIterable());
 	}
 
+	private boolean runningOnCI() {
+		return "true".equals(System.getenv("CI"));
+	}
+
 	@Test
 	public void testAdd() {
+		if (runningOnCI())
+			throw new SkipException("Running this test would cause the OOM killer to be invoked");
+
 		final FormulaCreator creator = new FormulaCreator();
 		Formula formula1 = new Formula() {
 			@Override
