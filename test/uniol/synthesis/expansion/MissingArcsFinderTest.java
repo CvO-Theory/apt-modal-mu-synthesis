@@ -40,7 +40,8 @@ public class MissingArcsFinderTest {
 	public void testSimpleNoMissingArcs() {
 		FormulaCreator creator = new FormulaCreator();
 
-		TableauNode node = mock(TableauNode.class);
+		@SuppressWarnings("unchecked")
+		TableauNode<State> node = mock(TableauNode.class);
 		when(node.getFormula()).thenReturn(creator.constant(true));
 
 		Tableau tableau = mock(Tableau.class);
@@ -54,7 +55,8 @@ public class MissingArcsFinderTest {
 		FormulaCreator creator = new FormulaCreator();
 		State state = mock(State.class);
 
-		TableauNode node = mock(TableauNode.class);
+		@SuppressWarnings("unchecked")
+		TableauNode<State> node = mock(TableauNode.class);
 		when(node.getState()).thenReturn(state);
 		when(node.getFormula()).thenReturn(
 				creator.modality(Modality.UNIVERSAL, "a", creator.constant(true)));
@@ -70,7 +72,8 @@ public class MissingArcsFinderTest {
 		FormulaCreator creator = new FormulaCreator();
 		State state = mock(State.class);
 
-		TableauNode node = mock(TableauNode.class);
+		@SuppressWarnings("unchecked")
+		TableauNode<State> node = mock(TableauNode.class);
 		when(node.getState()).thenReturn(state);
 		when(node.getFormula()).thenReturn(
 				creator.modality(Modality.EXISTENTIAL, "a", creator.constant(true)));

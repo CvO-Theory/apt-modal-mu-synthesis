@@ -27,7 +27,6 @@ import java.util.Set;
 
 import org.apache.commons.collections4.Transformer;
 
-import uniol.apt.adt.ts.State;
 import uniol.apt.util.Pair;
 
 import uniol.synthesis.adt.mu_calculus.ConstantFormula;
@@ -37,15 +36,15 @@ import uniol.synthesis.adt.mu_calculus.Modality;
 import uniol.synthesis.adt.mu_calculus.ModalityFormula;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
 
-public class TableauNode {
-	final private FollowArcs<State> followArcs;
-	final private State state;
+public class TableauNode<S> {
+	final private FollowArcs<S> followArcs;
+	final private S state;
 	final private Formula formula;
 	final private Map<VariableFormula, FixedPointFormula> constantDefinitions;
-	final private Set<Pair<State, VariableFormula>> expansionsAbove;
+	final private Set<Pair<S, VariableFormula>> expansionsAbove;
 
-	private TableauNode(FollowArcs<State> followArcs, State state, Formula formula, Map<VariableFormula,
-			FixedPointFormula> constantDefinitions, Set<Pair<State, VariableFormula>> expansionsAbove) {
+	private TableauNode(FollowArcs<S> followArcs, S state, Formula formula, Map<VariableFormula,
+			FixedPointFormula> constantDefinitions, Set<Pair<S, VariableFormula>> expansionsAbove) {
 		this.followArcs = followArcs;
 		this.state = state;
 		this.formula = formula;
@@ -53,7 +52,7 @@ public class TableauNode {
 		this.expansionsAbove = Collections.unmodifiableSet(expansionsAbove);
 	}
 
-	public TableauNode(FollowArcs<State> followArcs, State state, Formula formula) {
+	public TableauNode(FollowArcs<S> followArcs, S state, Formula formula) {
 		this.followArcs = followArcs;
 		this.state = state;
 		this.formula = formula;
@@ -61,11 +60,11 @@ public class TableauNode {
 		this.expansionsAbove = Collections.emptySet();
 	}
 
-	protected FollowArcs<State> getFollowArcs() {
+	protected FollowArcs<S> getFollowArcs() {
 		return followArcs;
 	}
 
-	public State getState() {
+	public S getState() {
 		return state;
 	}
 
@@ -86,43 +85,43 @@ public class TableauNode {
 		return false;
 	}
 
-	public TableauNode transform(Transformer<State, State> transformer) {
-		Set<Pair<State, VariableFormula>> newExpansions = new HashSet<>();
-		for (Pair<State, VariableFormula> pair : this.expansionsAbove) {
-			newExpansions.add(new Pair<State, VariableFormula>(
+	public TableauNode<S> transform(Transformer<S, S> transformer) {
+		Set<Pair<S, VariableFormula>> newExpansions = new HashSet<>();
+		for (Pair<S, VariableFormula> pair : this.expansionsAbove) {
+			newExpansions.add(new Pair<S, VariableFormula>(
 						transformer.transform(pair.getFirst()), pair.getSecond()));
 		}
-		return new TableauNode(followArcs, transformer.transform(state), formula, this.constantDefinitions, newExpansions);
+		return new TableauNode<S>(followArcs, transformer.transform(state), formula, this.constantDefinitions, newExpansions);
 	}
 
-	public TableauNode createChild(State st, Formula fm) {
-		return new TableauNode(followArcs, st, fm, constantDefinitions, expansionsAbove);
+	public TableauNode<S> createChild(S st, Formula fm) {
+		return new TableauNode<S>(followArcs, st, fm, constantDefinitions, expansionsAbove);
 	}
 
-	public TableauNode createChild(Formula fm) {
-		return new TableauNode(followArcs, this.state, fm, constantDefinitions, expansionsAbove);
+	public TableauNode<S> createChild(Formula fm) {
+		return new TableauNode<S>(followArcs, this.state, fm, constantDefinitions, expansionsAbove);
 	}
 
-	public TableauNode addExpansion(VariableFormula var, FixedPointFormula inner) {
+	public TableauNode<S> addExpansion(VariableFormula var, FixedPointFormula inner) {
 		Map<VariableFormula, FixedPointFormula> newConstantDefinitions = new HashMap<>(constantDefinitions);
 		Formula old = newConstantDefinitions.put(var, inner);
 		if (old != null)
 			throw new IllegalArgumentException();
-		return new TableauNode(followArcs, this.state, var, newConstantDefinitions, this.expansionsAbove);
+		return new TableauNode<S>(followArcs, this.state, var, newConstantDefinitions, this.expansionsAbove);
 	}
 
-	public TableauNode recordExpansion(VariableFormula var, Formula inner) {
-		Set<Pair<State, VariableFormula>> newExpansions = new HashSet<>(expansionsAbove);
-		Pair<State, VariableFormula> pair = new Pair<>(state, var);
+	public TableauNode<S> recordExpansion(VariableFormula var, Formula inner) {
+		Set<Pair<S, VariableFormula>> newExpansions = new HashSet<>(expansionsAbove);
+		Pair<S, VariableFormula> pair = new Pair<>(state, var);
 		newExpansions.add(pair);
-		return new TableauNode(followArcs, this.state, inner, this.constantDefinitions, newExpansions);
+		return new TableauNode<S>(followArcs, this.state, inner, this.constantDefinitions, newExpansions);
 	}
 
 	public boolean wasAlreadyExpanded() {
 		if (!(formula instanceof VariableFormula))
 			return false;
 		VariableFormula var = (VariableFormula) formula;
-		return expansionsAbove.contains(new Pair<State, VariableFormula>(state, var));
+		return expansionsAbove.contains(new Pair<S, VariableFormula>(state, var));
 	}
 
 	public FixedPointFormula getDefinition(VariableFormula var) {
@@ -143,7 +142,8 @@ public class TableauNode {
 	public boolean equals(Object o) {
 		if (!(o instanceof TableauNode))
 			return false;
-		TableauNode other = (TableauNode) o;
+		@SuppressWarnings("unchecked")
+		TableauNode<? extends Object> other = (TableauNode) o;
 		return this.state.equals(other.state) &&
 			this.formula.equals(other.formula) &&
 			this.constantDefinitions.equals(other.constantDefinitions) &&

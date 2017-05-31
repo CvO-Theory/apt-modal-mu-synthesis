@@ -53,7 +53,7 @@ public class TableauBuilderTest {
 	public void testFalseNode() {
 		State state = getABCState();
 		Formula formula = new FormulaCreator().constant(false);
-		TableauNode node = new TableauNode(null, state, formula);
+		TableauNode<State> node = new TableauNode<State>(null, state, formula);
 
 		assertThat(TableauBuilder.expandNode(node), nullValue());
 	}
@@ -62,7 +62,7 @@ public class TableauBuilderTest {
 	public void testTrueNode() {
 		State state = getABCState();
 		Formula formula = new FormulaCreator().constant(true);
-		TableauNode node = new TableauNode(null, state, formula);
+		TableauNode<State> node = new TableauNode<State>(null, state, formula);
 
 		assertThat(TableauBuilder.expandNode(node), contains(empty()));
 	}
@@ -74,7 +74,7 @@ public class TableauBuilderTest {
 		Formula x = creator.variable("X");
 		Formula y = creator.variable("Y");
 		Formula formula = creator.conjunction(x, y);
-		TableauNode node = new TableauNode(null, state, formula);
+		TableauNode<State> node = new TableauNode<State>(null, state, formula);
 
 		assertThat(TableauBuilder.expandNode(node),
 				contains(containsInAnyOrder(hasFormula(x), hasFormula(y))));
@@ -87,7 +87,7 @@ public class TableauBuilderTest {
 		Formula x = creator.variable("X");
 		Formula y = creator.variable("Y");
 		Formula formula = creator.disjunction(x, y);
-		TableauNode node = new TableauNode(null, state, formula);
+		TableauNode<State> node = new TableauNode<State>(null, state, formula);
 
 		assertThat(TableauBuilder.expandNode(node),
 				containsInAnyOrder(contains(hasFormula(x)), contains(hasFormula(y))));
@@ -98,11 +98,11 @@ public class TableauBuilderTest {
 		State state = getABCState();
 		FormulaCreator creator = new FormulaCreator();
 		Formula formula = creator.fixedPoint(FixedPoint.GREATEST, creator.variable("x"), creator.constant(true));
-		TableauNode node = new TableauNode(null, state, formula);
+		TableauNode<State> node = new TableauNode<State>(null, state, formula);
 
-		Set<Set<TableauNode>> expanded = TableauBuilder.expandNode(node);
+		Set<Set<TableauNode<State>>> expanded = TableauBuilder.expandNode(node);
 		assertThat(expanded, contains(contains(hasFormula(instanceOf(VariableFormula.class)))));
-		TableauNode expandedNode = expanded.iterator().next().iterator().next();
+		TableauNode<State> expandedNode = expanded.iterator().next().iterator().next();
 		assertThat(expandedNode.getDefinition((VariableFormula) expandedNode.getFormula()), equalTo(formula));
 	}
 
@@ -111,7 +111,7 @@ public class TableauBuilderTest {
 		State state = getABCState();
 		FormulaCreator creator = new FormulaCreator();
 		Formula formula = creator.negate(creator.constant(true));
-		TableauNode node = new TableauNode(null, state, formula);
+		TableauNode<State> node = new TableauNode<State>(null, state, formula);
 
 		TableauBuilder.expandNode(node);
 	}
@@ -121,7 +121,7 @@ public class TableauBuilderTest {
 		State state = getABCState();
 		FormulaCreator creator = new FormulaCreator();
 		Formula formula = creator.variable("X");
-		TableauNode node = new TableauNode(null, state, formula);
+		TableauNode<State> node = new TableauNode<State>(null, state, formula);
 
 		TableauBuilder.expandNode(node);
 	}
@@ -133,7 +133,7 @@ public class TableauBuilderTest {
 		FormulaCreator creator = new FormulaCreator();
 		VariableFormula formula = creator.variable("X");
 		FixedPointFormula fixedpoint = creator.fixedPoint(FixedPoint.LEAST, formula, formula);
-		TableauNode node = new TableauNode(null, state, formula).addExpansion(formula, fixedpoint).createChild(afterA, formula);
+		TableauNode<State> node = new TableauNode<State>(null, state, formula).addExpansion(formula, fixedpoint).createChild(afterA, formula);
 
 		assertThat(TableauBuilder.expandNode(node), contains(contains(
 						both(hasFormula(instanceOf(VariableFormula.class))).and(hasState(afterA)))));
@@ -148,7 +148,7 @@ public class TableauBuilderTest {
 		VariableFormula fresh = creator.freshVariable("X");
 		FixedPointFormula fixedpoint = creator.fixedPoint(FixedPoint.LEAST, formula, creator.modality(Modality.EXISTENTIAL, "a", formula));
 		Formula innerFresh = creator.modality(Modality.EXISTENTIAL, "a", fresh);
-		TableauNode node = new TableauNode(null, state, formula).addExpansion(fresh, fixedpoint).createChild(afterA, fresh);
+		TableauNode<State> node = new TableauNode<State>(null, state, formula).addExpansion(fresh, fixedpoint).createChild(afterA, fresh);
 
 		assertThat(TableauBuilder.expandNode(node), contains(contains(hasFormula(innerFresh))));
 	}
@@ -159,7 +159,7 @@ public class TableauBuilderTest {
 		FormulaCreator creator = new FormulaCreator();
 		VariableFormula formula = creator.variable("X");
 		FixedPointFormula fixedpoint = creator.fixedPoint(FixedPoint.LEAST, formula, formula);
-		TableauNode node = new TableauNode(null, state, formula).addExpansion(formula, fixedpoint)
+		TableauNode<State> node = new TableauNode<State>(null, state, formula).addExpansion(formula, fixedpoint)
 			.recordExpansion(formula, formula);
 
 		assertThat(TableauBuilder.expandNode(node), nullValue());
@@ -171,7 +171,7 @@ public class TableauBuilderTest {
 		FormulaCreator creator = new FormulaCreator();
 		VariableFormula formula = creator.variable("X");
 		FixedPointFormula fixedpoint = creator.fixedPoint(FixedPoint.GREATEST, formula, formula);
-		TableauNode node = new TableauNode(null, state, formula).addExpansion(formula, fixedpoint)
+		TableauNode<State> node = new TableauNode<State>(null, state, formula).addExpansion(formula, fixedpoint)
 			.recordExpansion(formula, formula);
 
 		assertThat(TableauBuilder.expandNode(node), contains(contains(hasFormula(creator.constant(true)))));
@@ -187,7 +187,7 @@ public class TableauBuilderTest {
 
 		FormulaCreator creator = new FormulaCreator();
 		Formula formula = creator.modality(Modality.UNIVERSAL, "a", creator.constant(true));
-		TableauNode node = new TableauNode(new StateFollowArcs(), ts.getNode("s0"), formula);
+		TableauNode<State> node = new TableauNode<State>(new StateFollowArcs(), ts.getNode("s0"), formula);
 
 		TableauBuilder.expandNode(node);
 	}
@@ -198,7 +198,7 @@ public class TableauBuilderTest {
 		State afterA = state.getPostsetNodesByLabel("a").iterator().next();
 		FormulaCreator creator = new FormulaCreator();
 		Formula formula = creator.modality(Modality.UNIVERSAL, "a", creator.constant(true));
-		TableauNode node = new TableauNode(new StateFollowArcs(), state, formula);
+		TableauNode<State> node = new TableauNode<State>(new StateFollowArcs(), state, formula);
 
 		assertThat(TableauBuilder.expandNode(node), contains(contains(
 						hasStateAndFormula(afterA, creator.constant(true)))));
@@ -209,7 +209,7 @@ public class TableauBuilderTest {
 		State state = getABCState();
 		FormulaCreator creator = new FormulaCreator();
 		Formula formula = creator.modality(Modality.UNIVERSAL, "z", creator.constant(true));
-		TableauNode node = new TableauNode(new StateFollowArcs(), state, formula);
+		TableauNode<State> node = new TableauNode<State>(new StateFollowArcs(), state, formula);
 
 		assertThat(TableauBuilder.expandNode(node), contains(empty()));
 	}
@@ -220,7 +220,7 @@ public class TableauBuilderTest {
 		State afterA = state.getPostsetNodesByLabel("a").iterator().next();
 		FormulaCreator creator = new FormulaCreator();
 		Formula formula = creator.modality(Modality.EXISTENTIAL, "a", creator.constant(true));
-		TableauNode node = new TableauNode(new StateFollowArcs(), state, formula);
+		TableauNode<State> node = new TableauNode<State>(new StateFollowArcs(), state, formula);
 
 		assertThat(TableauBuilder.expandNode(node), contains(contains(
 						hasStateAndFormula(afterA, creator.constant(true)))));
@@ -231,7 +231,7 @@ public class TableauBuilderTest {
 		State state = getABCState();
 		FormulaCreator creator = new FormulaCreator();
 		Formula formula = creator.modality(Modality.EXISTENTIAL, "z", creator.constant(true));
-		TableauNode node = new TableauNode(new StateFollowArcs(), state, formula);
+		TableauNode<State> node = new TableauNode<State>(new StateFollowArcs(), state, formula);
 
 		assertThat(TableauBuilder.expandNode(node), contains(empty()));
 	}
@@ -250,7 +250,7 @@ public class TableauBuilderTest {
 		Formula formula = new FormulaCreator().constant(true);
 
 		assertThat(new TableauBuilder(null).createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
-					.and(hasLeaves(contains(new TableauNode(null, state, formula))))));
+					.and(hasLeaves(contains(new TableauNode<State>(null, state, formula))))));
 	}
 
 	@Test
@@ -260,7 +260,7 @@ public class TableauBuilderTest {
 		Formula formula = creator.negate(creator.constant(false));
 
 		assertThat(new TableauBuilder(null).createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
-					.and(hasLeaves(contains(new TableauNode(null, state, creator.constant(true)))))));
+					.and(hasLeaves(contains(new TableauNode<State>(null, state, creator.constant(true)))))));
 	}
 
 	@Test
@@ -282,7 +282,7 @@ public class TableauBuilderTest {
 		Formula formula = creator.conjunction(True, True);
 
 		assertThat(new TableauBuilder(null).createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
-					.and(hasLeaves(contains(new TableauNode(null, state, True))))));
+					.and(hasLeaves(contains(new TableauNode<State>(null, state, True))))));
 	}
 
 	@Test
@@ -293,8 +293,8 @@ public class TableauBuilderTest {
 		Formula right = creator.modality(Modality.UNIVERSAL, "z", True);
 		Formula formula = creator.conjunction(True, right);
 		assertThat(new TableauBuilder(new StateFollowArcs()).createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
-					.and(hasLeaves(containsInAnyOrder(new TableauNode(null, state, True),
-								new TableauNode(null, state, right))))));
+					.and(hasLeaves(containsInAnyOrder(new TableauNode<State>(null, state, True),
+								new TableauNode<State>(null, state, right))))));
 	}
 
 	@Test
@@ -316,7 +316,7 @@ public class TableauBuilderTest {
 		Formula formula = creator.disjunction(True, False);
 
 		assertThat(new TableauBuilder(null).createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
-					.and(hasLeaves(contains(new TableauNode(null, state, True))))));
+					.and(hasLeaves(contains(new TableauNode<State>(null, state, True))))));
 	}
 
 	@Test
@@ -327,7 +327,7 @@ public class TableauBuilderTest {
 		Formula formula = creator.disjunction(True, True);
 
 		assertThat(new TableauBuilder(null).createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
-					.and(hasLeaves(contains(new TableauNode(null, state, True))))));
+					.and(hasLeaves(contains(new TableauNode<State>(null, state, True))))));
 	}
 
 	@Test
@@ -339,9 +339,9 @@ public class TableauBuilderTest {
 		Formula formula = creator.disjunction(True, right);
 		assertThat(new TableauBuilder(new StateFollowArcs()).createTableaus(state, formula), containsInAnyOrder(
 					both(isSuccessfulTableau(true)).and(hasLeaves(contains(
-								new TableauNode(null, state, True)))),
+								new TableauNode<State>(null, state, True)))),
 					both(isSuccessfulTableau(true)).and(hasLeaves(contains(
-								new TableauNode(null, state, right))))));
+								new TableauNode<State>(null, state, right))))));
 	}
 
 	@Test
@@ -405,7 +405,7 @@ public class TableauBuilderTest {
 		Formula formula = creator.modality(Modality.EXISTENTIAL, "a", creator.constant(true));
 
 		assertThat(new TableauBuilder(new StateFollowArcs()).createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
-					.and(hasLeaves(contains(new TableauNode(null, afterA, creator.constant(true)))))));
+					.and(hasLeaves(contains(new TableauNode<State>(null, afterA, creator.constant(true)))))));
 	}
 
 	@Test
@@ -416,7 +416,7 @@ public class TableauBuilderTest {
 		Formula formula = creator.modality(Modality.UNIVERSAL, "a", creator.constant(true));
 
 		assertThat(new TableauBuilder(new StateFollowArcs()).createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
-					.and(hasLeaves(contains(new TableauNode(null, afterA, creator.constant(true)))))));
+					.and(hasLeaves(contains(new TableauNode<State>(null, afterA, creator.constant(true)))))));
 	}
 
 	@Test
@@ -426,7 +426,7 @@ public class TableauBuilderTest {
 		Formula formula = creator.modality(Modality.EXISTENTIAL, "z", creator.constant(true));
 
 		assertThat(new TableauBuilder(new StateFollowArcs()).createTableaus(state, formula), contains(both(isSuccessfulTableau(false))
-					.and(hasLeaves(contains(new TableauNode(null, state, formula))))));
+					.and(hasLeaves(contains(new TableauNode<State>(null, state, formula))))));
 	}
 
 	@Test
@@ -436,7 +436,7 @@ public class TableauBuilderTest {
 		Formula formula = creator.modality(Modality.UNIVERSAL, "z", creator.constant(true));
 
 		assertThat(new TableauBuilder(new StateFollowArcs()).createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
-					.and(hasLeaves(contains(new TableauNode(null, state, formula))))));
+					.and(hasLeaves(contains(new TableauNode<State>(null, state, formula))))));
 	}
 
 	@Test
@@ -446,7 +446,7 @@ public class TableauBuilderTest {
 		Formula True = creator.constant(true);
 		Formula right = creator.modality(Modality.UNIVERSAL, "z", True);
 		Formula formula = creator.conjunction(True, right);
-		TableauNode node = new TableauNode(new StateFollowArcs(), state, formula);
+		TableauNode<State> node = new TableauNode<State>(new StateFollowArcs(), state, formula);
 		Tableau tableau = new Tableau(Collections.singleton(node));
 
 		assertThat(new TableauBuilder(null).continueTableau(tableau), contains(hasLeaves(containsInAnyOrder(
@@ -548,7 +548,7 @@ public class TableauBuilderTest {
 		final int callCount[] = new int[1];
 		TableauBuilder.ProgressCallback callback = new TableauBuilder.ProgressCallback() {
 			@Override
-			public void children(TableauNode node, Set<Set<TableauNode>> children) {
+			public void children(TableauNode<State> node, Set<Set<TableauNode<State>>> children) {
 				switch (callCount[0]++) {
 					case 0:
 						assertThat(node, hasStateAndFormula(s0, formula0));
@@ -585,7 +585,7 @@ public class TableauBuilderTest {
 		final int callCount[] = new int[1];
 		TableauBuilder.ProgressCallback callback = new TableauBuilder.ProgressCallback() {
 			@Override
-			public void children(TableauNode node, Set<Set<TableauNode>> children) {
+			public void children(TableauNode<State> node, Set<Set<TableauNode<State>>> children) {
 				switch (callCount[0]++) {
 					case 0:
 						assertThat(node, hasStateAndFormula(s, formula));

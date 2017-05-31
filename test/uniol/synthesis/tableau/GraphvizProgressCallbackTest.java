@@ -32,8 +32,9 @@ import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class GraphvizProgressCallbackTest {
-	static private TableauNode createTableau(String node, String formula) {
-		TableauNode result = mock(TableauNode.class);
+	static private TableauNode<State> createTableau(String node, String formula) {
+		@SuppressWarnings("unchecked")
+		TableauNode<State> result = mock(TableauNode.class);
 		State state = mock(State.class);
 		Formula form = mock(Formula.class);
 
@@ -75,15 +76,15 @@ public class GraphvizProgressCallbackTest {
 	public void testSuccess() {
 		GraphvizProgressCallback callback = new GraphvizProgressCallback();
 
-		callback.children(createTableau("state", "formula"), singleton(Collections.<TableauNode>emptySet()));
+		callback.children(createTableau("state", "formula"), singleton(Collections.<TableauNode<State>>emptySet()));
 
 		assertThat(callback, hasToString("digraph img {\ns0[label=\"state, formula\"];\n}\n"));
 	}
 
 	@Test
 	public void testOneEdge() {
-		TableauNode node0 = createTableau("state0", "formula0");
-		TableauNode node1 = createTableau("state1", "formula1");
+		TableauNode<State> node0 = createTableau("state0", "formula0");
+		TableauNode<State> node1 = createTableau("state1", "formula1");
 
 		GraphvizProgressCallback callback = new GraphvizProgressCallback();
 		callback.children(node0, singleton(singleton(node1)));
@@ -94,7 +95,7 @@ public class GraphvizProgressCallbackTest {
 
 	@Test
 	public void testMapTableau() {
-		TableauNode node = createTableau("state", "formula");
+		TableauNode<State> node = createTableau("state", "formula");
 		Tableau tableau = mock(Tableau.class);
 		when(tableau.getLeaves()).thenReturn(singleton(node));
 		when(tableau.isSuccessful()).thenReturn(false);
@@ -107,7 +108,7 @@ public class GraphvizProgressCallbackTest {
 
 	@Test
 	public void testMapTableaus() {
-		TableauNode node = createTableau("state", "formula");
+		TableauNode<State> node = createTableau("state", "formula");
 		Tableau tableau0 = mock(Tableau.class);
 		when(tableau0.getLeaves()).thenReturn(singleton(node));
 		when(tableau0.isSuccessful()).thenReturn(false);

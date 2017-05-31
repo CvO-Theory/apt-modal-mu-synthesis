@@ -44,12 +44,12 @@ import static uniol.synthesis.util.SubstitutionTransformer.substitute;
 
 public class TableauBuilder {
 	public interface ProgressCallback {
-		public void children(TableauNode node, Set<Set<TableauNode>> children);
+		public void children(TableauNode<State> node, Set<Set<TableauNode<State>>> children);
 	}
 
 	static private final ProgressCallback NOP_PROGRESS = new ProgressCallback() {
 		@Override
-		public void children(TableauNode node, Set<Set<TableauNode>> children) {
+		public void children(TableauNode<State> node, Set<Set<TableauNode<State>>> children) {
 		}
 	};
 
@@ -67,14 +67,14 @@ public class TableauBuilder {
 
 	public Set<Tableau> createTableaus(State state, Formula formula) {
 		formula = cleanForm(positiveForm(formula));
-		return expandTableau(Collections.singleton(new TableauNode(followArcs, state, formula)));
+		return expandTableau(Collections.singleton(new TableauNode<State>(followArcs, state, formula)));
 	}
 
 	public Set<Tableau> continueTableau(Tableau tableau) {
 		return expandTableau(tableau.getLeaves());
 	}
 
-	private Set<Tableau> expandTableau(Set<TableauNode> nodes) {
+	private Set<Tableau> expandTableau(Set<TableauNode<State>> nodes) {
 		Set<Tableau> result = new HashSet<>();
 		new NonRecursive().run(new CreateTableaus(callback, result, nodes));
 		return result;
@@ -83,13 +83,13 @@ public class TableauBuilder {
 	static private class CreateTableaus implements NonRecursive.Walker {
 		private final ProgressCallback callback;
 		private final Set<Tableau> result;
-		private final Set<TableauNode> leaves = new HashSet<>();
+		private final Set<TableauNode<State>> leaves = new HashSet<>();
 		private final Queue<ExpandNodeWalker> todo = new ArrayDeque<>();
 
-		private CreateTableaus(ProgressCallback callback, Set<Tableau> result, Set<TableauNode> nodes) {
+		private CreateTableaus(ProgressCallback callback, Set<Tableau> result, Set<TableauNode<State>> nodes) {
 			this.callback = callback;
 			this.result = result;
-			for (TableauNode node : nodes)
+			for (TableauNode<State> node : nodes)
 				this.todo.add(new ExpandNodeWalker(node));
 		}
 
@@ -110,7 +110,7 @@ public class TableauBuilder {
 			}
 
 			next.walk(engine);
-			Set<Set<TableauNode>> expansion = next.getExpansion();
+			Set<Set<TableauNode<State>>> expansion = next.getExpansion();
 			callback.children(next.getNode(), expansion);
 			if (expansion == null)
 				// This is false / does not hold.
@@ -118,12 +118,12 @@ public class TableauBuilder {
 
 			if (expansion.size() == 1) {
 				// A conjunction of nodes. Follow them.
-				Set<TableauNode> children = expansion.iterator().next();
+				Set<TableauNode<State>> children = expansion.iterator().next();
 				if (children.isEmpty()) {
 					// No children, thus this is a leave
 					leaves.add(next.getNode());
 				} else {
-					for (TableauNode child : children) {
+					for (TableauNode<State> child : children) {
 						todo.add(new ExpandNodeWalker(child));
 					}
 				}
@@ -131,9 +131,9 @@ public class TableauBuilder {
 				engine.enqueue(this);
 			} else {
 				// A disjunction of nodes, we have to split
-				for (Set<TableauNode> part : expansion) {
+				for (Set<TableauNode<State>> part : expansion) {
 					CreateTableaus split = new CreateTableaus(this);
-					for (TableauNode child : part) {
+					for (TableauNode<State> child : part) {
 						split.todo.add(new ExpandNodeWalker(child));
 					}
 					engine.enqueue(split);
@@ -142,40 +142,40 @@ public class TableauBuilder {
 		}
 	}
 
-	static Set<Set<TableauNode>> expandNode(TableauNode node) {
+	static Set<Set<TableauNode<State>>> expandNode(TableauNode<State> node) {
 		ExpandNodeWalker walker = new ExpandNodeWalker(node);
 		walker.walk(null);
 		return walker.getExpansion();
 	}
 
 	static private class ExpandNodeWalker extends FormulaWalker {
-		private final TableauNode node;
-		private Set<Set<TableauNode>> expansion;
+		private final TableauNode<State> node;
+		private Set<Set<TableauNode<State>>> expansion;
 
-		private ExpandNodeWalker(TableauNode node) {
+		private ExpandNodeWalker(TableauNode<State> node) {
 			super(node.getFormula());
 			this.node = node;
 		}
 
-		private TableauNode getNode() {
+		private TableauNode<State> getNode() {
 			return node;
 		}
 
-		Set<Set<TableauNode>> getExpansion() {
+		Set<Set<TableauNode<State>>> getExpansion() {
 			return expansion;
 		}
 
 		@Override
 		public void walk(NonRecursive engine, ConstantFormula formula) {
 			if (formula.getValue())
-				expansion = Collections.singleton(Collections.<TableauNode>emptySet());
+				expansion = Collections.singleton(Collections.<TableauNode<State>>emptySet());
 			else
 				expansion = null;
 		}
 
 		@Override
 		public void walk(NonRecursive engine, ConjunctionFormula formula) {
-			Set<TableauNode> set = new HashSet<>();
+			Set<TableauNode<State>> set = new HashSet<>();
 			set.add(node.createChild(formula.getLeft()));
 			set.add(node.createChild(formula.getRight()));
 			expansion = Collections.singleton(set);
@@ -220,7 +220,7 @@ public class TableauBuilder {
 			String event = formula.getEvent();
 			Set<State> states = node.getFollowArcs().followArcs(node.getState(), event);
 			if (states.isEmpty()) {
-				expansion = Collections.singleton(Collections.<TableauNode>emptySet());
+				expansion = Collections.singleton(Collections.<TableauNode<State>>emptySet());
 			} else {
 				if (states.size() != 1)
 					throw new IllegalArgumentException("Given LTS is non-deterministic in state " +

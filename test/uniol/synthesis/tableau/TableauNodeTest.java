@@ -55,9 +55,12 @@ public class TableauNodeTest {
 		FormulaCreator creator = new FormulaCreator();
 		State state = getABCState();
 		Formula formula = creator.constant(true);
+		@SuppressWarnings("unchecked")
+		FollowArcs<State> followArcs = mock(FollowArcs.class);
 
-		TableauNode node = new TableauNode(null, state, formula);
+		TableauNode<State> node = new TableauNode<State>(followArcs, state, formula);
 		assertThat(node, hasStateAndFormula(state, formula));
+		assertThat(node.getFollowArcs(), sameInstance(followArcs));
 	}
 
 	@Test
@@ -65,18 +68,18 @@ public class TableauNodeTest {
 		FormulaCreator creator = new FormulaCreator();
 		State state = getABCState();
 
-		TableauNode node1 = new TableauNode(null, state, creator.constant(true));
+		TableauNode<State> node1 = new TableauNode<State>(null, state, creator.constant(true));
 		assertThat(node1, equalTo(node1));
 		assertThat(node1, not(equalTo((Object) "foo")));
-		assertThat(new TableauNode(null, state, creator.constant(true)), equalTo(node1));
-		assertThat(new TableauNode(null, state, creator.constant(true)).hashCode(), equalTo(node1.hashCode()));
+		assertThat(new TableauNode<State>(null, state, creator.constant(true)), equalTo(node1));
+		assertThat(new TableauNode<State>(null, state, creator.constant(true)).hashCode(), equalTo(node1.hashCode()));
 
-		assertThat(new TableauNode(null, state, creator.constant(false)), not(equalTo(node1)));
+		assertThat(new TableauNode<State>(null, state, creator.constant(false)), not(equalTo(node1)));
 
 		state = getABCState();
-		assertThat(new TableauNode(null, state, creator.constant(true)), not(equalTo(node1)));
+		assertThat(new TableauNode<State>(null, state, creator.constant(true)), not(equalTo(node1)));
 
-		TableauNode node2 = node1.recordExpansion(creator.variable("X"), creator.constant(true));
+		TableauNode<State> node2 = node1.recordExpansion(creator.variable("X"), creator.constant(true));
 		assertThat(node1, not(equalTo(node2)));
 	}
 
@@ -87,7 +90,7 @@ public class TableauNodeTest {
 		VariableFormula x = creator.variable("x");
 		FixedPointFormula fp = creator.fixedPoint(FixedPoint.GREATEST, x, x);
 
-		TableauNode node1 = new TableauNode(null, state, x);
+		TableauNode<State> node1 = new TableauNode<State>(null, state, x);
 		assertThat(node1.addExpansion(x, fp), not(equalTo(node1)));
 	}
 
@@ -97,27 +100,27 @@ public class TableauNodeTest {
 		State state = getABCState();
 		VariableFormula someFormula = creator.variable("X");
 
-		assertThat(new TableauNode(null, state, creator.constant(false)), isSuccessfulNode(false));
-		assertThat(new TableauNode(null, state, creator.constant(true)), isSuccessfulNode(true));
-		assertThat(new TableauNode(null, state, creator.negate(someFormula)), isSuccessfulNode(false));
-		assertThat(new TableauNode(null, state, creator.conjunction(someFormula, someFormula)), isSuccessfulNode(false));
-		assertThat(new TableauNode(null, state, creator.disjunction(someFormula, someFormula)), isSuccessfulNode(false));
-		assertThat(new TableauNode(null, state, creator.variable("X")), isSuccessfulNode(false));
-		assertThat(new TableauNode(null, state, creator.fixedPoint(FixedPoint.LEAST, someFormula, someFormula)), isSuccessfulNode(false));
+		assertThat(new TableauNode<State>(null, state, creator.constant(false)), isSuccessfulNode(false));
+		assertThat(new TableauNode<State>(null, state, creator.constant(true)), isSuccessfulNode(true));
+		assertThat(new TableauNode<State>(null, state, creator.negate(someFormula)), isSuccessfulNode(false));
+		assertThat(new TableauNode<State>(null, state, creator.conjunction(someFormula, someFormula)), isSuccessfulNode(false));
+		assertThat(new TableauNode<State>(null, state, creator.disjunction(someFormula, someFormula)), isSuccessfulNode(false));
+		assertThat(new TableauNode<State>(null, state, creator.variable("X")), isSuccessfulNode(false));
+		assertThat(new TableauNode<State>(null, state, creator.fixedPoint(FixedPoint.LEAST, someFormula, someFormula)), isSuccessfulNode(false));
 
 		@SuppressWarnings("unchecked")
 		FollowArcs<State> followArcsZ = mock(FollowArcs.class);
 
 		when(followArcsZ.followArcs(state, "z")).thenReturn(Collections.<State>emptySet());
-		assertThat(new TableauNode(null, state, creator.modality(Modality.EXISTENTIAL, "z", someFormula)), isSuccessfulNode(false));
-		assertThat(new TableauNode(followArcsZ, state, creator.modality(Modality.UNIVERSAL,   "z", someFormula)), isSuccessfulNode(true));
+		assertThat(new TableauNode<State>(null, state, creator.modality(Modality.EXISTENTIAL, "z", someFormula)), isSuccessfulNode(false));
+		assertThat(new TableauNode<State>(followArcsZ, state, creator.modality(Modality.UNIVERSAL,   "z", someFormula)), isSuccessfulNode(true));
 
 		@SuppressWarnings("unchecked")
 		FollowArcs<State> followArcsA = mock(FollowArcs.class);
 		when(followArcsA.followArcs(state, "a")).thenReturn(Collections.<State>singleton(state));
 
-		assertThat(new TableauNode(null, state, creator.modality(Modality.EXISTENTIAL, "a", someFormula)), isSuccessfulNode(false));
-		assertThat(new TableauNode(followArcsA, state, creator.modality(Modality.UNIVERSAL,   "a", someFormula)), isSuccessfulNode(false));
+		assertThat(new TableauNode<State>(null, state, creator.modality(Modality.EXISTENTIAL, "a", someFormula)), isSuccessfulNode(false));
+		assertThat(new TableauNode<State>(followArcsA, state, creator.modality(Modality.UNIVERSAL,   "a", someFormula)), isSuccessfulNode(false));
 	}
 
 	@Test
@@ -128,11 +131,11 @@ public class TableauNodeTest {
 		Formula formula1 = creator.constant(true);
 		Formula formula2 = creator.constant(true);
 
-		TableauNode node1 = new TableauNode(null, state1, formula1);
-		TableauNode node2 = node1.createChild(state2, formula2);
+		TableauNode<State> node1 = new TableauNode<State>(null, state1, formula1);
+		TableauNode<State> node2 = node1.createChild(state2, formula2);
 		assertThat(node2, hasStateAndFormula(state2, formula2));
 
-		TableauNode node3 = node1.createChild(formula2);
+		TableauNode<State> node3 = node1.createChild(formula2);
 		assertThat(node3, hasStateAndFormula(state1, formula2));
 	}
 
@@ -144,12 +147,12 @@ public class TableauNodeTest {
 		VariableFormula fresh = creator.freshVariable("X");
 		FixedPointFormula formula = creator.fixedPoint(FixedPoint.GREATEST, x, creator.constant(true));
 
-		TableauNode node = new TableauNode(null, state, formula);
+		TableauNode<State> node = new TableauNode<State>(null, state, formula);
 		assertThat(node.getDefinition(fresh), nullValue());
 		assertThat(node.getDefinition(x), nullValue());
 		assertThat(node.wasAlreadyExpanded(), is(false));
 
-		TableauNode next = node.addExpansion(fresh, formula);
+		TableauNode<State> next = node.addExpansion(fresh, formula);
 		assertThat(next, not(equalTo(node)));
 		assertThat(next, hasStateAndFormula(state, fresh));
 		assertThat(next.getDefinition(fresh), equalTo(formula));
@@ -166,7 +169,7 @@ public class TableauNodeTest {
 		FixedPointFormula formula = creator.fixedPoint(FixedPoint.GREATEST, x, creator.constant(true));
 		FixedPointFormula otherFp = creator.fixedPoint(FixedPoint.LEAST, x, creator.constant(true));
 
-		TableauNode node = new TableauNode(null, state, formula);
+		TableauNode<State> node = new TableauNode<State>(null, state, formula);
 		Object o = node.addExpansion(fresh, formula).addExpansion(fresh, otherFp);
 		throw new RuntimeException(o.toString() + "this code should not be reached");
 	}
@@ -179,22 +182,22 @@ public class TableauNodeTest {
 		VariableFormula x = creator.variable("X");
 		FixedPointFormula fp = creator.fixedPoint(FixedPoint.LEAST, x, x);
 
-		TableauNode node0 = new TableauNode(null, state, x);
+		TableauNode<State> node0 = new TableauNode<State>(null, state, x);
 		assertThat(node0.wasAlreadyExpanded(), is(false));
 
-		TableauNode node1 = node0.addExpansion(x, fp).createChild(x);
+		TableauNode<State> node1 = node0.addExpansion(x, fp).createChild(x);
 		assertThat(node1.wasAlreadyExpanded(), is(false));
 
-		TableauNode node2 = node1.recordExpansion(x, x);
+		TableauNode<State> node2 = node1.recordExpansion(x, x);
 		assertThat(node2.wasAlreadyExpanded(), is(true));
 
-		TableauNode node3 = node2.createChild(afterA, x);
+		TableauNode<State> node3 = node2.createChild(afterA, x);
 		assertThat(node3.wasAlreadyExpanded(), is(false));
 
-		TableauNode node4 = node3.recordExpansion(x, fp).createChild(state, x);
+		TableauNode<State> node4 = node3.recordExpansion(x, fp).createChild(state, x);
 		assertThat(node4.wasAlreadyExpanded(), is(true));
 
-		TableauNode node5 = node4.createChild(state, x);
+		TableauNode<State> node5 = node4.createChild(state, x);
 		assertThat(node5.wasAlreadyExpanded(), is(true));
 	}
 
@@ -205,8 +208,8 @@ public class TableauNodeTest {
 		State newState = getABCState();
 
 		assertThat(oldState, not(equalTo(newState)));
-		TableauNode oldNode = new TableauNode(null, oldState, formula);
-		TableauNode newNode = oldNode.transform(TransformerUtils.<State, State>constantTransformer(newState));
+		TableauNode<State> oldNode = new TableauNode<State>(null, oldState, formula);
+		TableauNode<State> newNode = oldNode.transform(TransformerUtils.<State, State>constantTransformer(newState));
 
 		assertThat(newNode, hasStateAndFormula(newState, formula));
 	}
@@ -218,8 +221,8 @@ public class TableauNodeTest {
 		State newState = getABCState();
 
 		assertThat(oldState, not(equalTo(newState)));
-		TableauNode oldNode = new TableauNode(null, oldState, formula).recordExpansion(formula, formula);
-		TableauNode newNode = oldNode.transform(TransformerUtils.<State, State>constantTransformer(newState));
+		TableauNode<State> oldNode = new TableauNode<State>(null, oldState, formula).recordExpansion(formula, formula);
+		TableauNode<State> newNode = oldNode.transform(TransformerUtils.<State, State>constantTransformer(newState));
 
 		assertThat(newNode, hasStateAndFormula(newState, formula));
 		assertThat(newNode.wasAlreadyExpanded(), is(true));

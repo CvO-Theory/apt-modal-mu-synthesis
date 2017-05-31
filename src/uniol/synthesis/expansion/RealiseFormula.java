@@ -118,7 +118,7 @@ public class RealiseFormula implements NonRecursive.Walker {
 			reachingWordTransformerFactory, ContinueTableauFactory continueTableauFactory,
 			OverapproximateTS overapproximateTS) {
 		// Create a tableau that relates the initial state to the whole formula and call next constructor
-		this(ts, new Tableau(Collections.singleton(new TableauNode(new StateFollowArcs(), ts.getInitialState(),
+		this(ts, new Tableau(Collections.singleton(new TableauNode<State>(new StateFollowArcs(), ts.getInitialState(),
 							formula))), realisationCallback, missingArcsFinder,
 				reachingWordTransformerFactory, continueTableauFactory, overapproximateTS);
 	}

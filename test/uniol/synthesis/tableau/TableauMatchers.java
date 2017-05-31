@@ -34,49 +34,50 @@ import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.apt.adt.ts.State;
 
 public class TableauMatchers {
-	static public Matcher<TableauNode> isSuccessfulNode(final boolean expected) {
-		return new FeatureMatcher<TableauNode, Boolean>(equalTo(expected), "isSuccessful", "isSuccessful") {
+	static public Matcher<TableauNode<State>> isSuccessfulNode(final boolean expected) {
+		return new FeatureMatcher<TableauNode<State>, Boolean>(equalTo(expected), "isSuccessful", "isSuccessful") {
 			@Override
-			protected Boolean featureValueOf(TableauNode node) {
+			protected Boolean featureValueOf(TableauNode<State> node) {
 				return node.isSuccessful();
 			}
 		};
 	}
 
-	static public Matcher<TableauNode> hasState(final Matcher<? super State> stateMatcher) {
-		return new FeatureMatcher<TableauNode, State>(stateMatcher, "getState", "getState") {
+	static public Matcher<TableauNode<State>> hasState(final Matcher<? super State> stateMatcher) {
+		return new FeatureMatcher<TableauNode<State>, State>(stateMatcher, "getState", "getState") {
 			@Override
-			protected State featureValueOf(TableauNode node) {
+			protected State featureValueOf(TableauNode<State> node) {
 				return node.getState();
 			}
 		};
 	}
 
-	static public Matcher<TableauNode> hasState(State state) {
+	static public Matcher<TableauNode<State>> hasState(State state) {
 		return hasState(equalTo(state));
 	}
 
-	static public Matcher<TableauNode> hasFormula(final Matcher<? super Formula> formulaMatcher) {
-		return new FeatureMatcher<TableauNode, Formula>(formulaMatcher, "getFormula", "getFormula") {
+	static public Matcher<TableauNode<State>> hasFormula(final Matcher<? super Formula> formulaMatcher) {
+		return new FeatureMatcher<TableauNode<State>, Formula>(formulaMatcher, "getFormula", "getFormula") {
 			@Override
-			protected Formula featureValueOf(TableauNode node) {
+			protected Formula featureValueOf(TableauNode<State> node) {
 				return node.getFormula();
 			}
 		};
 	}
 
-	static public Matcher<TableauNode> hasFormula(Formula formula) {
+	static public Matcher<TableauNode<State>> hasFormula(Formula formula) {
 		return hasFormula(equalTo(formula));
 	}
 
-	static public Matcher<TableauNode> hasStateAndFormula(State state, Formula formula) {
-		return both(hasState(state)).and(hasFormula(formula));
+	static public Matcher<TableauNode<State>> hasStateAndFormula(State state, Formula formula) {
+		Matcher<TableauNode<State>> formulaMatcher = hasFormula(formula);
+		return both(hasState(state)).and(formulaMatcher);
 	}
 
-	static public Matcher<Tableau> hasLeaves(final Matcher<Iterable<? extends TableauNode>> nodesMatcher) {
-		return new FeatureMatcher<Tableau, Set<TableauNode>>(nodesMatcher, "getLeaves", "getLeaves") {
+	static public Matcher<Tableau> hasLeaves(final Matcher<Iterable<? extends TableauNode<State>>> nodesMatcher) {
+		return new FeatureMatcher<Tableau, Set<TableauNode<State>>>(nodesMatcher, "getLeaves", "getLeaves") {
 			@Override
-			protected Set<TableauNode> featureValueOf(Tableau tableau) {
+			protected Set<TableauNode<State>> featureValueOf(Tableau tableau) {
 				return tableau.getLeaves();
 			}
 		};
@@ -109,7 +110,7 @@ public class TableauMatchers {
 
 				Set<Tableau> error = new HashSet<>();
 				for (Tableau tableau : tableaus) {
-					for (TableauNode leave : tableau.getLeaves())
+					for (TableauNode<?> leave : tableau.getLeaves())
 						if (!leave.isSuccessful()) {
 							error.add(tableau);
 							break;

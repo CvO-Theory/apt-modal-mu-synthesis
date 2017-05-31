@@ -35,7 +35,7 @@ public class MissingArcsFinder {
 	public Set<Pair<State, String>> findMissing(Tableau tableau) {
 		Set<Pair<State, String>> result = new HashSet<>();
 
-		for (TableauNode node : tableau.getLeaves()) {
+		for (TableauNode<State> node : tableau.getLeaves()) {
 			Formula formula = node.getFormula();
 			if (!(formula instanceof ModalityFormula))
 				continue;

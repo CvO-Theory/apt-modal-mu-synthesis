@@ -32,30 +32,31 @@ import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.*;
 import static uniol.synthesis.tableau.TableauMatchers.*;
 
+@SuppressWarnings("unchecked")
 public class TableauTest {
 	@Test
 	public void testEmpty() {
-		Tableau t = new Tableau(Collections.<TableauNode>emptySet());
+		Tableau t = new Tableau(Collections.<TableauNode<State>>emptySet());
 		assertThat(t.getLeaves(), empty());
 	}
 
 	@Test
 	public void testNotEmpty() {
-		TableauNode n1 = mock(TableauNode.class);
-		TableauNode n2 = mock(TableauNode.class);
+		TableauNode<State> n1 = mock(TableauNode.class);
+		TableauNode<State> n2 = mock(TableauNode.class);
 		Tableau t = new Tableau(asList(n1, n2));
 		assertThat(t.getLeaves(), containsInAnyOrder(n1, n2));
 	}
 
 	@Test
 	public void testSuccessfulEmpty() {
-		Tableau t = new Tableau(Collections.<TableauNode>emptySet());
+		Tableau t = new Tableau(Collections.<TableauNode<State>>emptySet());
 		assertThat(t, isSuccessfulTableau(true));
 	}
 
 	@Test
 	public void testSuccessfulOneSuccess() {
-		TableauNode n1 = mock(TableauNode.class);
+		TableauNode<State> n1 = mock(TableauNode.class);
 		when(n1.isSuccessful()).thenReturn(true);
 		Tableau t = new Tableau(asList(n1));
 		assertThat(t, isSuccessfulTableau(true));
@@ -63,7 +64,7 @@ public class TableauTest {
 
 	@Test
 	public void testSuccessfulOneFails() {
-		TableauNode n1 = mock(TableauNode.class);
+		TableauNode<State> n1 = mock(TableauNode.class);
 		when(n1.isSuccessful()).thenReturn(false);
 		Tableau t = new Tableau(asList(n1));
 		assertThat(t, isSuccessfulTableau(false));
@@ -71,9 +72,9 @@ public class TableauTest {
 
 	@Test
 	public void testSuccessfulOneOutOfThreeFails() {
-		TableauNode n1 = mock(TableauNode.class);
-		TableauNode n2 = mock(TableauNode.class);
-		TableauNode n3 = mock(TableauNode.class);
+		TableauNode<State> n1 = mock(TableauNode.class);
+		TableauNode<State> n2 = mock(TableauNode.class);
+		TableauNode<State> n3 = mock(TableauNode.class);
 		when(n1.isSuccessful()).thenReturn(true);
 		when(n2.isSuccessful()).thenReturn(false);
 		when(n3.isSuccessful()).thenReturn(true);
@@ -83,13 +84,12 @@ public class TableauTest {
 
 	@Test
 	public void testTransform() {
-		TableauNode n1 = mock(TableauNode.class);
-		TableauNode n2 = mock(TableauNode.class);
-		TableauNode n3 = mock(TableauNode.class);
-		TableauNode mapped1 = mock(TableauNode.class);
-		TableauNode mapped2 = mock(TableauNode.class);
-		TableauNode mapped3 = mock(TableauNode.class);
-		@SuppressWarnings("unchecked")
+		TableauNode<State> n1 = mock(TableauNode.class);
+		TableauNode<State> n2 = mock(TableauNode.class);
+		TableauNode<State> n3 = mock(TableauNode.class);
+		TableauNode<State> mapped1 = mock(TableauNode.class);
+		TableauNode<State> mapped2 = mock(TableauNode.class);
+		TableauNode<State> mapped3 = mock(TableauNode.class);
 		Transformer<State, State> transformer = mock(Transformer.class);
 
 		when(n1.transform(transformer)).thenReturn(mapped1);
