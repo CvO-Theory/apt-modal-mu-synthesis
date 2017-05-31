@@ -65,28 +65,28 @@ public class TableauBuilder {
 		this.callback = callback;
 	}
 
-	public Set<Tableau> createTableaus(State state, Formula formula) {
+	public Set<Tableau<State>> createTableaus(State state, Formula formula) {
 		formula = cleanForm(positiveForm(formula));
 		return expandTableau(Collections.singleton(new TableauNode<State>(followArcs, state, formula)));
 	}
 
-	public Set<Tableau> continueTableau(Tableau tableau) {
+	public Set<Tableau<State>> continueTableau(Tableau<State> tableau) {
 		return expandTableau(tableau.getLeaves());
 	}
 
-	private Set<Tableau> expandTableau(Set<TableauNode<State>> nodes) {
-		Set<Tableau> result = new HashSet<>();
+	private Set<Tableau<State>> expandTableau(Set<TableauNode<State>> nodes) {
+		Set<Tableau<State>> result = new HashSet<>();
 		new NonRecursive().run(new CreateTableaus(callback, result, nodes));
 		return result;
 	}
 
 	static private class CreateTableaus implements NonRecursive.Walker {
 		private final ProgressCallback callback;
-		private final Set<Tableau> result;
+		private final Set<Tableau<State>> result;
 		private final Set<TableauNode<State>> leaves = new HashSet<>();
 		private final Queue<ExpandNodeWalker> todo = new ArrayDeque<>();
 
-		private CreateTableaus(ProgressCallback callback, Set<Tableau> result, Set<TableauNode<State>> nodes) {
+		private CreateTableaus(ProgressCallback callback, Set<Tableau<State>> result, Set<TableauNode<State>> nodes) {
 			this.callback = callback;
 			this.result = result;
 			for (TableauNode<State> node : nodes)
@@ -105,7 +105,7 @@ public class TableauBuilder {
 			ExpandNodeWalker next = todo.poll();
 			if (next == null) {
 				// We are done creating a tableau
-				result.add(new Tableau(leaves));
+				result.add(new Tableau<State>(leaves));
 				return;
 			}
 

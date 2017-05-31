@@ -74,33 +74,33 @@ public class TableauMatchers {
 		return both(hasState(state)).and(formulaMatcher);
 	}
 
-	static public Matcher<Tableau> hasLeaves(final Matcher<Iterable<? extends TableauNode<State>>> nodesMatcher) {
-		return new FeatureMatcher<Tableau, Set<TableauNode<State>>>(nodesMatcher, "getLeaves", "getLeaves") {
+	static public Matcher<Tableau<State>> hasLeaves(final Matcher<Iterable<? extends TableauNode<State>>> nodesMatcher) {
+		return new FeatureMatcher<Tableau<State>, Set<TableauNode<State>>>(nodesMatcher, "getLeaves", "getLeaves") {
 			@Override
-			protected Set<TableauNode<State>> featureValueOf(Tableau tableau) {
+			protected Set<TableauNode<State>> featureValueOf(Tableau<State> tableau) {
 				return tableau.getLeaves();
 			}
 		};
 	}
 
-	static public Matcher<Tableau> isSuccessfulTableau(final boolean expected) {
-		return new FeatureMatcher<Tableau, Boolean>(equalTo(expected), "isSuccessful", "isSuccessful") {
+	static public Matcher<Tableau<State>> isSuccessfulTableau(final boolean expected) {
+		return new FeatureMatcher<Tableau<State>, Boolean>(equalTo(expected), "isSuccessful", "isSuccessful") {
 			@Override
-			protected Boolean featureValueOf(Tableau tableau) {
+			protected Boolean featureValueOf(Tableau<State> tableau) {
 				return tableau.isSuccessful();
 			}
 		};
 	}
 
-	static public Matcher<Set<Tableau>> hasNSuccessfulTableaus(final int n) {
-		return new TypeSafeDiagnosingMatcher<Set<Tableau>>() {
+	static public Matcher<Set<Tableau<State>>> hasNSuccessfulTableaus(final int n) {
+		return new TypeSafeDiagnosingMatcher<Set<Tableau<State>>>() {
 			@Override
 			public void describeTo(Description description) {
 				description.appendValue(n).appendText(" successful tableaus");
 			}
 
 			@Override
-			protected boolean matchesSafely(Set<Tableau> tableaus, Description mismatch) {
+			protected boolean matchesSafely(Set<Tableau<State>> tableaus, Description mismatch) {
 				boolean result = true;
 
 				if (tableaus.size() != n) {
@@ -108,8 +108,8 @@ public class TableauMatchers {
 					result = false;
 				}
 
-				Set<Tableau> error = new HashSet<>();
-				for (Tableau tableau : tableaus) {
+				Set<Tableau<State>> error = new HashSet<>();
+				for (Tableau<State> tableau : tableaus) {
 					for (TableauNode<?> leave : tableau.getLeaves())
 						if (!leave.isSuccessful()) {
 							error.add(tableau);

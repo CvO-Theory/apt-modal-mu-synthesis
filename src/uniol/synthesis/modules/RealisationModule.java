@@ -24,6 +24,7 @@ import java.io.StringWriter;
 import java.util.HashSet;
 import java.util.Set;
 
+import uniol.apt.adt.ts.State;
 import uniol.apt.adt.ts.TransitionSystem;
 import uniol.apt.analysis.synthesize.AbstractSynthesizeModule;
 import uniol.apt.analysis.synthesize.PNProperties;
@@ -83,7 +84,7 @@ public class RealisationModule extends AbstractModule implements Module {
 
 		new NonRecursive().run(new RealiseFormula(properties, formula, new RealiseFormula.RealisationCallback() {
 			@Override
-			public void foundRealisation(TransitionSystem ts, Tableau tableau) {
+			public void foundRealisation(TransitionSystem ts, Tableau<State> tableau) {
 				resultString.append(separator[0]);
 				try {
 					new AptLTSRenderer().render(ts, resultString);

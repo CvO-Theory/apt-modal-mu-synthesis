@@ -68,22 +68,22 @@ public class RealiseFormulaTest {
 
 	static class NeverCalledRealisationCallback implements RealiseFormula.RealisationCallback {
 		@Override
-		public void foundRealisation(TransitionSystem ts, Tableau tableau) {
+		public void foundRealisation(TransitionSystem ts, Tableau<State> tableau) {
 			fail();
 		}
 	}
 
 	static class AddToSetRealisationCallback implements RealiseFormula.RealisationCallback {
-		public Set<Pair<TransitionSystem, Tableau>> result = new HashSet<>();
+		public Set<Pair<TransitionSystem, Tableau<State>>> result = new HashSet<>();
 
 		@Override
-		public void foundRealisation(TransitionSystem ts, Tableau tableau) {
+		public void foundRealisation(TransitionSystem ts, Tableau<State> tableau) {
 			result.add(new Pair<>(ts, tableau));
 		}
 	}
 
-	static private Tableau mockTableau(boolean successfull) {
-		Tableau tableau = mock(Tableau.class);
+	static private Tableau<State> mockTableau(boolean successfull) {
+		Tableau<State> tableau = mock(Tableau.class);
 		when(tableau.isSuccessful()).thenReturn(successfull);
 		return tableau;
 	}
@@ -96,7 +96,7 @@ public class RealiseFormulaTest {
 
 	@Test
 	public void testSuccessfulTableau() {
-		Tableau tableau = mockTableau(true);
+		Tableau<State> tableau = mockTableau(true);
 		TransitionSystem ts = mock(TransitionSystem.class);
 		State state = mock(State.class);
 		when(ts.getInitialState()).thenReturn(state);
@@ -112,39 +112,39 @@ public class RealiseFormulaTest {
 		// This test tries to expand based on the unsuccessful tableau. However, we pretend that no arcs are
 		// missing and that no expanded tableaus exist, thus the code under test doesn't actually do much.
 
-		Tableau tableau = mockTableau(false);
+		Tableau<State> tableau = mockTableau(false);
 		TransitionSystem ts = getEmptyTS();
-		MissingArcsFinder missingArcsFinder = mock(MissingArcsFinder.class);
+		MissingArcsFinder<State> missingArcsFinder = mock(MissingArcsFinder.class);
 		RealiseFormula.ContinueTableauFactory continueTableauFactory
 			= mock(RealiseFormula.ContinueTableauFactory.class);
 
 		when(missingArcsFinder.findMissing(tableau)).thenReturn(Collections.<Pair<State, String>>emptySet());
-		when(continueTableauFactory.continueTableau(tableau)).thenReturn(Collections.<Tableau>emptySet());
+		when(continueTableauFactory.continueTableau(tableau)).thenReturn(Collections.<Tableau<State>>emptySet());
 
 		new RealiseFormula(ts, tableau, new NeverCalledRealisationCallback(), missingArcsFinder, new
 				StateWithSameNameTransformerFactory(), continueTableauFactory,
 				new NOPOverapproximateTS()).walk(null);
 
 		verify(missingArcsFinder, times(1)).findMissing(tableau);
-		verify(continueTableauFactory, times(1)).continueTableau((Tableau) anyObject());
+		verify(continueTableauFactory, times(1)).continueTableau((Tableau<State>) anyObject());
 	}
 
 	static private TransitionSystem getExpandedTS(TransitionSystem ts, Set<Pair<State, String>> missingArcs) {
-		Tableau tableau = mockTableau(false);
-		MissingArcsFinder missingArcsFinder = mock(MissingArcsFinder.class);
+		Tableau<State> tableau = mockTableau(false);
+		MissingArcsFinder<State> missingArcsFinder = mock(MissingArcsFinder.class);
 		RealiseFormula.ContinueTableauFactory continueTableauFactory
 			= mock(RealiseFormula.ContinueTableauFactory.class);
 		RealiseFormula.OverapproximateTS overapproximateTS = mock(RealiseFormula.OverapproximateTS.class);
 
 		when(missingArcsFinder.findMissing(tableau)).thenReturn(missingArcs);
-		when(continueTableauFactory.continueTableau(tableau)).thenReturn(Collections.<Tableau>emptySet());
+		when(continueTableauFactory.continueTableau(tableau)).thenReturn(Collections.<Tableau<State>>emptySet());
 
 		new RealiseFormula(ts, tableau, new NeverCalledRealisationCallback(), missingArcsFinder,
 				new StateWithSameNameTransformerFactory(), continueTableauFactory,
 				overapproximateTS).walk(null);
 
 		verify(missingArcsFinder, times(1)).findMissing(tableau);
-		verify(continueTableauFactory, times(1)).continueTableau((Tableau) anyObject());
+		verify(continueTableauFactory, times(1)).continueTableau((Tableau<State>) anyObject());
 
 		ArgumentCaptor<TransitionSystem> expandedTSCaptor = ArgumentCaptor.forClass(TransitionSystem.class);
 		verify(overapproximateTS).overapproximate(expandedTSCaptor.capture());
@@ -167,17 +167,17 @@ public class RealiseFormulaTest {
 		// We call the code with a non-successful tableau. No arcs are missing, but two new tableaus will be
 		// created. We test that recursion on these tableaus really happens.
 
-		Tableau tableau = mockTableau(false);
-		Tableau tableau1 = mockTableau(true);
-		Tableau tableau2 = mockTableau(true);
+		Tableau<State> tableau = mockTableau(false);
+		Tableau<State> tableau1 = mockTableau(true);
+		Tableau<State> tableau2 = mockTableau(true);
 		TransitionSystem ts = getEmptyTS();
-		MissingArcsFinder missingArcsFinder = mock(MissingArcsFinder.class);
+		MissingArcsFinder<State> missingArcsFinder = mock(MissingArcsFinder.class);
 		RealiseFormula.ContinueTableauFactory continueTableauFactory
 			= mock(RealiseFormula.ContinueTableauFactory.class);
 		NonRecursive engine = mock(NonRecursive.class);
 
 		when(missingArcsFinder.findMissing(tableau)).thenReturn(Collections.<Pair<State, String>>emptySet());
-		when(continueTableauFactory.continueTableau((Tableau) anyObject())).thenReturn(new HashSet<Tableau>(
+		when(continueTableauFactory.continueTableau((Tableau) anyObject())).thenReturn(new HashSet<Tableau<State>>(
 					Arrays.asList(tableau1, tableau2)));
 
 		new RealiseFormula(ts, tableau, new NeverCalledRealisationCallback(), missingArcsFinder,
@@ -185,7 +185,7 @@ public class RealiseFormulaTest {
 				new NOPOverapproximateTS()).walk(engine);
 
 		verify(missingArcsFinder, times(1)).findMissing(tableau);
-		verify(continueTableauFactory, times(1)).continueTableau((Tableau) anyObject());
+		verify(continueTableauFactory, times(1)).continueTableau((Tableau<State>) anyObject());
 		verify(engine, times(2)).enqueue(Mockito.isA(RealiseFormula.class));
 	}
 

@@ -56,12 +56,12 @@ public class RealiseFormula implements NonRecursive.Walker {
 	}
 
 	static interface ContinueTableauFactory {
-		public Set<Tableau> continueTableau(Tableau tableau);
+		public Set<Tableau<State>> continueTableau(Tableau<State> tableau);
 	}
 
 	static class DefaultContinueTableauFactory implements ContinueTableauFactory {
 		@Override
-		public Set<Tableau> continueTableau(Tableau tableau) {
+		public Set<Tableau<State>> continueTableau(Tableau<State> tableau) {
 			return new TableauBuilder(new StateFollowArcs()).continueTableau(tableau);
 		}
 	}
@@ -89,13 +89,13 @@ public class RealiseFormula implements NonRecursive.Walker {
 	}
 
 	static public interface RealisationCallback {
-		public void foundRealisation(TransitionSystem ts, Tableau tableau);
+		public void foundRealisation(TransitionSystem ts, Tableau<State> tableau);
 	}
 
 	private final TransitionSystem ts;
-	private final Tableau tableau;
+	private final Tableau<State> tableau;
 	private final RealisationCallback realisationCallback;
-	private final MissingArcsFinder missingArcsFinder;
+	private final MissingArcsFinder<State> missingArcsFinder;
 	private final ReachingWordTransformerFactory reachingWordTransformerFactory;
 	private final ContinueTableauFactory continueTableauFactory;
 	private final OverapproximateTS overapproximateTS;
@@ -108,23 +108,24 @@ public class RealiseFormula implements NonRecursive.Walker {
 
 	public RealiseFormula(PNProperties properties, Formula formula, RealisationCallback realisationCallback) {
 		// Create an empty TS, the default implementations for factories and forward to next constructor
-		this(getEmptyTS(), cleanForm(positiveForm(formula)), realisationCallback, new MissingArcsFinder(),
+		this(getEmptyTS(), cleanForm(positiveForm(formula)), realisationCallback, new MissingArcsFinder<State>(),
 				new DefaultReachingWordTransformerFactory(), new DefaultContinueTableauFactory(),
 				new DefaultOverapproximateTS(properties));
 	}
 
 	private RealiseFormula(TransitionSystem ts, Formula formula, RealisationCallback realisationCallback,
-			MissingArcsFinder missingArcsFinder, ReachingWordTransformerFactory
+			MissingArcsFinder<State> missingArcsFinder, ReachingWordTransformerFactory
 			reachingWordTransformerFactory, ContinueTableauFactory continueTableauFactory,
 			OverapproximateTS overapproximateTS) {
 		// Create a tableau that relates the initial state to the whole formula and call next constructor
-		this(ts, new Tableau(Collections.singleton(new TableauNode<State>(new StateFollowArcs(), ts.getInitialState(),
-							formula))), realisationCallback, missingArcsFinder,
-				reachingWordTransformerFactory, continueTableauFactory, overapproximateTS);
+		this(ts, new Tableau<State>(Collections.singleton(new TableauNode<State>(new StateFollowArcs(),
+							ts.getInitialState(), formula))), realisationCallback,
+				missingArcsFinder, reachingWordTransformerFactory, continueTableauFactory,
+				overapproximateTS);
 	}
 
-	RealiseFormula(TransitionSystem ts, Tableau tableau, RealisationCallback realisationCallback,
-			MissingArcsFinder missingArcsFinder, ReachingWordTransformerFactory
+	RealiseFormula(TransitionSystem ts, Tableau<State> tableau, RealisationCallback realisationCallback,
+			MissingArcsFinder<State> missingArcsFinder, ReachingWordTransformerFactory
 			reachingWordTransformerFactory, ContinueTableauFactory continueTableauFactory,
 			OverapproximateTS overapproximateTS) {
 		this.ts = ts;
@@ -136,7 +137,7 @@ public class RealiseFormula implements NonRecursive.Walker {
 		this.overapproximateTS = overapproximateTS;
 	}
 
-	private RealiseFormula(RealiseFormula parent, TransitionSystem ts, Tableau tableau) {
+	private RealiseFormula(RealiseFormula parent, TransitionSystem ts, Tableau<State> tableau) {
 		this(ts, tableau, parent.realisationCallback, parent.missingArcsFinder,
 				parent.reachingWordTransformerFactory, parent.continueTableauFactory,
 				parent.overapproximateTS);
@@ -154,8 +155,8 @@ public class RealiseFormula implements NonRecursive.Walker {
 		}
 
 		TransitionSystem overapproxTS = overapproximateTS.overapproximate(newTS);
-		Tableau transformedTableau = tableau.transform(reachingWordTransformerFactory.create(overapproxTS));
-		for (Tableau newTableau : continueTableauFactory.continueTableau(transformedTableau))
+		Tableau<State> transformedTableau = tableau.transform(reachingWordTransformerFactory.create(overapproxTS));
+		for (Tableau<State> newTableau : continueTableauFactory.continueTableau(transformedTableau))
 			engine.enqueue(new RealiseFormula(this, overapproxTS, newTableau));
 	}
 }

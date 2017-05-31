@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import uniol.apt.adt.ts.State;
 import uniol.apt.adt.ts.TransitionSystem;
 import uniol.apt.module.AbstractModule;
 import uniol.apt.module.AptModule;
@@ -72,15 +73,15 @@ public class ModelCheckerModule extends AbstractModule implements Module {
 		Formula formula = input.getParameter("formula", Formula.class);
 
 		GraphvizProgressCallback callback = new GraphvizProgressCallback();
-		Set<Tableau> tableaus = new TableauBuilder(new StateFollowArcs(), callback)
+		Set<Tableau<State>> tableaus = new TableauBuilder(new StateFollowArcs(), callback)
 			.createTableaus(lts.getInitialState(), formula);
 
 		boolean success = false;
 		List<String> missingArcs = new ArrayList<>();
-		for (Tableau tableau : tableaus) {
+		for (Tableau<State> tableau : tableaus) {
 			success |= tableau.isSuccessful();
 			callback.tableau(tableau);
-			missingArcs.add(new MissingArcsFinder().findMissing(tableau).toString());
+			missingArcs.add(new MissingArcsFinder<State>().findMissing(tableau).toString());
 		}
 		String dot = callback.toString();
 		String missing = missingArcs.toString();

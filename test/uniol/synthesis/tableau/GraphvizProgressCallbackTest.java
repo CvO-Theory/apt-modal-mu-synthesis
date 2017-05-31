@@ -31,9 +31,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings("unchecked")
 public class GraphvizProgressCallbackTest {
 	static private TableauNode<State> createTableau(String node, String formula) {
-		@SuppressWarnings("unchecked")
 		TableauNode<State> result = mock(TableauNode.class);
 		State state = mock(State.class);
 		Formula form = mock(Formula.class);
@@ -96,7 +96,7 @@ public class GraphvizProgressCallbackTest {
 	@Test
 	public void testMapTableau() {
 		TableauNode<State> node = createTableau("state", "formula");
-		Tableau tableau = mock(Tableau.class);
+		Tableau<State> tableau = mock(Tableau.class);
 		when(tableau.getLeaves()).thenReturn(singleton(node));
 		when(tableau.isSuccessful()).thenReturn(false);
 
@@ -109,10 +109,10 @@ public class GraphvizProgressCallbackTest {
 	@Test
 	public void testMapTableaus() {
 		TableauNode<State> node = createTableau("state", "formula");
-		Tableau tableau0 = mock(Tableau.class);
+		Tableau<State> tableau0 = mock(Tableau.class);
 		when(tableau0.getLeaves()).thenReturn(singleton(node));
 		when(tableau0.isSuccessful()).thenReturn(false);
-		Tableau tableau1 = mock(Tableau.class);
+		Tableau<State> tableau1 = mock(Tableau.class);
 		when(tableau1.getLeaves()).thenReturn(singleton(node));
 		when(tableau1.isSuccessful()).thenReturn(true);
 

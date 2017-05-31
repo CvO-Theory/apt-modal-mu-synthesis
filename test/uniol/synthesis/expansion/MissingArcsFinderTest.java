@@ -35,19 +35,19 @@ import uniol.synthesis.adt.mu_calculus.Modality;
 import uniol.synthesis.tableau.Tableau;
 import uniol.synthesis.tableau.TableauNode;
 
+@SuppressWarnings("unchecked")
 public class MissingArcsFinderTest {
 	@Test
 	public void testSimpleNoMissingArcs() {
 		FormulaCreator creator = new FormulaCreator();
 
-		@SuppressWarnings("unchecked")
 		TableauNode<State> node = mock(TableauNode.class);
 		when(node.getFormula()).thenReturn(creator.constant(true));
 
-		Tableau tableau = mock(Tableau.class);
+		Tableau<State> tableau = mock(Tableau.class);
 		when(tableau.getLeaves()).thenReturn(singleton(node));
 
-		assertThat(new MissingArcsFinder().findMissing(tableau), empty());
+		assertThat(new MissingArcsFinder<State>().findMissing(tableau), empty());
 	}
 
 	@Test
@@ -55,16 +55,15 @@ public class MissingArcsFinderTest {
 		FormulaCreator creator = new FormulaCreator();
 		State state = mock(State.class);
 
-		@SuppressWarnings("unchecked")
 		TableauNode<State> node = mock(TableauNode.class);
 		when(node.getState()).thenReturn(state);
 		when(node.getFormula()).thenReturn(
 				creator.modality(Modality.UNIVERSAL, "a", creator.constant(true)));
 
-		Tableau tableau = mock(Tableau.class);
+		Tableau<State> tableau = mock(Tableau.class);
 		when(tableau.getLeaves()).thenReturn(singleton(node));
 
-		assertThat(new MissingArcsFinder().findMissing(tableau), empty());
+		assertThat(new MissingArcsFinder<State>().findMissing(tableau), empty());
 	}
 
 	@Test
@@ -72,16 +71,15 @@ public class MissingArcsFinderTest {
 		FormulaCreator creator = new FormulaCreator();
 		State state = mock(State.class);
 
-		@SuppressWarnings("unchecked")
 		TableauNode<State> node = mock(TableauNode.class);
 		when(node.getState()).thenReturn(state);
 		when(node.getFormula()).thenReturn(
 				creator.modality(Modality.EXISTENTIAL, "a", creator.constant(true)));
 
-		Tableau tableau = mock(Tableau.class);
+		Tableau<State> tableau = mock(Tableau.class);
 		when(tableau.getLeaves()).thenReturn(singleton(node));
 
-		assertThat(new MissingArcsFinder().findMissing(tableau), contains(pairWith(state, "a")));
+		assertThat(new MissingArcsFinder<State>().findMissing(tableau), contains(pairWith(state, "a")));
 	}
 }
 

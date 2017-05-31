@@ -26,31 +26,29 @@ import java.util.Set;
 
 import org.apache.commons.collections4.Transformer;
 
-import uniol.apt.adt.ts.State;
+public class Tableau<S> {
+	private final Set<TableauNode<S>> leaves;
 
-public class Tableau {
-	private final Set<TableauNode<State>> leaves;
-
-	public Tableau(Collection<TableauNode<State>> leaves) {
-		this.leaves = Collections.unmodifiableSet(new HashSet<TableauNode<State>>(leaves));
+	public Tableau(Collection<TableauNode<S>> leaves) {
+		this.leaves = Collections.unmodifiableSet(new HashSet<TableauNode<S>>(leaves));
 	}
 
-	public Set<TableauNode<State>> getLeaves() {
+	public Set<TableauNode<S>> getLeaves() {
 		return leaves;
 	}
 
 	public boolean isSuccessful() {
-		for (TableauNode<State> node : leaves)
+		for (TableauNode<S> node : leaves)
 			if (!node.isSuccessful())
 				return false;
 		return true;
 	}
 
-	public Tableau transform(final Transformer<State, State> transformer) {
-		Set<TableauNode<State>> result = new HashSet<>();
-		for (TableauNode<State> leave : leaves)
+	public Tableau<S> transform(final Transformer<S, S> transformer) {
+		Set<TableauNode<S>> result = new HashSet<>();
+		for (TableauNode<S> leave : leaves)
 			result.add(leave.transform(transformer));
-		return new Tableau(result);
+		return new Tableau<S>(result);
 	}
 }
 

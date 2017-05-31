@@ -447,7 +447,7 @@ public class TableauBuilderTest {
 		Formula right = creator.modality(Modality.UNIVERSAL, "z", True);
 		Formula formula = creator.conjunction(True, right);
 		TableauNode<State> node = new TableauNode<State>(new StateFollowArcs(), state, formula);
-		Tableau tableau = new Tableau(Collections.singleton(node));
+		Tableau<State> tableau = new Tableau<State>(Collections.singleton(node));
 
 		assertThat(new TableauBuilder(null).continueTableau(tableau), contains(hasLeaves(containsInAnyOrder(
 						hasStateAndFormula(state, True), hasStateAndFormula(state, right)))));

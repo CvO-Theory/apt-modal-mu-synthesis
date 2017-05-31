@@ -22,6 +22,7 @@ package uniol.synthesis.expansion;
 import java.util.Set;
 import java.util.HashSet;
 
+import uniol.apt.adt.ts.State;
 import uniol.apt.adt.ts.TransitionSystem;
 import uniol.apt.analysis.isomorphism.IsomorphismLogic;
 import uniol.apt.analysis.synthesize.PNProperties;
@@ -72,23 +73,27 @@ public class RealiseFormulaIntegrationTest {
 		};
 	}
 
-	private Pair<TransitionSystem, Tableau> realiseUnique(PNProperties properties, Formula formula) {
-		final TransitionSystem[] resultTS = new TransitionSystem[1];
-		final Tableau[] resultTab = new Tableau[1];
+	private class Result {
+		public TransitionSystem resultTS;
+		public Tableau<State> resultTab;
+	}
+
+	private Pair<TransitionSystem, Tableau<State>> realiseUnique(PNProperties properties, Formula formula) {
+		final Result result = new Result();
 		new NonRecursive().run(new RealiseFormula(properties, formula,
 					new RealiseFormula.RealisationCallback() {
 						@Override
-						public void foundRealisation(TransitionSystem ts, Tableau tableau) {
-							assertThat(resultTS[0], nullValue());
-							assertThat(resultTab[0], nullValue());
-							resultTS[0] = ts;
-							resultTab[0] = tableau;
+						public void foundRealisation(TransitionSystem ts, Tableau<State> tableau) {
+							assertThat(result.resultTS, nullValue());
+							assertThat(result.resultTab, nullValue());
+							result.resultTS = ts;
+							result.resultTab = tableau;
 						}
 		}));
 
-		assertThat(resultTS, not(nullValue()));
-		assertThat(resultTab, not(nullValue()));
-		return new Pair<>(resultTS[0], resultTab[0]);
+		assertThat(result.resultTS, not(nullValue()));
+		assertThat(result.resultTab, not(nullValue()));
+		return new Pair<>(result.resultTS, result.resultTab);
 	}
 
 	@Test
@@ -105,9 +110,9 @@ public class RealiseFormulaIntegrationTest {
 		assertThat(formula, hasToString("(nu X.(<a><b><c>true&&<b><a>[c]X))"));
 
 		PNProperties properties = new PNProperties().requireKBounded(2);
-		Pair<TransitionSystem, Tableau> pair = realiseUnique(properties, formula);
+		Pair<TransitionSystem, Tableau<State>> pair = realiseUnique(properties, formula);
 		TransitionSystem ts = pair.getFirst();
-		Tableau tableau = pair.getSecond();
+		Tableau<State> tableau = pair.getSecond();
 
 		// Create the expected ts
 		TransitionSystem expected = new TransitionSystem();
@@ -135,9 +140,9 @@ public class RealiseFormulaIntegrationTest {
 		assertThat(formula, hasToString("<a><b><b><a><a>true"));
 
 		PNProperties properties = new PNProperties().requireKBounded(3);
-		Pair<TransitionSystem, Tableau> pair = realiseUnique(properties, formula);
+		Pair<TransitionSystem, Tableau<State>> pair = realiseUnique(properties, formula);
 		TransitionSystem ts = pair.getFirst();
-		Tableau tableau = pair.getSecond();
+		Tableau<State> tableau = pair.getSecond();
 
 		// Create the expected ts
 		TransitionSystem expected = new TransitionSystem();
@@ -166,9 +171,9 @@ public class RealiseFormulaIntegrationTest {
 		assertThat(formula, hasToString("<a><b><b><a><a>true"));
 
 		PNProperties properties = new PNProperties().requireKBounded(2);
-		Pair<TransitionSystem, Tableau> pair = realiseUnique(properties, formula);
+		Pair<TransitionSystem, Tableau<State>> pair = realiseUnique(properties, formula);
 		TransitionSystem ts = pair.getFirst();
-		Tableau tableau = pair.getSecond();
+		Tableau<State> tableau = pair.getSecond();
 
 		// Create the expected ts
 		TransitionSystem expected = new TransitionSystem();
@@ -205,7 +210,7 @@ public class RealiseFormulaIntegrationTest {
 		new NonRecursive().run(new RealiseFormula(properties, formula,
 					new RealiseFormula.RealisationCallback() {
 						@Override
-						public void foundRealisation(TransitionSystem ts, Tableau tableau) {
+						public void foundRealisation(TransitionSystem ts, Tableau<State> tableau) {
 							fail();
 						}
 					}));
@@ -224,11 +229,11 @@ public class RealiseFormulaIntegrationTest {
 
 		PNProperties properties = new PNProperties().requireKBounded(1);
 
-		final Set<Pair<TransitionSystem, Tableau>> result = new HashSet<>();
+		final Set<Pair<TransitionSystem, Tableau<State>>> result = new HashSet<>();
 		new NonRecursive().run(new RealiseFormula(properties, formula,
 					new RealiseFormula.RealisationCallback() {
 						@Override
-						public void foundRealisation(TransitionSystem ts, Tableau tableau) {
+						public void foundRealisation(TransitionSystem ts, Tableau<State> tableau) {
 							result.add(new Pair<>(ts, tableau));
 						}
 					}));
@@ -263,7 +268,7 @@ public class RealiseFormulaIntegrationTest {
 		new NonRecursive().run(new RealiseFormula(properties, formula,
 					new RealiseFormula.RealisationCallback() {
 						@Override
-						public void foundRealisation(TransitionSystem ts, Tableau tableau) {
+						public void foundRealisation(TransitionSystem ts, Tableau<State> tableau) {
 							assertThat(alreadyCalled[0], is(false));
 							alreadyCalled[0] = true;
 							assertThat(ts, isomorphicTo(expectedTS));

@@ -22,7 +22,6 @@ package uniol.synthesis.expansion;
 import java.util.HashSet;
 import java.util.Set;
 
-import uniol.apt.adt.ts.State;
 import uniol.apt.util.Pair;
 
 import uniol.synthesis.adt.mu_calculus.Formula;
@@ -31,11 +30,11 @@ import uniol.synthesis.adt.mu_calculus.ModalityFormula;
 import uniol.synthesis.tableau.Tableau;
 import uniol.synthesis.tableau.TableauNode;
 
-public class MissingArcsFinder {
-	public Set<Pair<State, String>> findMissing(Tableau tableau) {
-		Set<Pair<State, String>> result = new HashSet<>();
+public class MissingArcsFinder<S> {
+	public Set<Pair<S, String>> findMissing(Tableau<S> tableau) {
+		Set<Pair<S, String>> result = new HashSet<>();
 
-		for (TableauNode<State> node : tableau.getLeaves()) {
+		for (TableauNode<S> node : tableau.getLeaves()) {
 			Formula formula = node.getFormula();
 			if (!(formula instanceof ModalityFormula))
 				continue;
@@ -44,7 +43,7 @@ public class MissingArcsFinder {
 			if (modality.getModality().equals(Modality.UNIVERSAL))
 				continue;
 
-			Pair<State, String> pair = new Pair<>(node.getState(), modality.getEvent());
+			Pair<S, String> pair = new Pair<>(node.getState(), modality.getEvent());
 			result.add(pair);
 		}
 

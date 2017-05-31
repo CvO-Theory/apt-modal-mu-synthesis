@@ -57,7 +57,7 @@ public class GraphvizProgressCallback implements TableauBuilder.ProgressCallback
 		}
 	}
 
-	public void tableau(Tableau tableau) {
+	public void tableau(Tableau<State> tableau) {
 		String id = "t" + (tableauCounter++) + (tableau.isSuccessful() ? "success" : "fail");
 		for (TableauNode<State> leave : tableau.getLeaves()) {
 			String target = mapNode(leave);

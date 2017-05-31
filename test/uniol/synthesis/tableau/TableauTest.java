@@ -36,7 +36,7 @@ import static uniol.synthesis.tableau.TableauMatchers.*;
 public class TableauTest {
 	@Test
 	public void testEmpty() {
-		Tableau t = new Tableau(Collections.<TableauNode<State>>emptySet());
+		Tableau<State> t = new Tableau<State>(Collections.<TableauNode<State>>emptySet());
 		assertThat(t.getLeaves(), empty());
 	}
 
@@ -44,13 +44,13 @@ public class TableauTest {
 	public void testNotEmpty() {
 		TableauNode<State> n1 = mock(TableauNode.class);
 		TableauNode<State> n2 = mock(TableauNode.class);
-		Tableau t = new Tableau(asList(n1, n2));
+		Tableau<State> t = new Tableau<State>(asList(n1, n2));
 		assertThat(t.getLeaves(), containsInAnyOrder(n1, n2));
 	}
 
 	@Test
 	public void testSuccessfulEmpty() {
-		Tableau t = new Tableau(Collections.<TableauNode<State>>emptySet());
+		Tableau<State> t = new Tableau<State>(Collections.<TableauNode<State>>emptySet());
 		assertThat(t, isSuccessfulTableau(true));
 	}
 
@@ -58,7 +58,7 @@ public class TableauTest {
 	public void testSuccessfulOneSuccess() {
 		TableauNode<State> n1 = mock(TableauNode.class);
 		when(n1.isSuccessful()).thenReturn(true);
-		Tableau t = new Tableau(asList(n1));
+		Tableau<State> t = new Tableau<State>(asList(n1));
 		assertThat(t, isSuccessfulTableau(true));
 	}
 
@@ -66,7 +66,7 @@ public class TableauTest {
 	public void testSuccessfulOneFails() {
 		TableauNode<State> n1 = mock(TableauNode.class);
 		when(n1.isSuccessful()).thenReturn(false);
-		Tableau t = new Tableau(asList(n1));
+		Tableau<State> t = new Tableau<State>(asList(n1));
 		assertThat(t, isSuccessfulTableau(false));
 	}
 
@@ -78,7 +78,7 @@ public class TableauTest {
 		when(n1.isSuccessful()).thenReturn(true);
 		when(n2.isSuccessful()).thenReturn(false);
 		when(n3.isSuccessful()).thenReturn(true);
-		Tableau t = new Tableau(asList(n1, n2, n3));
+		Tableau<State> t = new Tableau<State>(asList(n1, n2, n3));
 		assertThat(t, isSuccessfulTableau(false));
 	}
 
@@ -96,7 +96,7 @@ public class TableauTest {
 		when(n2.transform(transformer)).thenReturn(mapped2);
 		when(n3.transform(transformer)).thenReturn(mapped3);
 
-		Tableau t = new Tableau(asList(n1, n2, n3));
+		Tableau<State> t = new Tableau<State>(asList(n1, n2, n3));
 
 		assertThat(t.transform(transformer).getLeaves(), containsInAnyOrder(mapped1, mapped2, mapped3));
 	}
