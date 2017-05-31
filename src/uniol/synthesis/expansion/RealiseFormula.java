@@ -34,6 +34,7 @@ import uniol.apt.analysis.synthesize.separation.UnsupportedPNPropertiesException
 import uniol.apt.util.Pair;
 
 import uniol.synthesis.adt.mu_calculus.Formula;
+import uniol.synthesis.tableau.StateFollowArcs;
 import uniol.synthesis.tableau.Tableau;
 import uniol.synthesis.tableau.TableauBuilder;
 import uniol.synthesis.tableau.TableauNode;
@@ -61,7 +62,7 @@ public class RealiseFormula implements NonRecursive.Walker {
 	static class DefaultContinueTableauFactory implements ContinueTableauFactory {
 		@Override
 		public Set<Tableau> continueTableau(Tableau tableau) {
-			return new TableauBuilder().continueTableau(tableau);
+			return new TableauBuilder(new StateFollowArcs()).continueTableau(tableau);
 		}
 	}
 
@@ -117,9 +118,9 @@ public class RealiseFormula implements NonRecursive.Walker {
 			reachingWordTransformerFactory, ContinueTableauFactory continueTableauFactory,
 			OverapproximateTS overapproximateTS) {
 		// Create a tableau that relates the initial state to the whole formula and call next constructor
-		this(ts, new Tableau(Collections.singleton(new TableauNode(ts.getInitialState(), formula))),
-				realisationCallback, missingArcsFinder, reachingWordTransformerFactory,
-				continueTableauFactory, overapproximateTS);
+		this(ts, new Tableau(Collections.singleton(new TableauNode(new StateFollowArcs(), ts.getInitialState(),
+							formula))), realisationCallback, missingArcsFinder,
+				reachingWordTransformerFactory, continueTableauFactory, overapproximateTS);
 	}
 
 	RealiseFormula(TransitionSystem ts, Tableau tableau, RealisationCallback realisationCallback,

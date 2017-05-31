@@ -38,24 +38,31 @@ import uniol.synthesis.adt.mu_calculus.ModalityFormula;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
 
 public class TableauNode {
+	final private FollowArcs<State> followArcs;
 	final private State state;
 	final private Formula formula;
 	final private Map<VariableFormula, FixedPointFormula> constantDefinitions;
 	final private Set<Pair<State, VariableFormula>> expansionsAbove;
 
-	private TableauNode(State state, Formula formula, Map<VariableFormula, FixedPointFormula> constantDefinitions,
-			Set<Pair<State, VariableFormula>> expansionsAbove) {
+	private TableauNode(FollowArcs<State> followArcs, State state, Formula formula, Map<VariableFormula,
+			FixedPointFormula> constantDefinitions, Set<Pair<State, VariableFormula>> expansionsAbove) {
+		this.followArcs = followArcs;
 		this.state = state;
 		this.formula = formula;
 		this.constantDefinitions = Collections.unmodifiableMap(constantDefinitions);
 		this.expansionsAbove = Collections.unmodifiableSet(expansionsAbove);
 	}
 
-	public TableauNode(State state, Formula formula) {
+	public TableauNode(FollowArcs<State> followArcs, State state, Formula formula) {
+		this.followArcs = followArcs;
 		this.state = state;
 		this.formula = formula;
 		this.constantDefinitions = Collections.emptyMap();
 		this.expansionsAbove = Collections.emptySet();
+	}
+
+	protected FollowArcs<State> getFollowArcs() {
+		return followArcs;
 	}
 
 	public State getState() {
@@ -71,7 +78,7 @@ public class TableauNode {
 		if (formula instanceof ModalityFormula) {
 			ModalityFormula modf = (ModalityFormula) formula;
 			return modf.getModality().equals(Modality.UNIVERSAL) &&
-				state.getPostsetEdgesByLabel(modf.getEvent()).isEmpty();
+				followArcs.followArcs(state, modf.getEvent()).isEmpty();
 		}
 		if (formula instanceof ConstantFormula) {
 			return ((ConstantFormula) formula).getValue();
@@ -85,15 +92,15 @@ public class TableauNode {
 			newExpansions.add(new Pair<State, VariableFormula>(
 						transformer.transform(pair.getFirst()), pair.getSecond()));
 		}
-		return new TableauNode(transformer.transform(state), formula, this.constantDefinitions, newExpansions);
+		return new TableauNode(followArcs, transformer.transform(state), formula, this.constantDefinitions, newExpansions);
 	}
 
 	public TableauNode createChild(State st, Formula fm) {
-		return new TableauNode(st, fm, constantDefinitions, expansionsAbove);
+		return new TableauNode(followArcs, st, fm, constantDefinitions, expansionsAbove);
 	}
 
 	public TableauNode createChild(Formula fm) {
-		return new TableauNode(this.state, fm, constantDefinitions, expansionsAbove);
+		return new TableauNode(followArcs, this.state, fm, constantDefinitions, expansionsAbove);
 	}
 
 	public TableauNode addExpansion(VariableFormula var, FixedPointFormula inner) {
@@ -101,14 +108,14 @@ public class TableauNode {
 		Formula old = newConstantDefinitions.put(var, inner);
 		if (old != null)
 			throw new IllegalArgumentException();
-		return new TableauNode(this.state, var, newConstantDefinitions, this.expansionsAbove);
+		return new TableauNode(followArcs, this.state, var, newConstantDefinitions, this.expansionsAbove);
 	}
 
 	public TableauNode recordExpansion(VariableFormula var, Formula inner) {
 		Set<Pair<State, VariableFormula>> newExpansions = new HashSet<>(expansionsAbove);
 		Pair<State, VariableFormula> pair = new Pair<>(state, var);
 		newExpansions.add(pair);
-		return new TableauNode(this.state, inner, this.constantDefinitions, newExpansions);
+		return new TableauNode(followArcs, this.state, inner, this.constantDefinitions, newExpansions);
 	}
 
 	public boolean wasAlreadyExpanded() {

@@ -53,19 +53,21 @@ public class TableauBuilder {
 		}
 	};
 
+	private final FollowArcs<State> followArcs;
 	private final ProgressCallback callback;
 
-	public TableauBuilder() {
-		this(NOP_PROGRESS);
+	public TableauBuilder(FollowArcs<State> followArcs) {
+		this(followArcs, NOP_PROGRESS);
 	}
 
-	public TableauBuilder(ProgressCallback callback) {
+	public TableauBuilder(FollowArcs<State> followArcs, ProgressCallback callback) {
+		this.followArcs = followArcs;
 		this.callback = callback;
 	}
 
 	public Set<Tableau> createTableaus(State state, Formula formula) {
 		formula = cleanForm(positiveForm(formula));
-		return expandTableau(Collections.singleton(new TableauNode(state, formula)));
+		return expandTableau(Collections.singleton(new TableauNode(followArcs, state, formula)));
 	}
 
 	public Set<Tableau> continueTableau(Tableau tableau) {
@@ -216,13 +218,13 @@ public class TableauBuilder {
 		@Override
 		public void walk(NonRecursive engine, ModalityFormula formula) {
 			String event = formula.getEvent();
-			Set<State> states = node.getState().getPostsetNodesByLabel(event);
+			Set<State> states = node.getFollowArcs().followArcs(node.getState(), event);
 			if (states.isEmpty()) {
 				expansion = Collections.singleton(Collections.<TableauNode>emptySet());
 			} else {
 				if (states.size() != 1)
 					throw new IllegalArgumentException("Given LTS is non-deterministic in state " +
-							states + " with label " + event);
+							node.getState() + " with label " + event);
 				State target = states.iterator().next();
 				expansion = Collections.singleton(Collections.singleton(
 							node.createChild(target, formula.getFormula())));

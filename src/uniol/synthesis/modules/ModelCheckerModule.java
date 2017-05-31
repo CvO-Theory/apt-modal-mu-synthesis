@@ -36,6 +36,7 @@ import uniol.apt.module.exception.ModuleException;
 import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.expansion.MissingArcsFinder;
 import uniol.synthesis.tableau.GraphvizProgressCallback;
+import uniol.synthesis.tableau.StateFollowArcs;
 import uniol.synthesis.tableau.Tableau;
 import uniol.synthesis.tableau.TableauBuilder;
 
@@ -71,7 +72,7 @@ public class ModelCheckerModule extends AbstractModule implements Module {
 		Formula formula = input.getParameter("formula", Formula.class);
 
 		GraphvizProgressCallback callback = new GraphvizProgressCallback();
-		Set<Tableau> tableaus = new TableauBuilder(callback)
+		Set<Tableau> tableaus = new TableauBuilder(new StateFollowArcs(), callback)
 			.createTableaus(lts.getInitialState(), formula);
 
 		boolean success = false;
