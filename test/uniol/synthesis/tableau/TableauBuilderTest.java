@@ -20,6 +20,7 @@
 package uniol.synthesis.tableau;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import uniol.apt.adt.ts.State;
@@ -47,6 +48,38 @@ public class TableauBuilderTest {
 		ts.createArc("s1", "s2", "b");
 		ts.createArc("s2", "s3", "c");
 		return ts.getNode("s0");
+	}
+
+	private TableauBuilder.ResultCallback<State> nopResultCallback() {
+		return new TableauBuilder.ResultCallback<State>() {
+			@Override
+			public void foundTableau(Tableau<State> tableau) {
+			}
+		};
+	}
+
+	private Set<Tableau<State>> createTableaus(State state, Formula formula) {
+		final Set<Tableau<State>> result = new HashSet<>();
+		TableauBuilder.ResultCallback<State> cb = new TableauBuilder.ResultCallback<State>() {
+			@Override
+			public void foundTableau(Tableau<State> tableau) {
+				result.add(tableau);
+			}
+		};
+		new TableauBuilder<State>(new StateFollowArcs()).createTableaus(cb, state, formula);
+		return result;
+	}
+
+	private Set<Tableau<State>> continueTableau(Tableau<State> tableau) {
+		final Set<Tableau<State>> result = new HashSet<>();
+		TableauBuilder.ResultCallback<State> cb = new TableauBuilder.ResultCallback<State>() {
+			@Override
+			public void foundTableau(Tableau<State> tableau) {
+				result.add(tableau);
+			}
+		};
+		new TableauBuilder<State>(new StateFollowArcs()).continueTableau(cb, tableau);
+		return result;
 	}
 
 	@Test
@@ -241,7 +274,7 @@ public class TableauBuilderTest {
 		State state = getABCState();
 		Formula formula = new FormulaCreator().constant(false);
 
-		assertThat(new TableauBuilder<State>(null).createTableaus(state, formula), hasNSuccessfulTableaus(0));
+		assertThat(createTableaus(state, formula), hasNSuccessfulTableaus(0));
 	}
 
 	@Test
@@ -249,7 +282,7 @@ public class TableauBuilderTest {
 		State state = getABCState();
 		Formula formula = new FormulaCreator().constant(true);
 
-		assertThat(new TableauBuilder<State>(null).createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
+		assertThat(createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
 					.and(hasLeaves(contains(new TableauNode<State>(null, state, formula))))));
 	}
 
@@ -259,7 +292,7 @@ public class TableauBuilderTest {
 		FormulaCreator creator = new FormulaCreator();
 		Formula formula = creator.negate(creator.constant(false));
 
-		assertThat(new TableauBuilder<State>(null).createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
+		assertThat(createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
 					.and(hasLeaves(contains(new TableauNode<State>(null, state, creator.constant(true)))))));
 	}
 
@@ -271,7 +304,7 @@ public class TableauBuilderTest {
 		Formula False = creator.constant(false);
 		Formula formula = creator.conjunction(True, False);
 
-		assertThat(new TableauBuilder<State>(null).createTableaus(state, formula), hasNSuccessfulTableaus(0));
+		assertThat(createTableaus(state, formula), hasNSuccessfulTableaus(0));
 	}
 
 	@Test
@@ -281,7 +314,7 @@ public class TableauBuilderTest {
 		Formula True = creator.constant(true);
 		Formula formula = creator.conjunction(True, True);
 
-		assertThat(new TableauBuilder<State>(null).createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
+		assertThat(createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
 					.and(hasLeaves(contains(new TableauNode<State>(null, state, True))))));
 	}
 
@@ -292,7 +325,7 @@ public class TableauBuilderTest {
 		Formula True = creator.constant(true);
 		Formula right = creator.modality(Modality.UNIVERSAL, "z", True);
 		Formula formula = creator.conjunction(True, right);
-		assertThat(new TableauBuilder<State>(new StateFollowArcs()).createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
+		assertThat(createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
 					.and(hasLeaves(containsInAnyOrder(new TableauNode<State>(null, state, True),
 								new TableauNode<State>(null, state, right))))));
 	}
@@ -304,7 +337,7 @@ public class TableauBuilderTest {
 		Formula False = creator.constant(false);
 		Formula formula = creator.disjunction(False, False);
 
-		assertThat(new TableauBuilder<State>(null).createTableaus(state, formula), hasNSuccessfulTableaus(0));
+		assertThat(createTableaus(state, formula), hasNSuccessfulTableaus(0));
 	}
 
 	@Test
@@ -315,7 +348,7 @@ public class TableauBuilderTest {
 		Formula False = creator.constant(false);
 		Formula formula = creator.disjunction(True, False);
 
-		assertThat(new TableauBuilder<State>(null).createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
+		assertThat(createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
 					.and(hasLeaves(contains(new TableauNode<State>(null, state, True))))));
 	}
 
@@ -326,7 +359,7 @@ public class TableauBuilderTest {
 		Formula True = creator.constant(true);
 		Formula formula = creator.disjunction(True, True);
 
-		assertThat(new TableauBuilder<State>(null).createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
+		assertThat(createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
 					.and(hasLeaves(contains(new TableauNode<State>(null, state, True))))));
 	}
 
@@ -337,7 +370,7 @@ public class TableauBuilderTest {
 		Formula True = creator.constant(true);
 		Formula right = creator.modality(Modality.UNIVERSAL, "z", True);
 		Formula formula = creator.disjunction(True, right);
-		assertThat(new TableauBuilder<State>(new StateFollowArcs()).createTableaus(state, formula), containsInAnyOrder(
+		assertThat(createTableaus(state, formula), containsInAnyOrder(
 					both(isSuccessfulTableau(true)).and(hasLeaves(contains(
 								new TableauNode<State>(null, state, True)))),
 					both(isSuccessfulTableau(true)).and(hasLeaves(contains(
@@ -350,7 +383,7 @@ public class TableauBuilderTest {
 		FormulaCreator creator = new FormulaCreator();
 		Formula formula = creator.fixedPoint(FixedPoint.GREATEST, creator.variable("X"), creator.constant(true));
 
-		assertThat(new TableauBuilder<State>(null).createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
+		assertThat(createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
 					.and(hasLeaves(contains(hasStateAndFormula(state, creator.constant(true)))))));
 	}
 
@@ -360,7 +393,7 @@ public class TableauBuilderTest {
 		FormulaCreator creator = new FormulaCreator();
 		Formula formula = creator.fixedPoint(FixedPoint.LEAST, creator.variable("X"), creator.constant(true));
 
-		assertThat(new TableauBuilder<State>(null).createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
+		assertThat(createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
 					.and(hasLeaves(contains(hasStateAndFormula(state, creator.constant(true)))))));
 	}
 
@@ -377,7 +410,7 @@ public class TableauBuilderTest {
 		Formula formula = creator.fixedPoint(FixedPoint.GREATEST, x,
 				creator.modality(Modality.EXISTENTIAL, "a", x));
 
-		assertThat(new TableauBuilder<State>(new StateFollowArcs()).createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
+		assertThat(createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
 					.and(hasLeaves(contains(hasStateAndFormula(state, creator.constant(true)))))));
 	}
 
@@ -394,7 +427,7 @@ public class TableauBuilderTest {
 		Formula formula = creator.fixedPoint(FixedPoint.LEAST, x,
 				creator.modality(Modality.EXISTENTIAL, "a", x));
 
-		assertThat(new TableauBuilder<State>(new StateFollowArcs()).createTableaus(state, formula), hasNSuccessfulTableaus(0));
+		assertThat(createTableaus(state, formula), hasNSuccessfulTableaus(0));
 	}
 
 	@Test
@@ -404,7 +437,7 @@ public class TableauBuilderTest {
 		FormulaCreator creator = new FormulaCreator();
 		Formula formula = creator.modality(Modality.EXISTENTIAL, "a", creator.constant(true));
 
-		assertThat(new TableauBuilder<State>(new StateFollowArcs()).createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
+		assertThat(createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
 					.and(hasLeaves(contains(new TableauNode<State>(null, afterA, creator.constant(true)))))));
 	}
 
@@ -415,7 +448,7 @@ public class TableauBuilderTest {
 		FormulaCreator creator = new FormulaCreator();
 		Formula formula = creator.modality(Modality.UNIVERSAL, "a", creator.constant(true));
 
-		assertThat(new TableauBuilder<State>(new StateFollowArcs()).createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
+		assertThat(createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
 					.and(hasLeaves(contains(new TableauNode<State>(null, afterA, creator.constant(true)))))));
 	}
 
@@ -425,7 +458,7 @@ public class TableauBuilderTest {
 		FormulaCreator creator = new FormulaCreator();
 		Formula formula = creator.modality(Modality.EXISTENTIAL, "z", creator.constant(true));
 
-		assertThat(new TableauBuilder<State>(new StateFollowArcs()).createTableaus(state, formula), contains(both(isSuccessfulTableau(false))
+		assertThat(createTableaus(state, formula), contains(both(isSuccessfulTableau(false))
 					.and(hasLeaves(contains(new TableauNode<State>(null, state, formula))))));
 	}
 
@@ -435,7 +468,7 @@ public class TableauBuilderTest {
 		FormulaCreator creator = new FormulaCreator();
 		Formula formula = creator.modality(Modality.UNIVERSAL, "z", creator.constant(true));
 
-		assertThat(new TableauBuilder<State>(new StateFollowArcs()).createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
+		assertThat(createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
 					.and(hasLeaves(contains(new TableauNode<State>(null, state, formula))))));
 	}
 
@@ -449,7 +482,7 @@ public class TableauBuilderTest {
 		TableauNode<State> node = new TableauNode<State>(new StateFollowArcs(), state, formula);
 		Tableau<State> tableau = new Tableau<State>(Collections.singleton(node));
 
-		assertThat(new TableauBuilder<State>(null).continueTableau(tableau), contains(hasLeaves(containsInAnyOrder(
+		assertThat(continueTableau(tableau), contains(hasLeaves(containsInAnyOrder(
 						hasStateAndFormula(state, True), hasStateAndFormula(state, right)))));
 	}
 
@@ -481,7 +514,7 @@ public class TableauBuilderTest {
 		// successful. However, this implementation 'optimises' and does not generate tableaus which fail
 		// because a least fixed point recursed to itself. That leaves one successful and two failing tableaus.
 
-		assertThat(new TableauBuilder<State>(new StateFollowArcs()).createTableaus(s, f), containsInAnyOrder(isSuccessfulTableau(true),
+		assertThat(createTableaus(s, f), containsInAnyOrder(isSuccessfulTableau(true),
 					isSuccessfulTableau(false), isSuccessfulTableau(false)));
 	}
 
@@ -497,7 +530,7 @@ public class TableauBuilderTest {
 									creator.constant(true)),
 								creator.variable("Y")), creator.variable("Z")))));
 
-		assertThat(new TableauBuilder<State>(new StateFollowArcs()).createTableaus(s, f), containsInAnyOrder(
+		assertThat(createTableaus(s, f), containsInAnyOrder(
 					isSuccessfulTableau(false), isSuccessfulTableau(false)));
 	}
 
@@ -516,7 +549,7 @@ public class TableauBuilderTest {
 						creator.disjunction(creator.modality(Modality.EXISTENTIAL, "c", creator.variable("X")),
 							inner))));
 
-		assertThat(new TableauBuilder<State>(new StateFollowArcs()).createTableaus(s0, formula), containsInAnyOrder(
+		assertThat(createTableaus(s0, formula), containsInAnyOrder(
 					isSuccessfulTableau(false), isSuccessfulTableau(false),
 					isSuccessfulTableau(false), isSuccessfulTableau(false),
 					isSuccessfulTableau(false), isSuccessfulTableau(false),
@@ -571,7 +604,7 @@ public class TableauBuilderTest {
 				}
 			}
 		};
-		new TableauBuilder<State>(new StateFollowArcs(), callback).createTableaus(s0, formula0);
+		new TableauBuilder<State>(new StateFollowArcs(), callback).createTableaus(nopResultCallback(), s0, formula0);
 
 		assertThat(callCount[0], equalTo(4));
 	}
@@ -596,7 +629,7 @@ public class TableauBuilderTest {
 				}
 			}
 		};
-		new TableauBuilder<State>(null, callback).createTableaus(s, formula);
+		new TableauBuilder<State>(null, callback).createTableaus(nopResultCallback(), s, formula);
 
 		assertThat(callCount[0], equalTo(1));
 	}

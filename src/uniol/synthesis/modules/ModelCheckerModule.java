@@ -20,6 +20,7 @@
 package uniol.synthesis.modules;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -72,9 +73,16 @@ public class ModelCheckerModule extends AbstractModule implements Module {
 		TransitionSystem lts = input.getParameter("lts", TransitionSystem.class);
 		Formula formula = input.getParameter("formula", Formula.class);
 
+		final Set<Tableau<State>> tableaus = new HashSet<>();
+		TableauBuilder.ResultCallback<State> cb = new TableauBuilder.ResultCallback<State>() {
+			@Override
+			public void foundTableau(Tableau<State> tableau) {
+				tableaus.add(tableau);
+			}
+		};
 		GraphvizProgressCallback<State> callback = new GraphvizProgressCallback<State>();
-		Set<Tableau<State>> tableaus = new TableauBuilder<State>(new StateFollowArcs(), callback)
-			.createTableaus(lts.getInitialState(), formula);
+		new TableauBuilder<State>(new StateFollowArcs(), callback)
+			.createTableaus(cb, lts.getInitialState(), formula);
 
 		boolean success = false;
 		List<String> missingArcs = new ArrayList<>();

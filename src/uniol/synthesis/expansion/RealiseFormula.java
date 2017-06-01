@@ -20,6 +20,7 @@
 package uniol.synthesis.expansion;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import org.apache.commons.collections4.Transformer;
 
@@ -62,7 +63,15 @@ public class RealiseFormula implements NonRecursive.Walker {
 	static class DefaultContinueTableauFactory implements ContinueTableauFactory {
 		@Override
 		public Set<Tableau<State>> continueTableau(Tableau<State> tableau) {
-			return new TableauBuilder<State>(new StateFollowArcs()).continueTableau(tableau);
+			final Set<Tableau<State>> result = new HashSet<>();
+			TableauBuilder.ResultCallback<State> cb = new TableauBuilder.ResultCallback<State>() {
+				@Override
+				public void foundTableau(Tableau<State> tableau) {
+					result.add(tableau);
+				}
+			};
+			new TableauBuilder<State>(new StateFollowArcs()).continueTableau(cb, tableau);
+			return result;
 		}
 	}
 

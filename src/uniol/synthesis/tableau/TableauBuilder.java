@@ -57,6 +57,10 @@ public class TableauBuilder<S> {
 		return result;
 	}
 
+	public interface ResultCallback<S> {
+		public void foundTableau(Tableau<S> tableau);
+	}
+
 	private final FollowArcs<S> followArcs;
 	private final ProgressCallback<S> callback;
 
@@ -69,37 +73,35 @@ public class TableauBuilder<S> {
 		this.callback = callback;
 	}
 
-	public Set<Tableau<S>> createTableaus(S state, Formula formula) {
+	public void createTableaus(ResultCallback<S> resultCallback, S state, Formula formula) {
 		formula = cleanForm(positiveForm(formula));
-		return expandTableau(Collections.singleton(new TableauNode<S>(followArcs, state, formula)));
+		expandTableau(resultCallback, Collections.singleton(new TableauNode<S>(followArcs, state, formula)));
 	}
 
-	public Set<Tableau<S>> continueTableau(Tableau<S> tableau) {
-		return expandTableau(tableau.getLeaves());
+	public void continueTableau(ResultCallback<S> resultCallback, Tableau<S> tableau) {
+		expandTableau(resultCallback, tableau.getLeaves());
 	}
 
-	private Set<Tableau<S>> expandTableau(Set<TableauNode<S>> nodes) {
-		Set<Tableau<S>> result = new HashSet<>();
-		new NonRecursive().run(new CreateTableaus<S>(callback, result, nodes));
-		return result;
+	private void expandTableau(ResultCallback<S> resultCallback, Set<TableauNode<S>> nodes) {
+		new NonRecursive().run(new CreateTableaus<S>(callback, resultCallback, nodes));
 	}
 
 	static private class CreateTableaus<S> implements NonRecursive.Walker {
 		private final ProgressCallback<S> callback;
-		private final Set<Tableau<S>> result;
+		private final ResultCallback<S> resultCallback;
 		private final Set<TableauNode<S>> leaves = new HashSet<>();
 		private final Queue<ExpandNodeWalker<S>> todo = new ArrayDeque<>();
 
-		private CreateTableaus(ProgressCallback<S> callback, Set<Tableau<S>> result, Set<TableauNode<S>> nodes) {
+		private CreateTableaus(ProgressCallback<S> callback, ResultCallback<S> resultCallback, Set<TableauNode<S>> nodes) {
 			this.callback = callback;
-			this.result = result;
+			this.resultCallback = resultCallback;
 			for (TableauNode<S> node : nodes)
 				this.todo.add(new ExpandNodeWalker<S>(node));
 		}
 
 		private CreateTableaus(CreateTableaus<S> toCopy) {
 			this.callback = toCopy.callback;
-			this.result = toCopy.result;
+			this.resultCallback = toCopy.resultCallback;
 			this.leaves.addAll(toCopy.leaves);
 			this.todo.addAll(toCopy.todo);
 		}
@@ -109,7 +111,7 @@ public class TableauBuilder<S> {
 			ExpandNodeWalker<S> next = todo.poll();
 			if (next == null) {
 				// We are done creating a tableau
-				result.add(new Tableau<S>(leaves));
+				resultCallback.foundTableau(new Tableau<S>(leaves));
 				return;
 			}
 
