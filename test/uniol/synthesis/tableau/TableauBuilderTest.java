@@ -19,8 +19,9 @@
 
 package uniol.synthesis.tableau;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 import uniol.apt.adt.ts.State;
@@ -58,8 +59,8 @@ public class TableauBuilderTest {
 		};
 	}
 
-	private Set<Tableau<State>> createTableaus(State state, Formula formula) {
-		final Set<Tableau<State>> result = new HashSet<>();
+	private Collection<Tableau<State>> createTableaus(State state, Formula formula) {
+		final Collection<Tableau<State>> result = new ArrayList<>();
 		TableauBuilder.ResultCallback<State> cb = new TableauBuilder.ResultCallback<State>() {
 			@Override
 			public void foundTableau(Tableau<State> tableau) {
@@ -70,8 +71,8 @@ public class TableauBuilderTest {
 		return result;
 	}
 
-	private Set<Tableau<State>> continueTableau(Tableau<State> tableau) {
-		final Set<Tableau<State>> result = new HashSet<>();
+	private Collection<Tableau<State>> continueTableau(Tableau<State> tableau) {
+		final Collection<Tableau<State>> result = new ArrayList<>();
 		TableauBuilder.ResultCallback<State> cb = new TableauBuilder.ResultCallback<State>() {
 			@Override
 			public void foundTableau(Tableau<State> tableau) {
@@ -133,7 +134,7 @@ public class TableauBuilderTest {
 		Formula formula = creator.fixedPoint(FixedPoint.GREATEST, creator.variable("x"), creator.constant(true));
 		TableauNode<State> node = new TableauNode<State>(null, state, formula);
 
-		Set<Set<TableauNode<State>>> expanded = TableauBuilder.expandNode(node);
+		Collection<? extends Collection<TableauNode<State>>> expanded = TableauBuilder.expandNode(node);
 		assertThat(expanded, contains(contains(hasFormula(instanceOf(VariableFormula.class)))));
 		TableauNode<State> expandedNode = expanded.iterator().next().iterator().next();
 		assertThat(expandedNode.getDefinition((VariableFormula) expandedNode.getFormula()), equalTo(formula));
@@ -359,8 +360,11 @@ public class TableauBuilderTest {
 		Formula True = creator.constant(true);
 		Formula formula = creator.disjunction(True, True);
 
-		assertThat(createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
-					.and(hasLeaves(contains(new TableauNode<State>(null, state, True))))));
+		assertThat(createTableaus(state, formula), containsInAnyOrder(
+					both(isSuccessfulTableau(true)).and(hasLeaves(contains(
+								new TableauNode<State>(null, state, True)))),
+					both(isSuccessfulTableau(true)).and(hasLeaves(contains(
+								new TableauNode<State>(null, state, True))))));
 	}
 
 	@Test
@@ -581,7 +585,7 @@ public class TableauBuilderTest {
 		final int callCount[] = new int[1];
 		TableauBuilder.ProgressCallback<State> callback = new TableauBuilder.ProgressCallback<State>() {
 			@Override
-			public void children(TableauNode<State> node, Set<Set<TableauNode<State>>> children) {
+			public void children(TableauNode<State> node, Collection<? extends Collection<TableauNode<State>>> children) {
 				switch (callCount[0]++) {
 					case 0:
 						assertThat(node, hasStateAndFormula(s0, formula0));
@@ -618,7 +622,7 @@ public class TableauBuilderTest {
 		final int callCount[] = new int[1];
 		TableauBuilder.ProgressCallback<State> callback = new TableauBuilder.ProgressCallback<State>() {
 			@Override
-			public void children(TableauNode<State> node, Set<Set<TableauNode<State>>> children) {
+			public void children(TableauNode<State> node, Collection<? extends Collection<TableauNode<State>>> children) {
 				switch (callCount[0]++) {
 					case 0:
 						assertThat(node, hasStateAndFormula(s, formula));

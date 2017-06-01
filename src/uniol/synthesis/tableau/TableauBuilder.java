@@ -20,6 +20,9 @@
 package uniol.synthesis.tableau;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Queue;
@@ -42,12 +45,12 @@ import static uniol.synthesis.util.SubstitutionTransformer.substitute;
 
 public class TableauBuilder<S> {
 	public interface ProgressCallback<S> {
-		public void children(TableauNode<S> node, Set<Set<TableauNode<S>>> children);
+		public void children(TableauNode<S> node, Collection<? extends Collection<TableauNode<S>>> children);
 	}
 
 	static private final ProgressCallback<Object> NOP_PROGRESS = new ProgressCallback<Object>() {
 		@Override
-		public void children(TableauNode<Object> node, Set<Set<TableauNode<Object>>> children) {
+		public void children(TableauNode<Object> node, Collection<? extends Collection<TableauNode<Object>>> children) {
 		}
 	};
 
@@ -89,7 +92,7 @@ public class TableauBuilder<S> {
 	static private class CreateTableaus<S> implements NonRecursive.Walker {
 		private final ProgressCallback<S> callback;
 		private final ResultCallback<S> resultCallback;
-		private final Set<TableauNode<S>> leaves = new HashSet<>();
+		private final Collection<TableauNode<S>> leaves = new ArrayList<>();
 		private final Queue<ExpandNodeWalker<S>> todo = new ArrayDeque<>();
 
 		private CreateTableaus(ProgressCallback<S> callback, ResultCallback<S> resultCallback, Set<TableauNode<S>> nodes) {
@@ -116,7 +119,7 @@ public class TableauBuilder<S> {
 			}
 
 			next.walk(engine);
-			Set<Set<TableauNode<S>>> expansion = next.getExpansion();
+			Collection<? extends Collection<TableauNode<S>>> expansion = next.getExpansion();
 			callback.children(next.getNode(), expansion);
 			if (expansion == null)
 				// This is false / does not hold.
@@ -124,7 +127,7 @@ public class TableauBuilder<S> {
 
 			if (expansion.size() == 1) {
 				// A conjunction of nodes. Follow them.
-				Set<TableauNode<S>> children = expansion.iterator().next();
+				Collection<TableauNode<S>> children = expansion.iterator().next();
 				if (children.isEmpty()) {
 					// No children, thus this is a leave
 					leaves.add(next.getNode());
@@ -137,7 +140,7 @@ public class TableauBuilder<S> {
 				engine.enqueue(this);
 			} else {
 				// A disjunction of nodes, we have to split
-				for (Set<TableauNode<S>> part : expansion) {
+				for (Collection<TableauNode<S>> part : expansion) {
 					CreateTableaus<S> split = new CreateTableaus<S>(this);
 					for (TableauNode<S> child : part) {
 						split.todo.add(new ExpandNodeWalker<S>(child));
@@ -148,7 +151,7 @@ public class TableauBuilder<S> {
 		}
 	}
 
-	static <S> Set<Set<TableauNode<S>>> expandNode(TableauNode<S> node) {
+	static <S> Collection<? extends Collection<TableauNode<S>>> expandNode(TableauNode<S> node) {
 		ExpandNodeWalker<S> walker = new ExpandNodeWalker<S>(node);
 		walker.walk(null);
 		return walker.getExpansion();
@@ -156,7 +159,7 @@ public class TableauBuilder<S> {
 
 	static private class ExpandNodeWalker<S> extends FormulaWalker {
 		private final TableauNode<S> node;
-		private Set<Set<TableauNode<S>>> expansion;
+		private Collection<? extends Collection<TableauNode<S>>> expansion;
 
 		private ExpandNodeWalker(TableauNode<S> node) {
 			super(node.getFormula());
@@ -167,7 +170,7 @@ public class TableauBuilder<S> {
 			return node;
 		}
 
-		Set<Set<TableauNode<S>>> getExpansion() {
+		Collection<? extends Collection<TableauNode<S>>> getExpansion() {
 			return expansion;
 		}
 
@@ -181,17 +184,16 @@ public class TableauBuilder<S> {
 
 		@Override
 		public void walk(NonRecursive engine, ConjunctionFormula formula) {
-			Set<TableauNode<S>> set = new HashSet<>();
-			set.add(node.createChild(formula.getLeft()));
-			set.add(node.createChild(formula.getRight()));
-			expansion = Collections.singleton(set);
+			TableauNode<S> left = node.createChild(formula.getLeft());
+			TableauNode<S> right = node.createChild(formula.getRight());
+			expansion = Collections.singleton(Arrays.asList(left, right));
 		}
 
 		@Override
 		public void walk(NonRecursive engine, DisjunctionFormula formula) {
-			expansion = new HashSet<>();
-			expansion.add(Collections.singleton(node.createChild(formula.getLeft())));
-			expansion.add(Collections.singleton(node.createChild(formula.getRight())));
+			Collection<TableauNode<S>> left = Collections.singleton(node.createChild(formula.getLeft()));
+			Collection<TableauNode<S>> right = Collections.singleton(node.createChild(formula.getRight()));
+			expansion = Arrays.asList(left, right);
 		}
 
 		@Override

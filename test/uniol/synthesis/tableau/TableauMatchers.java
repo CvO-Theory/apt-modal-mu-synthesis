@@ -19,6 +19,7 @@
 
 package uniol.synthesis.tableau;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -92,15 +93,15 @@ public class TableauMatchers {
 		};
 	}
 
-	static public Matcher<Set<Tableau<State>>> hasNSuccessfulTableaus(final int n) {
-		return new TypeSafeDiagnosingMatcher<Set<Tableau<State>>>() {
+	static public Matcher<Collection<Tableau<State>>> hasNSuccessfulTableaus(final int n) {
+		return new TypeSafeDiagnosingMatcher<Collection<Tableau<State>>>() {
 			@Override
 			public void describeTo(Description description) {
 				description.appendValue(n).appendText(" successful tableaus");
 			}
 
 			@Override
-			protected boolean matchesSafely(Set<Tableau<State>> tableaus, Description mismatch) {
+			protected boolean matchesSafely(Collection<Tableau<State>> tableaus, Description mismatch) {
 				boolean result = true;
 
 				if (tableaus.size() != n) {

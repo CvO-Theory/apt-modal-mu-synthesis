@@ -19,6 +19,7 @@
 
 package uniol.synthesis.tableau;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -41,12 +42,12 @@ public class GraphvizProgressCallback<S> implements TableauBuilder.ProgressCallb
 	}
 
 	@Override
-	public void children(TableauNode<S> node, Set<Set<TableauNode<S>>> children) {
+	public void children(TableauNode<S> node, Collection<? extends Collection<TableauNode<S>>> children) {
 		String from = mapNode(node);
 		if (children == null) {
 			builder.append(from).append(" -> fail;\n");
 		} else {
-			for (Set<TableauNode<S>> set : children) {
+			for (Collection<TableauNode<S>> set : children) {
 				for (TableauNode<S> child : set) {
 					String target = mapNode(child);
 					builder.append(from).append(" -> ").append(target).append(";\n");
