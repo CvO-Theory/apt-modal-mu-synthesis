@@ -23,15 +23,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import uniol.apt.adt.ts.State;
-
-public class GraphvizProgressCallback implements TableauBuilder.ProgressCallback {
+public class GraphvizProgressCallback<S> implements TableauBuilder.ProgressCallback<S> {
 	private final StringBuilder builder = new StringBuilder("digraph img {\n");
-	private final Map<TableauNode<State>, String> mapping = new HashMap<>();
+	private final Map<TableauNode<S>, String> mapping = new HashMap<>();
 	private int nodeCounter = 0;
 	private int tableauCounter = 0;
 
-	private String mapNode(TableauNode<State> node) {
+	private String mapNode(TableauNode<S> node) {
 		String result = mapping.get(node);
 		if (result == null) {
 			result = "s" + (nodeCounter++);
@@ -43,13 +41,13 @@ public class GraphvizProgressCallback implements TableauBuilder.ProgressCallback
 	}
 
 	@Override
-	public void children(TableauNode<State> node, Set<Set<TableauNode<State>>> children) {
+	public void children(TableauNode<S> node, Set<Set<TableauNode<S>>> children) {
 		String from = mapNode(node);
 		if (children == null) {
 			builder.append(from).append(" -> fail;\n");
 		} else {
-			for (Set<TableauNode<State>> set : children) {
-				for (TableauNode<State> child : set) {
+			for (Set<TableauNode<S>> set : children) {
+				for (TableauNode<S> child : set) {
 					String target = mapNode(child);
 					builder.append(from).append(" -> ").append(target).append(";\n");
 				}
@@ -57,9 +55,9 @@ public class GraphvizProgressCallback implements TableauBuilder.ProgressCallback
 		}
 	}
 
-	public void tableau(Tableau<State> tableau) {
+	public void tableau(Tableau<S> tableau) {
 		String id = "t" + (tableauCounter++) + (tableau.isSuccessful() ? "success" : "fail");
-		for (TableauNode<State> leave : tableau.getLeaves()) {
+		for (TableauNode<S> leave : tableau.getLeaves()) {
 			String target = mapNode(leave);
 			builder.append(id).append(" -> ").append(target).append(";\n");
 		}

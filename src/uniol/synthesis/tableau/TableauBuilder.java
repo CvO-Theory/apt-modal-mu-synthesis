@@ -25,8 +25,6 @@ import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
 
-import uniol.apt.adt.ts.State;
-
 import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
 import uniol.synthesis.adt.mu_calculus.ConstantFormula;
 import uniol.synthesis.adt.mu_calculus.DisjunctionFormula;
@@ -42,58 +40,64 @@ import static uniol.synthesis.util.CleanFormFormulaTransformer.cleanForm;
 import static uniol.synthesis.util.PositiveFormFormulaTransformer.positiveForm;
 import static uniol.synthesis.util.SubstitutionTransformer.substitute;
 
-public class TableauBuilder {
-	public interface ProgressCallback {
-		public void children(TableauNode<State> node, Set<Set<TableauNode<State>>> children);
+public class TableauBuilder<S> {
+	public interface ProgressCallback<S> {
+		public void children(TableauNode<S> node, Set<Set<TableauNode<S>>> children);
 	}
 
-	static private final ProgressCallback NOP_PROGRESS = new ProgressCallback() {
+	static private final ProgressCallback<Object> NOP_PROGRESS = new ProgressCallback<Object>() {
 		@Override
-		public void children(TableauNode<State> node, Set<Set<TableauNode<State>>> children) {
+		public void children(TableauNode<Object> node, Set<Set<TableauNode<Object>>> children) {
 		}
 	};
 
-	private final FollowArcs<State> followArcs;
-	private final ProgressCallback callback;
-
-	public TableauBuilder(FollowArcs<State> followArcs) {
-		this(followArcs, NOP_PROGRESS);
+	static private <S> ProgressCallback<S> nopProgressCallback() {
+		@SuppressWarnings("unchecked")
+		ProgressCallback<S> result = (ProgressCallback<S>) NOP_PROGRESS;
+		return result;
 	}
 
-	public TableauBuilder(FollowArcs<State> followArcs, ProgressCallback callback) {
+	private final FollowArcs<S> followArcs;
+	private final ProgressCallback<S> callback;
+
+	public TableauBuilder(FollowArcs<S> followArcs) {
+		this(followArcs, TableauBuilder.<S>nopProgressCallback());
+	}
+
+	public TableauBuilder(FollowArcs<S> followArcs, ProgressCallback<S> callback) {
 		this.followArcs = followArcs;
 		this.callback = callback;
 	}
 
-	public Set<Tableau<State>> createTableaus(State state, Formula formula) {
+	public Set<Tableau<S>> createTableaus(S state, Formula formula) {
 		formula = cleanForm(positiveForm(formula));
-		return expandTableau(Collections.singleton(new TableauNode<State>(followArcs, state, formula)));
+		return expandTableau(Collections.singleton(new TableauNode<S>(followArcs, state, formula)));
 	}
 
-	public Set<Tableau<State>> continueTableau(Tableau<State> tableau) {
+	public Set<Tableau<S>> continueTableau(Tableau<S> tableau) {
 		return expandTableau(tableau.getLeaves());
 	}
 
-	private Set<Tableau<State>> expandTableau(Set<TableauNode<State>> nodes) {
-		Set<Tableau<State>> result = new HashSet<>();
-		new NonRecursive().run(new CreateTableaus(callback, result, nodes));
+	private Set<Tableau<S>> expandTableau(Set<TableauNode<S>> nodes) {
+		Set<Tableau<S>> result = new HashSet<>();
+		new NonRecursive().run(new CreateTableaus<S>(callback, result, nodes));
 		return result;
 	}
 
-	static private class CreateTableaus implements NonRecursive.Walker {
-		private final ProgressCallback callback;
-		private final Set<Tableau<State>> result;
-		private final Set<TableauNode<State>> leaves = new HashSet<>();
-		private final Queue<ExpandNodeWalker> todo = new ArrayDeque<>();
+	static private class CreateTableaus<S> implements NonRecursive.Walker {
+		private final ProgressCallback<S> callback;
+		private final Set<Tableau<S>> result;
+		private final Set<TableauNode<S>> leaves = new HashSet<>();
+		private final Queue<ExpandNodeWalker<S>> todo = new ArrayDeque<>();
 
-		private CreateTableaus(ProgressCallback callback, Set<Tableau<State>> result, Set<TableauNode<State>> nodes) {
+		private CreateTableaus(ProgressCallback<S> callback, Set<Tableau<S>> result, Set<TableauNode<S>> nodes) {
 			this.callback = callback;
 			this.result = result;
-			for (TableauNode<State> node : nodes)
-				this.todo.add(new ExpandNodeWalker(node));
+			for (TableauNode<S> node : nodes)
+				this.todo.add(new ExpandNodeWalker<S>(node));
 		}
 
-		private CreateTableaus(CreateTableaus toCopy) {
+		private CreateTableaus(CreateTableaus<S> toCopy) {
 			this.callback = toCopy.callback;
 			this.result = toCopy.result;
 			this.leaves.addAll(toCopy.leaves);
@@ -102,15 +106,15 @@ public class TableauBuilder {
 
 		@Override
 		public void walk(NonRecursive engine) {
-			ExpandNodeWalker next = todo.poll();
+			ExpandNodeWalker<S> next = todo.poll();
 			if (next == null) {
 				// We are done creating a tableau
-				result.add(new Tableau<State>(leaves));
+				result.add(new Tableau<S>(leaves));
 				return;
 			}
 
 			next.walk(engine);
-			Set<Set<TableauNode<State>>> expansion = next.getExpansion();
+			Set<Set<TableauNode<S>>> expansion = next.getExpansion();
 			callback.children(next.getNode(), expansion);
 			if (expansion == null)
 				// This is false / does not hold.
@@ -118,23 +122,23 @@ public class TableauBuilder {
 
 			if (expansion.size() == 1) {
 				// A conjunction of nodes. Follow them.
-				Set<TableauNode<State>> children = expansion.iterator().next();
+				Set<TableauNode<S>> children = expansion.iterator().next();
 				if (children.isEmpty()) {
 					// No children, thus this is a leave
 					leaves.add(next.getNode());
 				} else {
-					for (TableauNode<State> child : children) {
-						todo.add(new ExpandNodeWalker(child));
+					for (TableauNode<S> child : children) {
+						todo.add(new ExpandNodeWalker<S>(child));
 					}
 				}
 				// Continue handling the children
 				engine.enqueue(this);
 			} else {
 				// A disjunction of nodes, we have to split
-				for (Set<TableauNode<State>> part : expansion) {
-					CreateTableaus split = new CreateTableaus(this);
-					for (TableauNode<State> child : part) {
-						split.todo.add(new ExpandNodeWalker(child));
+				for (Set<TableauNode<S>> part : expansion) {
+					CreateTableaus<S> split = new CreateTableaus<S>(this);
+					for (TableauNode<S> child : part) {
+						split.todo.add(new ExpandNodeWalker<S>(child));
 					}
 					engine.enqueue(split);
 				}
@@ -142,40 +146,40 @@ public class TableauBuilder {
 		}
 	}
 
-	static Set<Set<TableauNode<State>>> expandNode(TableauNode<State> node) {
-		ExpandNodeWalker walker = new ExpandNodeWalker(node);
+	static <S> Set<Set<TableauNode<S>>> expandNode(TableauNode<S> node) {
+		ExpandNodeWalker<S> walker = new ExpandNodeWalker<S>(node);
 		walker.walk(null);
 		return walker.getExpansion();
 	}
 
-	static private class ExpandNodeWalker extends FormulaWalker {
-		private final TableauNode<State> node;
-		private Set<Set<TableauNode<State>>> expansion;
+	static private class ExpandNodeWalker<S> extends FormulaWalker {
+		private final TableauNode<S> node;
+		private Set<Set<TableauNode<S>>> expansion;
 
-		private ExpandNodeWalker(TableauNode<State> node) {
+		private ExpandNodeWalker(TableauNode<S> node) {
 			super(node.getFormula());
 			this.node = node;
 		}
 
-		private TableauNode<State> getNode() {
+		private TableauNode<S> getNode() {
 			return node;
 		}
 
-		Set<Set<TableauNode<State>>> getExpansion() {
+		Set<Set<TableauNode<S>>> getExpansion() {
 			return expansion;
 		}
 
 		@Override
 		public void walk(NonRecursive engine, ConstantFormula formula) {
 			if (formula.getValue())
-				expansion = Collections.singleton(Collections.<TableauNode<State>>emptySet());
+				expansion = Collections.singleton(Collections.<TableauNode<S>>emptySet());
 			else
 				expansion = null;
 		}
 
 		@Override
 		public void walk(NonRecursive engine, ConjunctionFormula formula) {
-			Set<TableauNode<State>> set = new HashSet<>();
+			Set<TableauNode<S>> set = new HashSet<>();
 			set.add(node.createChild(formula.getLeft()));
 			set.add(node.createChild(formula.getRight()));
 			expansion = Collections.singleton(set);
@@ -218,14 +222,14 @@ public class TableauBuilder {
 		@Override
 		public void walk(NonRecursive engine, ModalityFormula formula) {
 			String event = formula.getEvent();
-			Set<State> states = node.getFollowArcs().followArcs(node.getState(), event);
+			Set<S> states = node.getFollowArcs().followArcs(node.getState(), event);
 			if (states.isEmpty()) {
-				expansion = Collections.singleton(Collections.<TableauNode<State>>emptySet());
+				expansion = Collections.singleton(Collections.<TableauNode<S>>emptySet());
 			} else {
 				if (states.size() != 1)
 					throw new IllegalArgumentException("Given LTS is non-deterministic in state " +
 							node.getState() + " with label " + event);
-				State target = states.iterator().next();
+				S target = states.iterator().next();
 				expansion = Collections.singleton(Collections.singleton(
 							node.createChild(target, formula.getFormula())));
 			}

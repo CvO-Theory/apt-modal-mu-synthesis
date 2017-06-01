@@ -72,8 +72,8 @@ public class ModelCheckerModule extends AbstractModule implements Module {
 		TransitionSystem lts = input.getParameter("lts", TransitionSystem.class);
 		Formula formula = input.getParameter("formula", Formula.class);
 
-		GraphvizProgressCallback callback = new GraphvizProgressCallback();
-		Set<Tableau<State>> tableaus = new TableauBuilder(new StateFollowArcs(), callback)
+		GraphvizProgressCallback<State> callback = new GraphvizProgressCallback<State>();
+		Set<Tableau<State>> tableaus = new TableauBuilder<State>(new StateFollowArcs(), callback)
 			.createTableaus(lts.getInitialState(), formula);
 
 		boolean success = false;

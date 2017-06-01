@@ -62,7 +62,7 @@ public class RealiseFormula implements NonRecursive.Walker {
 	static class DefaultContinueTableauFactory implements ContinueTableauFactory {
 		@Override
 		public Set<Tableau<State>> continueTableau(Tableau<State> tableau) {
-			return new TableauBuilder(new StateFollowArcs()).continueTableau(tableau);
+			return new TableauBuilder<State>(new StateFollowArcs()).continueTableau(tableau);
 		}
 	}
 

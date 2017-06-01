@@ -48,13 +48,13 @@ public class GraphvizProgressCallbackTest {
 
 	@Test
 	public void testNoCallsOutput() {
-		GraphvizProgressCallback callback = new GraphvizProgressCallback();
+		GraphvizProgressCallback<State> callback = new GraphvizProgressCallback<State>();
 		assertThat(callback, hasToString("digraph img {\n}\n"));
 	}
 
 	@Test
 	public void testOneFailingCallOutput() {
-		GraphvizProgressCallback callback = new GraphvizProgressCallback();
+		GraphvizProgressCallback<State> callback = new GraphvizProgressCallback<State>();
 
 		callback.children(createTableau("state", "formula"), null);
 
@@ -63,7 +63,7 @@ public class GraphvizProgressCallbackTest {
 
 	@Test
 	public void testTwoFailingCallOutput() {
-		GraphvizProgressCallback callback = new GraphvizProgressCallback();
+		GraphvizProgressCallback<State> callback = new GraphvizProgressCallback<State>();
 
 		callback.children(createTableau("state", "formula"), null);
 		callback.children(createTableau("state2", "formula2"), null);
@@ -74,7 +74,7 @@ public class GraphvizProgressCallbackTest {
 
 	@Test
 	public void testSuccess() {
-		GraphvizProgressCallback callback = new GraphvizProgressCallback();
+		GraphvizProgressCallback<State> callback = new GraphvizProgressCallback<State>();
 
 		callback.children(createTableau("state", "formula"), singleton(Collections.<TableauNode<State>>emptySet()));
 
@@ -86,7 +86,7 @@ public class GraphvizProgressCallbackTest {
 		TableauNode<State> node0 = createTableau("state0", "formula0");
 		TableauNode<State> node1 = createTableau("state1", "formula1");
 
-		GraphvizProgressCallback callback = new GraphvizProgressCallback();
+		GraphvizProgressCallback<State> callback = new GraphvizProgressCallback<State>();
 		callback.children(node0, singleton(singleton(node1)));
 
 		assertThat(callback, hasToString("digraph img {\ns0[label=\"state0, formula0\"];\n"
@@ -100,7 +100,7 @@ public class GraphvizProgressCallbackTest {
 		when(tableau.getLeaves()).thenReturn(singleton(node));
 		when(tableau.isSuccessful()).thenReturn(false);
 
-		GraphvizProgressCallback callback = new GraphvizProgressCallback();
+		GraphvizProgressCallback<State> callback = new GraphvizProgressCallback<State>();
 		callback.tableau(tableau);
 
 		assertThat(callback, hasToString("digraph img {\ns0[label=\"state, formula\"];\nt0fail -> s0;\n}\n"));
@@ -116,7 +116,7 @@ public class GraphvizProgressCallbackTest {
 		when(tableau1.getLeaves()).thenReturn(singleton(node));
 		when(tableau1.isSuccessful()).thenReturn(true);
 
-		GraphvizProgressCallback callback = new GraphvizProgressCallback();
+		GraphvizProgressCallback<State> callback = new GraphvizProgressCallback<State>();
 		callback.tableau(tableau0);
 		callback.tableau(tableau1);
 
