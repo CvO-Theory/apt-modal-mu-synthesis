@@ -60,6 +60,11 @@ public class TableauBuilderTest {
 	}
 
 	private Collection<Tableau<State>> createTableaus(State state, Formula formula) {
+		return createTableaus(state, formula, TableauBuilder.TableauSelection.ALL);
+	}
+
+	private Collection<Tableau<State>> createTableaus(State state, Formula formula,
+			TableauBuilder.TableauSelection selection) {
 		final Collection<Tableau<State>> result = new ArrayList<>();
 		TableauBuilder.ResultCallback<State> cb = new TableauBuilder.ResultCallback<State>() {
 			@Override
@@ -67,7 +72,7 @@ public class TableauBuilderTest {
 				result.add(tableau);
 			}
 		};
-		new TableauBuilder<State>(new StateFollowArcs()).createTableaus(cb, state, formula);
+		new TableauBuilder<State>(new StateFollowArcs()).createTableaus(cb, state, formula, selection);
 		return result;
 	}
 
@@ -79,7 +84,8 @@ public class TableauBuilderTest {
 				result.add(tableau);
 			}
 		};
-		new TableauBuilder<State>(new StateFollowArcs()).continueTableau(cb, tableau);
+		new TableauBuilder<State>(new StateFollowArcs()).continueTableau(cb, tableau,
+				TableauBuilder.TableauSelection.ALL);
 		return result;
 	}
 
@@ -570,6 +576,32 @@ public class TableauBuilderTest {
 	}
 
 	@Test
+	public void testABCWordOnlySuccessful() {
+		State s0 = getABCState();
+		State s1 = s0.getPostsetNodesByLabel("a").iterator().next();
+		State s2 = s1.getPostsetNodesByLabel("b").iterator().next();
+		State s3 = s2.getPostsetNodesByLabel("c").iterator().next();
+
+		FormulaCreator creator = new FormulaCreator();
+		Formula inner = creator.modality(Modality.UNIVERSAL, "z", creator.constant(false));
+		Formula formula = creator.fixedPoint(FixedPoint.LEAST, creator.variable("X"),
+				creator.disjunction(creator.modality(Modality.EXISTENTIAL, "a", creator.variable("X")),
+					creator.disjunction(creator.modality(Modality.EXISTENTIAL, "b", creator.variable("X")),
+						creator.disjunction(creator.modality(Modality.EXISTENTIAL, "c", creator.variable("X")),
+							inner))));
+
+		assertThat(createTableaus(s0, formula, TableauBuilder.TableauSelection.SUCCESSFUL), containsInAnyOrder(
+					both(isSuccessfulTableau(true)).and(hasLeaves(contains(
+								hasStateAndFormula(s0, inner)))),
+					both(isSuccessfulTableau(true)).and(hasLeaves(contains(
+								hasStateAndFormula(s1, inner)))),
+					both(isSuccessfulTableau(true)).and(hasLeaves(contains(
+								hasStateAndFormula(s2, inner)))),
+					both(isSuccessfulTableau(true)).and(hasLeaves(contains(
+								hasStateAndFormula(s3, inner))))));
+	}
+
+	@Test
 	public void testProgressCallback1() {
 		final State s0 = getABCState();
 		final State s1 = s0.getPostsetNodesByLabel("a").iterator().next();
@@ -608,7 +640,8 @@ public class TableauBuilderTest {
 				}
 			}
 		};
-		new TableauBuilder<State>(new StateFollowArcs(), callback).createTableaus(nopResultCallback(), s0, formula0);
+		new TableauBuilder<State>(new StateFollowArcs(), callback).createTableaus(nopResultCallback(), s0,
+				formula0, TableauBuilder.TableauSelection.ALL);
 
 		assertThat(callCount[0], equalTo(4));
 	}
@@ -633,7 +666,8 @@ public class TableauBuilderTest {
 				}
 			}
 		};
-		new TableauBuilder<State>(null, callback).createTableaus(nopResultCallback(), s, formula);
+		new TableauBuilder<State>(null, callback).createTableaus(nopResultCallback(), s, formula,
+				TableauBuilder.TableauSelection.ALL);
 
 		assertThat(callCount[0], equalTo(1));
 	}

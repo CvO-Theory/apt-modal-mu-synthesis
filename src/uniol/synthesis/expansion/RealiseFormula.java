@@ -70,7 +70,8 @@ public class RealiseFormula implements NonRecursive.Walker {
 					result.add(tableau);
 				}
 			};
-			new TableauBuilder<State>(new StateFollowArcs()).continueTableau(cb, tableau);
+			new TableauBuilder<State>(new StateFollowArcs()).continueTableau(cb, tableau,
+					TableauBuilder.TableauSelection.ALL);
 			return result;
 		}
 	}

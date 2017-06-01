@@ -58,6 +58,8 @@ public class ModelCheckerModule extends AbstractModule implements Module {
 	public void require(ModuleInputSpec inputSpec) {
 		inputSpec.addParameter("lts", TransitionSystem.class, "The LTS that should be checked");
 		inputSpec.addParameter("formula", Formula.class, "The formula that should be checked");
+		inputSpec.addOptionalParameterWithDefault("only_successful", Boolean.class, false, "false",
+			"only generate successful tableaus instead of all (faster)");
 	}
 
 	@Override
@@ -72,6 +74,8 @@ public class ModelCheckerModule extends AbstractModule implements Module {
 	public void run(ModuleInput input, ModuleOutput output) throws ModuleException {
 		TransitionSystem lts = input.getParameter("lts", TransitionSystem.class);
 		Formula formula = input.getParameter("formula", Formula.class);
+		TableauBuilder.TableauSelection selection = input.getParameter("only_successful", Boolean.class)
+			? TableauBuilder.TableauSelection.SUCCESSFUL : TableauBuilder.TableauSelection.ALL;
 
 		final Set<Tableau<State>> tableaus = new HashSet<>();
 		TableauBuilder.ResultCallback<State> cb = new TableauBuilder.ResultCallback<State>() {
@@ -82,7 +86,7 @@ public class ModelCheckerModule extends AbstractModule implements Module {
 		};
 		GraphvizProgressCallback<State> callback = new GraphvizProgressCallback<State>();
 		new TableauBuilder<State>(new StateFollowArcs(), callback)
-			.createTableaus(cb, lts.getInitialState(), formula);
+			.createTableaus(cb, lts.getInitialState(), formula, selection);
 
 		boolean success = false;
 		List<String> missingArcs = new ArrayList<>();

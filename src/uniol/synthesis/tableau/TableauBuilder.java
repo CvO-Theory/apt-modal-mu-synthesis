@@ -64,6 +64,23 @@ public class TableauBuilder<S> {
 		public void foundTableau(Tableau<S> tableau);
 	}
 
+	static public enum TableauSelection {
+		ALL {
+			@Override
+			boolean accept(TableauNode<?> node) {
+				return true;
+			}
+		},
+		SUCCESSFUL {
+			@Override
+			boolean accept(TableauNode<?> node) {
+				return node.isSuccessful();
+			}
+		};
+
+		abstract boolean accept(TableauNode<?> node);
+	}
+
 	private final FollowArcs<S> followArcs;
 	private final ProgressCallback<S> callback;
 
@@ -76,17 +93,20 @@ public class TableauBuilder<S> {
 		this.callback = callback;
 	}
 
-	public void createTableaus(ResultCallback<S> resultCallback, S state, Formula formula) {
+	public void createTableaus(ResultCallback<S> resultCallback, S state, Formula formula,
+			TableauSelection selection) {
 		formula = cleanForm(positiveForm(formula));
-		expandTableau(resultCallback, Collections.singleton(new TableauNode<S>(followArcs, state, formula)));
+		expandTableau(resultCallback, Collections.singleton(new TableauNode<S>(followArcs, state, formula)),
+				selection);
 	}
 
-	public void continueTableau(ResultCallback<S> resultCallback, Tableau<S> tableau) {
-		expandTableau(resultCallback, tableau.getLeaves());
+	public void continueTableau(ResultCallback<S> resultCallback, Tableau<S> tableau, TableauSelection selection) {
+		expandTableau(resultCallback, tableau.getLeaves(), selection);
 	}
 
-	private void expandTableau(ResultCallback<S> resultCallback, Set<TableauNode<S>> nodes) {
-		new NonRecursive().run(new CreateTableaus<S>(callback, resultCallback, nodes));
+	private void expandTableau(ResultCallback<S> resultCallback, Set<TableauNode<S>> nodes,
+			TableauSelection selection) {
+		new NonRecursive().run(new CreateTableaus<S>(callback, resultCallback, nodes, selection));
 	}
 
 	static private class CreateTableaus<S> implements NonRecursive.Walker {
@@ -94,10 +114,13 @@ public class TableauBuilder<S> {
 		private final ResultCallback<S> resultCallback;
 		private final Collection<TableauNode<S>> leaves = new ArrayList<>();
 		private final Queue<ExpandNodeWalker<S>> todo = new ArrayDeque<>();
+		private final TableauSelection selection;
 
-		private CreateTableaus(ProgressCallback<S> callback, ResultCallback<S> resultCallback, Set<TableauNode<S>> nodes) {
+		private CreateTableaus(ProgressCallback<S> callback, ResultCallback<S> resultCallback,
+				Set<TableauNode<S>> nodes, TableauSelection selection) {
 			this.callback = callback;
 			this.resultCallback = resultCallback;
+			this.selection = selection;
 			for (TableauNode<S> node : nodes)
 				this.todo.add(new ExpandNodeWalker<S>(node));
 		}
@@ -107,6 +130,7 @@ public class TableauBuilder<S> {
 			this.resultCallback = toCopy.resultCallback;
 			this.leaves.addAll(toCopy.leaves);
 			this.todo.addAll(toCopy.todo);
+			this.selection = toCopy.selection;
 		}
 
 		@Override
@@ -130,7 +154,12 @@ public class TableauBuilder<S> {
 				Collection<TableauNode<S>> children = expansion.iterator().next();
 				if (children.isEmpty()) {
 					// No children, thus this is a leave
-					leaves.add(next.getNode());
+					TableauNode<S> node = next.getNode();
+					if (selection.accept(node))
+						leaves.add(node);
+					else
+						// Abort this branch of the tableau
+						return;
 				} else {
 					for (TableauNode<S> child : children) {
 						todo.add(new ExpandNodeWalker<S>(child));
