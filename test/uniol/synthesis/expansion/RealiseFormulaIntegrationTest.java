@@ -73,7 +73,7 @@ public class RealiseFormulaIntegrationTest {
 		};
 	}
 
-	private class Result {
+	static private class Result {
 		public TransitionSystem resultTS;
 		public Tableau<State> resultTab;
 	}
