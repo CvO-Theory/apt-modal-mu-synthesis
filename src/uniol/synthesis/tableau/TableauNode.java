@@ -48,8 +48,8 @@ public class TableauNode<S> {
 		this.followArcs = followArcs;
 		this.state = state;
 		this.formula = formula;
-		this.constantDefinitions = Collections.unmodifiableMap(constantDefinitions);
-		this.expansionsAbove = Collections.unmodifiableSet(expansionsAbove);
+		this.constantDefinitions = constantDefinitions;
+		this.expansionsAbove = expansionsAbove;
 	}
 
 	public TableauNode(FollowArcs<S> followArcs, S state, Formula formula) {
@@ -91,6 +91,7 @@ public class TableauNode<S> {
 			newExpansions.add(new Pair<S, VariableFormula>(
 						transformer.transform(pair.getFirst()), pair.getSecond()));
 		}
+		newExpansions = Collections.unmodifiableSet(newExpansions);
 		return new TableauNode<S>(followArcs, transformer.transform(state), formula, this.constantDefinitions, newExpansions);
 	}
 
@@ -107,6 +108,7 @@ public class TableauNode<S> {
 		Formula old = newConstantDefinitions.put(var, inner);
 		if (old != null)
 			throw new IllegalArgumentException();
+		newConstantDefinitions = Collections.unmodifiableMap(newConstantDefinitions);
 		return new TableauNode<S>(followArcs, this.state, var, newConstantDefinitions, this.expansionsAbove);
 	}
 
@@ -114,6 +116,7 @@ public class TableauNode<S> {
 		Set<Pair<S, VariableFormula>> newExpansions = new HashSet<>(expansionsAbove);
 		Pair<S, VariableFormula> pair = new Pair<>(state, var);
 		newExpansions.add(pair);
+		newExpansions = Collections.unmodifiableSet(newExpansions);
 		return new TableauNode<S>(followArcs, this.state, inner, this.constantDefinitions, newExpansions);
 	}
 
