@@ -19,14 +19,15 @@
 
 package uniol.synthesis.util;
 
-import uniol.synthesis.adt.mu_calculus.Formula;
-import uniol.synthesis.adt.mu_calculus.ConstantFormula;
 import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
+import uniol.synthesis.adt.mu_calculus.ConstantFormula;
 import uniol.synthesis.adt.mu_calculus.DisjunctionFormula;
+import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
+import uniol.synthesis.adt.mu_calculus.Formula;
+import uniol.synthesis.adt.mu_calculus.LetFormula;
+import uniol.synthesis.adt.mu_calculus.ModalityFormula;
 import uniol.synthesis.adt.mu_calculus.NegationFormula;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
-import uniol.synthesis.adt.mu_calculus.ModalityFormula;
-import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
 
 public class PrintFormula extends FormulaWalker {
 	private final StringBuilder sb;
@@ -89,6 +90,17 @@ public class PrintFormula extends FormulaWalker {
 		enqueue(engine, " ");
 		enqueue(engine, formula.getFixedPoint().toString());
 		enqueue(engine, "(");
+	}
+
+	@Override
+	public void walk(NonRecursive engine, LetFormula formula) {
+		enqueue(engine, ")");
+		enqueue(engine, formula.getFormula());
+		enqueue(engine, " in ");
+		enqueue(engine, formula.getExpansion());
+		enqueue(engine, " = ");
+		enqueue(engine, formula.getVariable());
+		enqueue(engine, "(let ");
 	}
 
 	private void enqueue(NonRecursive engine, Formula formula) {

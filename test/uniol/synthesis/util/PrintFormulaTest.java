@@ -130,6 +130,16 @@ public class PrintFormulaTest {
 		Formula formula = creator.modality(Modality.UNIVERSAL, "foo", True);
 		test(formula, "[foo]true");
 	}
+
+	@Test
+	public void testLet() throws Exception {
+		FormulaCreator creator = new FormulaCreator();
+		VariableFormula var = creator.variable("var");
+		Formula expansion = creator.constant(true);
+		Formula inner = creator.constant(false);
+		Formula formula = creator.let(var, expansion, inner);
+		test(formula, "(let var = true in false)");
+	}
 }
 
 // vim: ft=java:noet:sw=8:sts=8:ts=8:tw=120
