@@ -65,6 +65,71 @@ public class GetFreeVariablesTest {
 		Formula formula = creator.fixedPoint(FixedPoint.LEAST, var, var2);
 		assertThat(GetFreeVariables.getFreeVariables(formula), contains(var2));
 	}
+
+	@Test
+	public void testLetFormula() {
+		Formula True = creator.constant(true);
+		VariableFormula var = creator.variable("foo");
+		Formula formula = creator.let(var, True, True);
+		assertThat(GetFreeVariables.getFreeVariables(formula), empty());
+	}
+
+	@Test
+	public void testLetFormula2() {
+		Formula True = creator.constant(true);
+		VariableFormula var = creator.variable("foo");
+		Formula formula = creator.let(var, True, var);
+		assertThat(GetFreeVariables.getFreeVariables(formula), empty());
+	}
+
+	@Test
+	public void testLetFormula3() {
+		Formula True = creator.constant(true);
+		VariableFormula var = creator.variable("foo");
+		VariableFormula var2 = creator.variable("bar");
+		Formula formula = creator.let(var, True, var2);
+		assertThat(GetFreeVariables.getFreeVariables(formula), contains(var2));
+	}
+
+	@Test
+	public void testLetFormula4() {
+		VariableFormula var = creator.variable("foo");
+		VariableFormula var2 = creator.variable("bar");
+		VariableFormula var3 = creator.variable("baz");
+		Formula formula = creator.let(var, var2, var3);
+		assertThat(GetFreeVariables.getFreeVariables(formula), contains(var3));
+	}
+
+	@Test
+	public void testLetFormula5() {
+		VariableFormula var = creator.variable("foo");
+		Formula formula = creator.let(var, var, var);
+		assertThat(GetFreeVariables.getFreeVariables(formula), contains(var));
+	}
+
+	@Test
+	public void testLetFormula6a() {
+		VariableFormula var = creator.variable("foo");
+		VariableFormula var2 = creator.variable("bar");
+		Formula formula = creator.let(var, var, var2);
+		assertThat(GetFreeVariables.getFreeVariables(formula), contains(var2));
+	}
+
+	@Test
+	public void testLetFormula6b() {
+		VariableFormula var = creator.variable("foo");
+		VariableFormula var2 = creator.variable("bar");
+		Formula formula = creator.let(var, var2, var);
+		assertThat(GetFreeVariables.getFreeVariables(formula), contains(var2));
+	}
+
+	@Test
+	public void testLetFormula6c() {
+		VariableFormula var = creator.variable("foo");
+		VariableFormula var2 = creator.variable("bar");
+		Formula formula = creator.let(var2, var, var);
+		assertThat(GetFreeVariables.getFreeVariables(formula), contains(var));
+	}
 }
 
 // vim: ft=java:noet:sw=8:sts=8:ts=8:tw=120

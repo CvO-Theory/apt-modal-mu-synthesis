@@ -19,38 +19,54 @@
 
 package uniol.synthesis.util;
 
+import java.util.ArrayDeque;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.collections4.Bag;
 import org.apache.commons.collections4.bag.HashBag;
 
+import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
+import uniol.synthesis.adt.mu_calculus.ConstantFormula;
+import uniol.synthesis.adt.mu_calculus.DisjunctionFormula;
+import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
 import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.FormulaCreator;
-import uniol.synthesis.adt.mu_calculus.ConstantFormula;
-import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
-import uniol.synthesis.adt.mu_calculus.DisjunctionFormula;
+import uniol.synthesis.adt.mu_calculus.LetFormula;
+import uniol.synthesis.adt.mu_calculus.ModalityFormula;
 import uniol.synthesis.adt.mu_calculus.NegationFormula;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
-import uniol.synthesis.adt.mu_calculus.ModalityFormula;
-import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
 
 public class GetFreeVariables extends RecursiveFormulaWalker {
-	final private Set<VariableFormula> freeVariables = new HashSet<>();
+	final private Deque<Set<VariableFormula>> freeVariables = new ArrayDeque<>();
 	final private Bag<VariableFormula> currentlyBoundVariables = new HashBag<>();
 
 	private GetFreeVariables() {
+		pushScope();
+	}
+
+	private void pushScope() {
+		freeVariables.addLast(new HashSet<VariableFormula>());
+	}
+
+	private Set<VariableFormula> popScope() {
+		return freeVariables.removeLast();
+	}
+
+	private Set<VariableFormula> currentScope() {
+		return freeVariables.getLast();
 	}
 
 	public Set<VariableFormula> getFreeVariables() {
-		return Collections.unmodifiableSet(freeVariables);
+		return Collections.unmodifiableSet(currentScope());
 	}
 
 	@Override
 	protected void visit(NonRecursive engine, VariableFormula formula) {
 		if (!currentlyBoundVariables.contains(formula))
-			freeVariables.add(formula);
+			currentScope().add(formula);
 	}
 
 	@Override
@@ -62,6 +78,27 @@ public class GetFreeVariables extends RecursiveFormulaWalker {
 	protected void exit(NonRecursive engine, FixedPointFormula formula) {
 		boolean changed = currentlyBoundVariables.remove(formula.getVariable(), 1);
 		assert changed;
+	}
+
+	@Override
+	protected void enter(NonRecursive engine, LetFormula formula) {
+		pushScope();
+	}
+
+	@Override
+	protected void exitExpansion(NonRecursive engine, LetFormula formula) {
+		pushScope();
+	}
+
+	@Override
+	protected void exit(NonRecursive engine, LetFormula formula) {
+		Set<VariableFormula> formulaScope = popScope();
+		Set<VariableFormula> expansionScope = popScope();
+		VariableFormula variable = formula.getVariable();
+		if (formulaScope.remove(variable))
+			currentScope().addAll(expansionScope);
+		currentScope().addAll(formulaScope);
+
 	}
 
 	static public Set<VariableFormula> getFreeVariables(Formula formula) {

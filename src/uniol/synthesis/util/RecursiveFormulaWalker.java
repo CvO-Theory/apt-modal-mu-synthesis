@@ -22,14 +22,15 @@ package uniol.synthesis.util;
 import java.util.Deque;
 import java.util.ArrayDeque;
 
-import uniol.synthesis.adt.mu_calculus.Formula;
-import uniol.synthesis.adt.mu_calculus.ConstantFormula;
 import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
+import uniol.synthesis.adt.mu_calculus.ConstantFormula;
 import uniol.synthesis.adt.mu_calculus.DisjunctionFormula;
+import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
+import uniol.synthesis.adt.mu_calculus.Formula;
+import uniol.synthesis.adt.mu_calculus.LetFormula;
+import uniol.synthesis.adt.mu_calculus.ModalityFormula;
 import uniol.synthesis.adt.mu_calculus.NegationFormula;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
-import uniol.synthesis.adt.mu_calculus.ModalityFormula;
-import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
 
 public abstract class RecursiveFormulaWalker {
 	public void walk(Formula formula) {
@@ -114,6 +115,33 @@ public abstract class RecursiveFormulaWalker {
 				RecursiveFormulaWalker.this.exit(engine, formula);
 			}
 		}
+
+		@Override
+		public void walk(NonRecursive engine, LetFormula formula) {
+			if (enter) {
+				enter = false;
+				RecursiveFormulaWalker.this.enter(engine, formula);
+				engine.enqueue(this);
+				engine.enqueue(new RecursiveWalker(formula.getFormula()));
+				engine.enqueue(new LetSecondPart(formula));
+				engine.enqueue(new RecursiveWalker(formula.getExpansion()));
+			} else {
+				RecursiveFormulaWalker.this.exit(engine, formula);
+			}
+		}
+	}
+
+	private class LetSecondPart implements NonRecursive.Walker {
+		private final LetFormula formula;
+
+		private LetSecondPart(LetFormula formula) {
+			this.formula = formula;
+		}
+
+		@Override
+		public void walk(NonRecursive engine) {
+			RecursiveFormulaWalker.this.exitExpansion(engine, formula);
+		}
 	}
 
 	protected void visit(NonRecursive engine, ConstantFormula formula) {
@@ -150,6 +178,15 @@ public abstract class RecursiveFormulaWalker {
 	}
 
 	protected void exit(NonRecursive engine, FixedPointFormula formula) {
+	}
+
+	protected void enter(NonRecursive engine, LetFormula formula) {
+	}
+
+	protected void exitExpansion(NonRecursive engine, LetFormula formula) {
+	}
+
+	protected void exit(NonRecursive engine, LetFormula formula) {
 	}
 }
 
