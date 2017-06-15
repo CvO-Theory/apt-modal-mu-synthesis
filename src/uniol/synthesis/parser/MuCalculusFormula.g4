@@ -29,6 +29,7 @@ term:		NEGATION term					# termNegation
 	|	BRACKET_OPEN IDENTIFIER BRACKET_CLOSE term	# termUniversalModality
 	|	term CONJUNCTION term				# termConjunction
 	|	term DISJUNCTION term				# termDisjunction
+	|	LET IDENTIFIER EQUAL term IN term		# termLet
 	|	MU IDENTIFIER DOT term				# termLeastFixedPoint
 	|	NU IDENTIFIER DOT term				# termGreatestFixedPoint
 	|	FALSE						# termFalse
@@ -45,6 +46,9 @@ BRACKET_CLOSE:	']';
 NEGATION:	'!';
 CONJUNCTION:	'&&';
 DISJUNCTION:	'||';
+EQUAL:		'=';
+LET:		('l'|'L')('e'|'E')('t'|'T');
+IN:		('i'|'I')('n'|'N');
 TRUE:		('t'|'T')('r'|'R')('u'|'U')('e'|'E');
 FALSE:		('f'|'F')('a'|'A')('l'|'L')('s'|'S')('e'|'E');
 NU:		('n'|'N')('u'|'U') | 'ν';

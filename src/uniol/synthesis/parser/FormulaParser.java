@@ -101,6 +101,12 @@ public class FormulaParser {
 		}
 
 		@Override
+		public void exitTermLet(MuCalculusFormulaParser.TermLetContext ctx) {
+			formulas.put(ctx, creator.let(creator.variable(ctx.IDENTIFIER().getText()),
+							formulas.get(ctx.term(0)), formulas.get(ctx.term(1))));
+		}
+
+		@Override
 		public void exitTermLeastFixedPoint(MuCalculusFormulaParser.TermLeastFixedPointContext ctx) {
 			fixedPoint(ctx, FixedPoint.LEAST, ctx.IDENTIFIER().getText(), ctx.term());
 		}

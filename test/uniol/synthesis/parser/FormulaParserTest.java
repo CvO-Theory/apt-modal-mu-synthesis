@@ -126,6 +126,13 @@ public class FormulaParserTest {
 	}
 
 	@Test
+	public void testAssociativityLet() throws ParseException {
+		VariableFormula x = creator.variable("X");
+		Formula expected = creator.let(x, creator.let(x, x, x), creator.let(x, x, x));
+		assertThat(FormulaParser.parse(creator, "let X = let X = X in X in let X=X in X"), equalTo(expected));
+	}
+
+	@Test
 	public void testPrecedence1() throws ParseException {
 		VariableFormula x = creator.variable("X");
 		Formula expected = creator.disjunction(x, creator.conjunction(x, x));
