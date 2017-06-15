@@ -37,6 +37,7 @@ import uniol.synthesis.adt.mu_calculus.DisjunctionFormula;
 import uniol.synthesis.adt.mu_calculus.FixedPoint;
 import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
 import uniol.synthesis.adt.mu_calculus.Formula;
+import uniol.synthesis.adt.mu_calculus.LetFormula;
 import uniol.synthesis.adt.mu_calculus.Modality;
 import uniol.synthesis.adt.mu_calculus.ModalityFormula;
 import uniol.synthesis.adt.mu_calculus.NegationFormula;
@@ -212,6 +213,19 @@ public class FormulaCreatorTest {
 		assertThat(mf.getEvent(), sameInstance(event));
 		assertThat(mf.getFormula(), sameInstance(True));
 		assertThat(mf, sameInstance(creator.modality(Modality.UNIVERSAL, event, True)));
+	}
+
+	@Test
+	public void testLet() {
+		FormulaCreator creator = new FormulaCreator();
+		Formula True = creator.constant(true);
+		Formula False = creator.constant(false);
+		VariableFormula var = creator.variable("foo");
+		LetFormula lf = creator.let(var, True, False);
+		assertThat(lf.getVariable(), sameInstance(var));
+		assertThat(lf.getExpansion(), sameInstance(True));
+		assertThat(lf.getFormula(), sameInstance(False));
+		assertThat(lf, sameInstance(creator.let(var, True, False)));
 	}
 }
 

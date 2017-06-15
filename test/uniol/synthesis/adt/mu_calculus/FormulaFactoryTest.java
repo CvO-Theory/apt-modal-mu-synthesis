@@ -214,6 +214,36 @@ public class FormulaFactoryTest {
 
 		assertThat(VariableFormula.variable(creator, a2), sameInstance(expected));
 	}
+
+	@Test
+	public void testLetMiss() {
+		FormulaCreator creator = mock(FormulaCreator.class);
+		VariableFormula variable = mock(VariableFormula.class);
+		VariableFormula otherVariable = mock(VariableFormula.class);
+		Formula expansion = mock(Formula.class);
+		Formula child = mock(Formula.class);
+		Formula other = mock(Formula.class);
+		stubCreator(creator, new LetFormula(creator, otherVariable, expansion, child),
+				new LetFormula(creator, variable, other, child),
+				new LetFormula(creator, variable, expansion, other));
+
+		LetFormula formula = LetFormula.let(creator, variable, expansion, child);
+		assertThat(formula.getVariable(), equalTo(variable));
+		assertThat(formula.getExpansion(), equalTo(expansion));
+		assertThat(formula.getFormula(), equalTo(child));
+	}
+
+	@Test
+	public void testLetHit() {
+		FormulaCreator creator = mock(FormulaCreator.class);
+		VariableFormula variable = mock(VariableFormula.class);
+		Formula expansion = mock(Formula.class);
+		Formula child = mock(Formula.class);
+		LetFormula expected = new LetFormula(creator, variable, expansion, child);
+		stubCreator(creator, expected);
+
+		assertThat(LetFormula.let(creator, variable, expansion, child), sameInstance(expected));
+	}
 }
 
 // vim: ft=java:noet:sw=8:sts=8:ts=8:tw=120

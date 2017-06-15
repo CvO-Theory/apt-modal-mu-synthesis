@@ -83,6 +83,12 @@ public class FormulaCreator {
 		}
 	}
 
+	public LetFormula let(VariableFormula variable, Formula expansion, Formula formula) {
+		synchronized(objects) {
+			return LetFormula.let(this, variable, expansion, formula);
+		}
+	}
+
 	Iterable<Formula> getFormulasWithHashCode(int hashCode) {
 		cleanup();
 		final Set<MyWeakReference> set = objects.get(hashCode);
