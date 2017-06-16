@@ -70,6 +70,28 @@ public class SubstitutionTransformerTest {
 		Formula expected = creator.negate(substitute);
 		assertThat(SubstitutionTransformer.substitute(formula, variable, substitute), sameInstance(expected));
 	}
+
+	@Test
+	public void testLetFormula() {
+		Formula True = creator.constant(true);
+		Formula formula = creator.let(variable, True, True);
+		assertThat(SubstitutionTransformer.substitute(formula, variable, substitute), sameInstance(formula));
+	}
+
+	@Test
+	public void testLetFormula2() {
+		Formula formula = creator.let(variable, variable, variable);
+		Formula expected = creator.let(variable, substitute, variable);
+		assertThat(SubstitutionTransformer.substitute(formula, variable, substitute), sameInstance(expected));
+	}
+
+	@Test
+	public void testLetFormula3() {
+		Formula True = creator.constant(true);
+		VariableFormula variable2 = creator.freshVariable("bar");
+		Formula formula = creator.let(variable, True, variable2);
+		assertThat(SubstitutionTransformer.substitute(formula, variable, substitute), sameInstance(formula));
+	}
 }
 
 // vim: ft=java:noet:sw=8:sts=8:ts=8:tw=120

@@ -28,6 +28,7 @@ import org.apache.commons.collections4.bag.HashBag;
 import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
 import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.FormulaCreator;
+import uniol.synthesis.adt.mu_calculus.LetFormula;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
 
 public class SubstitutionTransformer extends FormulaTransformer {
@@ -60,6 +61,19 @@ public class SubstitutionTransformer extends FormulaTransformer {
 
 	@Override
 	public void exit(NonRecursive engine, FixedPointFormula formula) {
+		super.exit(engine, formula);
+		boolean changed = currentlyBoundVariables.remove(formula.getVariable(), 1);
+		assert changed;
+	}
+
+	@Override
+	protected void exitExpansion(NonRecursive engine, LetFormula formula) {
+		super.exitExpansion(engine, formula);
+		currentlyBoundVariables.add(formula.getVariable());
+	}
+
+	@Override
+	public void exit(NonRecursive engine, LetFormula formula) {
 		super.exit(engine, formula);
 		boolean changed = currentlyBoundVariables.remove(formula.getVariable(), 1);
 		assert changed;
