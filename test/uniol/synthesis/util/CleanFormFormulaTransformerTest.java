@@ -80,6 +80,26 @@ public class CleanFormFormulaTransformerTest {
 					creator.variable("{foo0}"), creator.variable("{foo0}")));
 		assertThat(CleanFormFormulaTransformer.cleanForm(formula), sameInstance(expected));
 	}
+
+	@Test
+	public void testLet() {
+		FormulaCreator creator = new FormulaCreator();
+		VariableFormula var = creator.variable("foo");
+		Formula formula = creator.let(var, creator.constant(true), var);
+		assertThat(CleanFormFormulaTransformer.cleanForm(formula), sameInstance(formula));
+	}
+
+	@Test
+	public void testLetAndFixedPoint() {
+		FormulaCreator creator = new FormulaCreator();
+		VariableFormula var = creator.variable("foo");
+		VariableFormula var2 = creator.variable("bar");
+		Formula innerFormula = creator.let(var, var2, var);
+		Formula formula = creator.fixedPoint(FixedPoint.GREATEST, var, innerFormula);
+		Formula expected = creator.fixedPoint(FixedPoint.GREATEST, var, creator.let(creator.variable("{foo0}"),
+					var2, creator.variable("{foo0}")));
+		assertThat(CleanFormFormulaTransformer.cleanForm(formula), sameInstance(expected));
+	}
 }
 
 // vim: ft=java:noet:sw=8:sts=8:ts=8:tw=120

@@ -24,14 +24,15 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.HashSet;
 
-import uniol.synthesis.adt.mu_calculus.Formula;
-import uniol.synthesis.adt.mu_calculus.ConstantFormula;
 import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
+import uniol.synthesis.adt.mu_calculus.ConstantFormula;
 import uniol.synthesis.adt.mu_calculus.DisjunctionFormula;
+import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
+import uniol.synthesis.adt.mu_calculus.Formula;
+import uniol.synthesis.adt.mu_calculus.LetFormula;
+import uniol.synthesis.adt.mu_calculus.ModalityFormula;
 import uniol.synthesis.adt.mu_calculus.NegationFormula;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
-import uniol.synthesis.adt.mu_calculus.ModalityFormula;
-import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
 
 public class CleanFormFormulaTransformer extends FormulaTransformer {
 	final private Map<VariableFormula, VariableFormula> variableReplacements = new HashMap<>();
@@ -42,14 +43,10 @@ public class CleanFormFormulaTransformer extends FormulaTransformer {
 			variableReplacements.put(var, var);
 	}
 
-	@Override
-	public void enter(NonRecursive engine, FixedPointFormula formula) {
-		super.enter(engine, formula);
-
-		VariableFormula variable = formula.getVariable();
+	private void enterScope(VariableFormula variable) {
 		VariableFormula replacement;
 		if (variableReplacements.containsKey(variable)) {
-			replacement = formula.getCreator().freshVariable(variable.getVariable());
+			replacement = variable.getCreator().freshVariable(variable.getVariable());
 		} else {
 			// Variable is new, it does not need to be replaced
 			replacement = variable;
@@ -60,27 +57,57 @@ public class CleanFormFormulaTransformer extends FormulaTransformer {
 		assert oldOld == null;
 	}
 
-	@Override
-	public void exit(NonRecursive engine, FixedPointFormula formula) {
-		super.exit(engine, formula);
-		VariableFormula replacement = variableReplacements.get(formula.getVariable());
+	private void exitScope(VariableFormula variable) {
+		VariableFormula replacement = variableReplacements.get(variable);
 		assert replacement != null;
 		VariableFormula old = oldVariableReplacements.remove(replacement);
 		if (old != null)
-			variableReplacements.put(formula.getVariable(), old);
+			variableReplacements.put(variable, old);
 		else
-			variableReplacements.remove(formula.getVariable());
+			variableReplacements.remove(variable);
+	}
+
+	@Override
+	public void enter(NonRecursive engine, FixedPointFormula formula) {
+		super.enter(engine, formula);
+		enterScope(formula.getVariable());
+	}
+
+	@Override
+	public void exit(NonRecursive engine, FixedPointFormula formula) {
+		super.exit(engine, formula);
+		exitScope(formula.getVariable());
+	}
+
+	@Override
+	protected void exitExpansion(NonRecursive engine, LetFormula formula) {
+		super.exitExpansion(engine, formula);
+		enterScope(formula.getVariable());
+	}
+
+	@Override
+	public void exit(NonRecursive engine, LetFormula formula) {
+		super.exit(engine, formula);
+		exitScope(formula.getVariable());
 	}
 
 	@Override
 	protected Formula transform(VariableFormula formula) {
-		return variableReplacements.get(formula);
+		Formula replacement = variableReplacements.get(formula);
+		assert replacement != null : formula;
+		return replacement;
 	}
 
 	@Override
 	protected Formula transform(FixedPointFormula formula) {
 		VariableFormula replacement = variableReplacements.get(formula.getVariable());
 		return formula.getCreator().fixedPoint(formula.getFixedPoint(), replacement, formula.getFormula());
+	}
+
+	@Override
+	protected Formula transform(LetFormula formula) {
+		VariableFormula replacement = variableReplacements.get(formula.getVariable());
+		return formula.getCreator().let(replacement, formula.getExpansion(), formula.getFormula());
 	}
 
 	static public Formula cleanForm(Formula formula) {
