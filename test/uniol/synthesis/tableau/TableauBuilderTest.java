@@ -35,6 +35,7 @@ import uniol.synthesis.adt.mu_calculus.FixedPoint;
 import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
 import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.FormulaCreator;
+import uniol.synthesis.adt.mu_calculus.LetFormula;
 import uniol.synthesis.adt.mu_calculus.Modality;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
 import static uniol.synthesis.tableau.TableauMatchers.*;
@@ -134,7 +135,7 @@ public class TableauBuilderTest {
 	}
 
 	@Test
-	public void testFixedPointFormula() {
+	public void testFixedPointNode() {
 		State state = getABCState();
 		FormulaCreator creator = new FormulaCreator();
 		Formula formula = creator.fixedPoint(FixedPoint.GREATEST, creator.variable("x"), creator.constant(true));
@@ -144,6 +145,20 @@ public class TableauBuilderTest {
 		assertThat(expanded, contains(contains(hasFormula(instanceOf(VariableFormula.class)))));
 		TableauNode<State> expandedNode = expanded.iterator().next().iterator().next();
 		assertThat(expandedNode.getDefinition((VariableFormula) expandedNode.getFormula()), equalTo(formula));
+	}
+
+	@Test
+	public void testLetNode() {
+		State state = getABCState();
+		FormulaCreator creator = new FormulaCreator();
+		VariableFormula var = creator.variable("var");
+		VariableFormula expansion = creator.variable("exp");
+		Formula formula = creator.let(var, expansion, creator.modality(Modality.EXISTENTIAL, "a", var));
+		Formula expected = creator.modality(Modality.EXISTENTIAL, "a", expansion);
+		TableauNode<State> node = new TableauNode<State>(null, state, formula);
+
+		Collection<? extends Collection<TableauNode<State>>> expanded = TableauBuilder.expandNode(node);
+		assertThat(expanded, contains(contains(hasFormula(expected))));
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
@@ -480,6 +495,20 @@ public class TableauBuilderTest {
 
 		assertThat(createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
 					.and(hasLeaves(contains(new TableauNode<State>(null, state, formula))))));
+	}
+
+	@Test
+	public void testLet() {
+		State state = getABCState();
+		State afterA = state.getPostsetNodesByLabel("a").iterator().next();
+		FormulaCreator creator = new FormulaCreator();
+		Formula True = creator.constant(true);
+		VariableFormula var = creator.variable("var");
+		Formula formula = creator.let(var, True,
+				creator.modality(Modality.EXISTENTIAL, "a", var));
+
+		assertThat(createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
+					.and(hasLeaves(contains(new TableauNode<State>(null, afterA, True))))));
 	}
 
 	@Test

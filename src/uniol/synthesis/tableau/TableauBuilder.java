@@ -34,6 +34,7 @@ import uniol.synthesis.adt.mu_calculus.DisjunctionFormula;
 import uniol.synthesis.adt.mu_calculus.FixedPoint;
 import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
 import uniol.synthesis.adt.mu_calculus.Formula;
+import uniol.synthesis.adt.mu_calculus.LetFormula;
 import uniol.synthesis.adt.mu_calculus.ModalityFormula;
 import uniol.synthesis.adt.mu_calculus.NegationFormula;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
@@ -272,6 +273,12 @@ public class TableauBuilder<S> {
 		public void walk(NonRecursive engine, FixedPointFormula formula) {
 			VariableFormula freshVariable = formula.getCreator().freshVariable(formula.getVariable().getVariable());
 			expansion = Collections.singleton(Collections.singleton(node.addExpansion(freshVariable, formula)));
+		}
+
+		@Override
+		public void walk(NonRecursive engine, LetFormula formula) {
+			Formula result = substitute(formula.getFormula(), formula.getVariable(), formula.getExpansion());
+			expansion = Collections.singleton(Collections.singleton(node.createChild(result)));
 		}
 	}
 }
