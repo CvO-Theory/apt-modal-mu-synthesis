@@ -19,22 +19,32 @@
 
 package uniol.synthesis.util;
 
-import uniol.synthesis.adt.mu_calculus.Formula;
-import uniol.synthesis.adt.mu_calculus.ConstantFormula;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
+import uniol.synthesis.adt.mu_calculus.ConstantFormula;
 import uniol.synthesis.adt.mu_calculus.DisjunctionFormula;
+import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
+import uniol.synthesis.adt.mu_calculus.Formula;
+import uniol.synthesis.adt.mu_calculus.LetFormula;
+import uniol.synthesis.adt.mu_calculus.ModalityFormula;
 import uniol.synthesis.adt.mu_calculus.NegationFormula;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
-import uniol.synthesis.adt.mu_calculus.ModalityFormula;
-import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
 
 public class PositiveFormFormulaTransformer extends FormulaTransformer {
 	private boolean negated;
+	private final Map<VariableFormula, VariableFormula> negatedVariables = new HashMap<>();
+	private final Set<VariableFormula> usedVariables = new HashSet<>();
 
 	@Override
 	public void reset() {
 		super.reset();
 		negated = false;
+		negatedVariables.clear();
+		usedVariables.clear();
 	}
 
 	@Override
@@ -77,6 +87,14 @@ public class PositiveFormFormulaTransformer extends FormulaTransformer {
 
 	@Override
 	protected Formula transform(VariableFormula formula) {
+		VariableFormula negatedVariable = negatedVariables.get(formula);
+		if (negatedVariable != null) {
+			VariableFormula var = formula;
+			if (negated)
+				var = negatedVariable;
+			usedVariables.add(var);
+			return var;
+		}
 		if (!negated)
 			return formula;
 		return getCreator().negate(formula);
@@ -102,6 +120,40 @@ public class PositiveFormFormulaTransformer extends FormulaTransformer {
 		inner = SubstitutionTransformer.substitute(inner, var, formula.getCreator().negate(var));
 		inner = new PositiveFormFormulaTransformer().transform(inner);
 		return getCreator().fixedPoint(formula.getFixedPoint().negate(), formula.getVariable(), inner);
+	}
+
+	@Override
+	protected void exitExpansion(NonRecursive engine, LetFormula formula) {
+		VariableFormula variable = formula.getVariable();
+		negatedVariables.put(variable, getCreator().freshVariable(variable.getVariable()));
+	}
+
+	@Override
+	public Formula transform(LetFormula formula) {
+		VariableFormula variable = formula.getVariable();
+		Formula expansion = formula.getExpansion();
+
+		VariableFormula negatedVariable = negatedVariables.remove(variable);
+		Formula negatedExpansion = getCreator().negate(expansion);
+		// It would be nice if someone came up with a nicer way to do this... one that is not recursive.
+		negatedExpansion = new PositiveFormFormulaTransformer().transform(negatedExpansion);
+
+		if (negated) {
+			// The expansion was negated while traversing, so the meaning of these two is swapped.
+			Formula tmp = negatedExpansion;
+			negatedExpansion = expansion;
+			expansion = tmp;
+		}
+
+		Formula result = formula.getFormula();
+		if (usedVariables.remove(variable)) {
+			result = getCreator().let(variable, expansion, result);
+		}
+		if (usedVariables.remove(negatedVariable)) {
+			result = getCreator().let(negatedVariable, negatedExpansion, result);
+		}
+
+		return result;
 	}
 
 	static public Formula positiveForm(Formula formula) {

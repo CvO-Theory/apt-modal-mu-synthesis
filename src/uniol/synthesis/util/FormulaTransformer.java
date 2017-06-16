@@ -22,12 +22,13 @@ package uniol.synthesis.util;
 import java.util.Deque;
 import java.util.ArrayDeque;
 
-import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
 import uniol.synthesis.adt.mu_calculus.ConstantFormula;
 import uniol.synthesis.adt.mu_calculus.DisjunctionFormula;
 import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
+import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.FormulaCreator;
+import uniol.synthesis.adt.mu_calculus.LetFormula;
 import uniol.synthesis.adt.mu_calculus.ModalityFormula;
 import uniol.synthesis.adt.mu_calculus.NegationFormula;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
@@ -87,6 +88,10 @@ public class FormulaTransformer extends RecursiveFormulaWalker {
 	}
 
 	protected Formula transform(FixedPointFormula formula) {
+		return formula;
+	}
+
+	protected Formula transform(LetFormula formula) {
 		return formula;
 	}
 
@@ -154,6 +159,22 @@ public class FormulaTransformer extends RecursiveFormulaWalker {
 	public void exit(NonRecursive engine, FixedPointFormula formula) {
 		Formula innerFormula = getResult();
 		FixedPointFormula result = creator.fixedPoint(formula.getFixedPoint(), formula.getVariable(), innerFormula);
+		setResult(transform(result));
+	}
+
+	@Override
+	public void enter(NonRecursive engine, LetFormula formula) {
+	}
+
+	@Override
+	protected void exitExpansion(NonRecursive engine, LetFormula formula) {
+	}
+
+	@Override
+	public void exit(NonRecursive engine, LetFormula formula) {
+		Formula innerFormula = getResult();
+		Formula expansion = getResult();
+		LetFormula result = creator.let(formula.getVariable(), expansion, innerFormula);
 		setResult(transform(result));
 	}
 }

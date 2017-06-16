@@ -26,6 +26,7 @@ import static org.hamcrest.Matchers.*;
 import uniol.synthesis.adt.mu_calculus.FixedPoint;
 import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.FormulaCreator;
+import uniol.synthesis.adt.mu_calculus.LetFormula;
 import uniol.synthesis.adt.mu_calculus.Modality;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
 
@@ -157,6 +158,69 @@ public class PositiveFormFormulaTransformerTest {
 		Formula expected = creator.modality(Modality.EXISTENTIAL, "foo", False);
 		assertThat(positiveForm(formula), sameInstance(formula));
 		assertThat(positiveForm(creator.negate(formula)), sameInstance(expected));
+	}
+
+	@Test
+	public void testLet1() {
+		FormulaCreator creator = new FormulaCreator();
+		Formula True = creator.constant(true);
+		VariableFormula var = creator.variable("foo");
+		VariableFormula var2 = creator.variable("bar");
+		Formula formula = creator.let(var, True, var2);
+		Formula expected = creator.negate(var2);
+		assertThat(positiveForm(formula), sameInstance((Formula) var2));
+		assertThat(positiveForm(creator.negate(formula)), sameInstance(expected));
+	}
+
+	@Test
+	public void testLet2() {
+		FormulaCreator creator = new FormulaCreator();
+		Formula True = creator.constant(true);
+		Formula False = creator.constant(false);
+		VariableFormula var = creator.variable("foo");
+		Formula formula = creator.let(var, True, var);
+
+		assertThat(positiveForm(formula), sameInstance(formula));
+
+		// The negation of the formula should be (let X = False in X), but X is a fresh variable
+		Formula res = positiveForm(creator.negate(formula));
+		assertThat(res, instanceOf(LetFormula.class));
+		LetFormula result = (LetFormula) res;
+		assertThat(result.getVariable(), sameInstance(result.getFormula()));
+		assertThat(result.getExpansion(), sameInstance(False));
+	}
+
+	@Test
+	public void testLet3() {
+		FormulaCreator creator = new FormulaCreator();
+		Formula True = creator.constant(true);
+		Formula False = creator.constant(false);
+		VariableFormula var = creator.variable("foo");
+		Formula formula = creator.let(var, True, creator.disjunction(var, creator.negate(var)));
+
+		// The positive form of the formula should be (let X1 = false in let X = true in X||!X), but X1 is fresh
+		Formula res = positiveForm(formula);
+		assertThat(res, instanceOf(LetFormula.class));
+		LetFormula result = (LetFormula) res;
+		assertThat(result.getExpansion(), sameInstance(False));
+		assertThat(result.getFormula(), instanceOf(LetFormula.class));
+
+		LetFormula inner = (LetFormula) result.getFormula();
+		assertThat(inner.getExpansion(), sameInstance(True));
+		assertThat(inner.getFormula(), sameInstance((Formula)
+					creator.disjunction(inner.getVariable(), result.getVariable())));
+
+		// The negation of the formula should be (let X1 = false in let X = true in X1&&X), but X1 is fresh
+		res = positiveForm(creator.negate(formula));
+		assertThat(res, instanceOf(LetFormula.class));
+		result = (LetFormula) res;
+		assertThat(result.getExpansion(), sameInstance(False));
+		assertThat(result.getFormula(), instanceOf(LetFormula.class));
+
+		inner = (LetFormula) result.getFormula();
+		assertThat(inner.getExpansion(), sameInstance(True));
+		assertThat(inner.getFormula(), sameInstance((Formula)
+					creator.conjunction(result.getVariable(), inner.getVariable())));
 	}
 }
 
