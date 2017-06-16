@@ -28,6 +28,8 @@ import uniol.synthesis.adt.mu_calculus.FixedPoint;
 import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
 import static uniol.synthesis.util.GetFreeVariables.getFreeVariables;
+import static uniol.synthesis.util.GetFreeVariables.getFreeVariablesCounts;
+import static uniol.synthesis.util.SubstitutionTransformer.substitute;
 
 public class SolveEquationSystem {
 	public Map<VariableFormula, Formula> solve(FixedPoint fp, Map<VariableFormula, Formula> input) {
@@ -49,9 +51,16 @@ public class SolveEquationSystem {
 				if (entry.getKey().equals(var)) {
 					entry.setValue(definition);
 				} else {
-					if (entry.getValue().equals(var)) {
-						entry.setValue(definition);
-					} else if (getFreeVariables(entry.getValue()).contains(var)) {
+					Map<VariableFormula, Integer> counts = getFreeVariablesCounts(entry.getValue());
+					Integer count = counts.get(var);
+					if (count == null) {
+						// Not a free variable, so no need to handle
+					} else if (count == 1) {
+						// Only appears once, so use a substitution
+						entry.setValue(substitute(entry.getValue(), var, definition));
+					} else {
+						// Appears multiple times, so use a "let" expression
+						assert count > 1;
 						entry.setValue(var.getCreator().let(var, definition, entry.getValue()));
 					}
 				}

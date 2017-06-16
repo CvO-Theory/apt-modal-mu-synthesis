@@ -106,28 +106,70 @@ public class SolveEquationSystemTest {
 					creator.modality(un, "b", x)));
 
 		// This is the result when we first substitute variable Y
+		Formula solutionX1 = creator.fixedPoint(fp, x, creator.conjunction(
+				creator.modality(ex, "a", creator.conjunction(
+						creator.modality(un, "a", False),
+						creator.modality(un, "b", x))),
+				creator.modality(un, "b", False)));
+		Formula solutionY1 = creator.conjunction(
+				creator.modality(un, "a", False),
+				creator.modality(un, "b", solutionX1));
+
+		// This is the result when we first substitute variable X
+		Formula solutionY2 = creator.fixedPoint(fp, y, creator.conjunction(
+				creator.modality(un, "a", False),
+				creator.modality(un, "b", creator.conjunction(
+						creator.modality(ex, "a", y),
+						creator.modality(un, "b", False)))));
+		Formula solutionX2 = creator.conjunction(
+			creator.modality(ex, "a", solutionY2),
+			creator.modality(un, "b", False));
+
+		Map<VariableFormula, Formula> result = new SolveEquationSystem().solve(fp, input);
+		assertThat(result, anyOf(
+					allOf(hasEntry(x, solutionX1), hasEntry(y, solutionY1)),
+					allOf(hasEntry(x, solutionX2), hasEntry(y, solutionY2))));
+		assertThat(result.entrySet(), hasSize(2));
+	}
+
+	@Test
+	public void testLet() {
+		FormulaCreator creator = new FormulaCreator();
+		VariableFormula x = creator.variable("X");
+		VariableFormula y = creator.variable("Y");
+		Modality ex = Modality.EXISTENTIAL;
+		Modality un = Modality.UNIVERSAL;
+		FixedPoint fp = FixedPoint.GREATEST;
+
+		Map<VariableFormula, Formula> input = new HashMap<>();
+		input.put(x, creator.conjunction(creator.modality(ex, "a", y),
+					creator.modality(un, "b", y)));
+		input.put(y, creator.conjunction(creator.modality(un, "a", x),
+					creator.modality(un, "b", x)));
+
+		// This is the result when we first substitute variable Y
 		Formula solutionX1 = creator.fixedPoint(fp, x, creator.let(y,
 					creator.conjunction(
-						creator.modality(un, "a", False),
+						creator.modality(un, "a", x),
 						creator.modality(un, "b", x)),
 					creator.conjunction(
 						creator.modality(ex, "a", y),
-						creator.modality(un, "b", False))));
+						creator.modality(un, "b", y))));
 		Formula solutionY1 = creator.let(x, solutionX1, creator.conjunction(
-					creator.modality(un, "a", False),
+					creator.modality(un, "a", x),
 					creator.modality(un, "b", x)));
 
 		// This is the result when we first substitute variable X
 		Formula solutionY2 = creator.fixedPoint(fp, y, creator.let(x,
 					creator.conjunction(
 						creator.modality(ex, "a", y),
-						creator.modality(un, "b", False)),
+						creator.modality(un, "b", y)),
 					creator.conjunction(
-						creator.modality(un, "a", False),
+						creator.modality(un, "a", x),
 						creator.modality(un, "b", x))));
 		Formula solutionX2 = creator.let(y, solutionY2, creator.conjunction(
 					creator.modality(ex, "a", y),
-					creator.modality(un, "b", False)));
+					creator.modality(un, "b", y)));
 
 		Map<VariableFormula, Formula> result = new SolveEquationSystem().solve(fp, input);
 		assertThat(result, anyOf(
