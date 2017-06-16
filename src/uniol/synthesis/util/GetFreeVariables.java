@@ -41,7 +41,7 @@ import uniol.synthesis.adt.mu_calculus.VariableFormula;
 
 public class GetFreeVariables extends RecursiveFormulaWalker {
 	final private Deque<Set<VariableFormula>> freeVariables = new ArrayDeque<>();
-	final private Bag<VariableFormula> currentlyBoundVariables = new HashBag<>();
+	final private Deque<Bag<VariableFormula>> currentlyBoundVariables = new ArrayDeque<>();
 
 	private GetFreeVariables() {
 		pushScope();
@@ -49,34 +49,40 @@ public class GetFreeVariables extends RecursiveFormulaWalker {
 
 	private void pushScope() {
 		freeVariables.addLast(new HashSet<VariableFormula>());
+		currentlyBoundVariables.addLast(new HashBag<VariableFormula>());
 	}
 
 	private Set<VariableFormula> popScope() {
+		currentlyBoundVariables.removeLast();
 		return freeVariables.removeLast();
 	}
 
-	private Set<VariableFormula> currentScope() {
+	private Set<VariableFormula> currentScopeFree() {
 		return freeVariables.getLast();
 	}
 
+	private Bag<VariableFormula> currentScopeBound() {
+		return currentlyBoundVariables.getLast();
+	}
+
 	public Set<VariableFormula> getFreeVariables() {
-		return Collections.unmodifiableSet(currentScope());
+		return Collections.unmodifiableSet(currentScopeFree());
 	}
 
 	@Override
 	protected void visit(NonRecursive engine, VariableFormula formula) {
-		if (!currentlyBoundVariables.contains(formula))
-			currentScope().add(formula);
+		if (!currentScopeBound().contains(formula))
+			currentScopeFree().add(formula);
 	}
 
 	@Override
 	protected void enter(NonRecursive engine, FixedPointFormula formula) {
-		currentlyBoundVariables.add(formula.getVariable());
+		currentScopeBound().add(formula.getVariable());
 	}
 
 	@Override
 	protected void exit(NonRecursive engine, FixedPointFormula formula) {
-		boolean changed = currentlyBoundVariables.remove(formula.getVariable(), 1);
+		boolean changed = currentScopeBound().remove(formula.getVariable(), 1);
 		assert changed;
 	}
 
@@ -95,9 +101,12 @@ public class GetFreeVariables extends RecursiveFormulaWalker {
 		Set<VariableFormula> formulaScope = popScope();
 		Set<VariableFormula> expansionScope = popScope();
 		VariableFormula variable = formula.getVariable();
-		if (formulaScope.remove(variable))
-			currentScope().addAll(expansionScope);
-		currentScope().addAll(formulaScope);
+		if (formulaScope.remove(variable)) {
+			expansionScope.removeAll(currentScopeBound());
+			currentScopeFree().addAll(expansionScope);
+		}
+		formulaScope.removeAll(currentScopeBound());
+		currentScopeFree().addAll(formulaScope);
 
 	}
 

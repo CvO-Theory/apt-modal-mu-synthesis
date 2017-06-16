@@ -130,6 +130,45 @@ public class GetFreeVariablesTest {
 		Formula formula = creator.let(var2, var, var);
 		assertThat(GetFreeVariables.getFreeVariables(formula), contains(var));
 	}
+
+	@Test
+	public void testLetAndFixedPoint() {
+		FormulaCreator creator = new FormulaCreator();
+		VariableFormula var = creator.variable("foo");
+		VariableFormula var2 = creator.variable("bar");
+		Formula innerFormula = creator.let(var, var2, var);
+		Formula formula = creator.fixedPoint(FixedPoint.GREATEST, var, innerFormula);
+		assertThat(GetFreeVariables.getFreeVariables(formula), contains(var2));
+	}
+
+	@Test
+	public void testLetAndFixedPoint2a() {
+		FormulaCreator creator = new FormulaCreator();
+		VariableFormula var = creator.variable("foo");
+		VariableFormula var2 = creator.variable("bar");
+		Formula innerFormula = creator.let(var2, var, var);
+		Formula formula = creator.fixedPoint(FixedPoint.GREATEST, var, innerFormula);
+		assertThat(GetFreeVariables.getFreeVariables(formula), empty());
+	}
+
+	@Test
+	public void testLetAndFixedPoint2b() {
+		FormulaCreator creator = new FormulaCreator();
+		VariableFormula var = creator.variable("foo");
+		Formula innerFormula = creator.let(var, var, var);
+		Formula formula = creator.fixedPoint(FixedPoint.GREATEST, var, innerFormula);
+		assertThat(GetFreeVariables.getFreeVariables(formula), empty());
+	}
+
+	@Test
+	public void testLetAndFixedPoint3() {
+		FormulaCreator creator = new FormulaCreator();
+		VariableFormula var = creator.variable("foo");
+		VariableFormula var2 = creator.variable("bar");
+		Formula innerFormula = creator.fixedPoint(FixedPoint.GREATEST, var, var);
+		Formula formula = creator.let(var, var2, innerFormula);
+		assertThat(GetFreeVariables.getFreeVariables(formula), empty());
+	}
 }
 
 // vim: ft=java:noet:sw=8:sts=8:ts=8:tw=120
