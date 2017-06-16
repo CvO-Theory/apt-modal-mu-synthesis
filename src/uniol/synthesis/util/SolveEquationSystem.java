@@ -28,7 +28,6 @@ import uniol.synthesis.adt.mu_calculus.FixedPoint;
 import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
 import static uniol.synthesis.util.GetFreeVariables.getFreeVariables;
-import static uniol.synthesis.util.SubstitutionTransformer.substitute;
 
 public class SolveEquationSystem {
 	public Map<VariableFormula, Formula> solve(FixedPoint fp, Map<VariableFormula, Formula> input) {
@@ -50,7 +49,11 @@ public class SolveEquationSystem {
 				if (entry.getKey().equals(var)) {
 					entry.setValue(definition);
 				} else {
-					entry.setValue(substitute(entry.getValue(), var, definition));
+					if (entry.getValue().equals(var)) {
+						entry.setValue(definition);
+					} else if (getFreeVariables(entry.getValue()).contains(var)) {
+						entry.setValue(var.getCreator().let(var, definition, entry.getValue()));
+					}
 				}
 			}
 		}
