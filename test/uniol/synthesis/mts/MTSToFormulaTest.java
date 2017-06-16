@@ -217,11 +217,12 @@ public class MTSToFormulaTest {
 		Formula expectedS1 = creator.conjunction(
 				creator.modality(un, "a", creator.constant(false)),
 				creator.modality(un, "b", expectedS2));
-		Formula expected = creator.conjunction(
+		VariableFormula varS1 = creator.variable("s1");
+		Formula expected = creator.let(varS1, expectedS1, creator.conjunction(
 				creator.conjunction(
-					creator.modality(ex, "a", expectedS1),
-					creator.modality(un, "a", expectedS1)),
-				creator.modality(un, "b", creator.constant(false)));
+					creator.modality(ex, "a", varS1),
+					creator.modality(un, "a", varS1)),
+				creator.modality(un, "b", creator.constant(false))));
 
 		assertThat(new MTSToFormula().mtsToFormula(creator, mts), is(expected));
 	}
