@@ -22,7 +22,8 @@ package uniol.synthesis.util;
 import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Deque;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.collections4.Bag;
@@ -40,7 +41,7 @@ import uniol.synthesis.adt.mu_calculus.NegationFormula;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
 
 public class GetFreeVariables extends RecursiveFormulaWalker {
-	final private Deque<Set<VariableFormula>> freeVariables = new ArrayDeque<>();
+	final private Deque<Map<VariableFormula, Integer>> freeVariables = new ArrayDeque<>();
 	final private Deque<Bag<VariableFormula>> currentlyBoundVariables = new ArrayDeque<>();
 
 	private GetFreeVariables() {
@@ -48,16 +49,16 @@ public class GetFreeVariables extends RecursiveFormulaWalker {
 	}
 
 	private void pushScope() {
-		freeVariables.addLast(new HashSet<VariableFormula>());
+		freeVariables.addLast(new HashMap<VariableFormula, Integer>());
 		currentlyBoundVariables.addLast(new HashBag<VariableFormula>());
 	}
 
-	private Set<VariableFormula> popScope() {
+	private Map<VariableFormula, Integer> popScope() {
 		currentlyBoundVariables.removeLast();
 		return freeVariables.removeLast();
 	}
 
-	private Set<VariableFormula> currentScopeFree() {
+	private Map<VariableFormula, Integer> currentScopeFree() {
 		return freeVariables.getLast();
 	}
 
@@ -65,14 +66,33 @@ public class GetFreeVariables extends RecursiveFormulaWalker {
 		return currentlyBoundVariables.getLast();
 	}
 
+	private void addFreeVariable(VariableFormula variable, int toAdd) {
+		Map<VariableFormula, Integer> currentScope = currentScopeFree();
+		Integer count = currentScope.get(variable);
+		if (count == null)
+			count = toAdd;
+		else
+			count += toAdd;
+		currentScope.put(variable, count);
+	}
+
+	private void addFreeVariables(Map<VariableFormula, Integer> toAdd) {
+		for (Map.Entry<VariableFormula, Integer> entry : toAdd.entrySet())
+			addFreeVariable(entry.getKey(), entry.getValue());
+	}
+
+	public Map<VariableFormula, Integer> getFreeVariablesCounts() {
+		return Collections.unmodifiableMap(currentScopeFree());
+	}
+
 	public Set<VariableFormula> getFreeVariables() {
-		return Collections.unmodifiableSet(currentScopeFree());
+		return getFreeVariablesCounts().keySet();
 	}
 
 	@Override
 	protected void visit(NonRecursive engine, VariableFormula formula) {
 		if (!currentScopeBound().contains(formula))
-			currentScopeFree().add(formula);
+			addFreeVariable(formula, 1);
 	}
 
 	@Override
@@ -98,16 +118,24 @@ public class GetFreeVariables extends RecursiveFormulaWalker {
 
 	@Override
 	protected void exit(NonRecursive engine, LetFormula formula) {
-		Set<VariableFormula> formulaScope = popScope();
-		Set<VariableFormula> expansionScope = popScope();
+		Map<VariableFormula, Integer> formulaScope = popScope();
+		Map<VariableFormula, Integer> expansionScope = popScope();
 		VariableFormula variable = formula.getVariable();
-		if (formulaScope.remove(variable)) {
-			expansionScope.removeAll(currentScopeBound());
-			currentScopeFree().addAll(expansionScope);
+		if (formulaScope.remove(variable) != null) {
+			for (VariableFormula var : currentScopeBound())
+				expansionScope.remove(var);
+			addFreeVariables(expansionScope);
 		}
-		formulaScope.removeAll(currentScopeBound());
-		currentScopeFree().addAll(formulaScope);
+		for (VariableFormula var : currentScopeBound())
+			formulaScope.remove(var);
+		addFreeVariables(formulaScope);
 
+	}
+
+	static public Map<VariableFormula, Integer> getFreeVariablesCounts(Formula formula) {
+		GetFreeVariables gfv = new GetFreeVariables();
+		gfv.walk(formula);
+		return gfv.getFreeVariablesCounts();
 	}
 
 	static public Set<VariableFormula> getFreeVariables(Formula formula) {
