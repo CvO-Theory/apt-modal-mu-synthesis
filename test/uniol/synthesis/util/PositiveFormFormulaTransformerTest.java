@@ -222,6 +222,17 @@ public class PositiveFormFormulaTransformerTest {
 		assertThat(inner.getFormula(), sameInstance((Formula)
 					creator.conjunction(result.getVariable(), inner.getVariable())));
 	}
+
+	@Test
+	public void testRecursiveLet() {
+		FormulaCreator creator = new FormulaCreator();
+		VariableFormula var = creator.variable("X");
+		Formula formula = creator.let(var, creator.constant(false), creator.conjunction(
+					var, // this binds to the outer-most let
+					creator.let(var, creator.constant(true),
+						var))); // this binds to the inner let
+		assertThat(positiveForm(formula), sameInstance(formula));
+	}
 }
 
 // vim: ft=java:noet:sw=8:sts=8:ts=8:tw=120

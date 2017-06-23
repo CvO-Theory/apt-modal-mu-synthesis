@@ -19,6 +19,8 @@
 
 package uniol.synthesis.util;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -36,15 +38,17 @@ import uniol.synthesis.adt.mu_calculus.VariableFormula;
 
 public class PositiveFormFormulaTransformer extends FormulaTransformer {
 	private boolean negated;
-	private final Map<VariableFormula, VariableFormula> negatedVariables = new HashMap<>();
-	private final Set<VariableFormula> usedVariables = new HashSet<>();
+	private final Deque<Map<VariableFormula, VariableFormula>> negatedVariables = new ArrayDeque<>();
+	private final Deque<Set<VariableFormula>> usedVariables = new ArrayDeque<>();
 
 	@Override
 	public void reset() {
 		super.reset();
 		negated = false;
 		negatedVariables.clear();
+		negatedVariables.addLast(new HashMap<VariableFormula, VariableFormula>());
 		usedVariables.clear();
+		usedVariables.addLast(new HashSet<VariableFormula>());
 	}
 
 	@Override
@@ -87,12 +91,12 @@ public class PositiveFormFormulaTransformer extends FormulaTransformer {
 
 	@Override
 	protected Formula transform(VariableFormula formula) {
-		VariableFormula negatedVariable = negatedVariables.get(formula);
+		VariableFormula negatedVariable = negatedVariables.getLast().get(formula);
 		if (negatedVariable != null) {
 			VariableFormula var = formula;
 			if (negated)
 				var = negatedVariable;
-			usedVariables.add(var);
+			usedVariables.getLast().add(var);
 			return var;
 		}
 		if (!negated)
@@ -125,7 +129,17 @@ public class PositiveFormFormulaTransformer extends FormulaTransformer {
 	@Override
 	protected void exitExpansion(NonRecursive engine, LetFormula formula) {
 		VariableFormula variable = formula.getVariable();
-		negatedVariables.put(variable, getCreator().freshVariable(variable.getVariable()));
+		negatedVariables.addLast(new HashMap<VariableFormula, VariableFormula>(negatedVariables.getLast()));
+		negatedVariables.getLast().put(variable, getCreator().freshVariable(variable.getVariable()));
+		usedVariables.addLast(new HashSet<VariableFormula>());
+	}
+
+	@Override
+	public void exit(NonRecursive engine, LetFormula formula) {
+		super.exit(engine, formula);
+		negatedVariables.removeLast();
+		Set<VariableFormula> used = usedVariables.removeLast();
+		usedVariables.getLast().addAll(used);
 	}
 
 	@Override
@@ -133,7 +147,7 @@ public class PositiveFormFormulaTransformer extends FormulaTransformer {
 		VariableFormula variable = formula.getVariable();
 		Formula expansion = formula.getExpansion();
 
-		VariableFormula negatedVariable = negatedVariables.remove(variable);
+		VariableFormula negatedVariable = negatedVariables.getLast().remove(variable);
 		Formula negatedExpansion = getCreator().negate(expansion);
 		// It would be nice if someone came up with a nicer way to do this... one that is not recursive.
 		negatedExpansion = new PositiveFormFormulaTransformer().transform(negatedExpansion);
@@ -146,10 +160,10 @@ public class PositiveFormFormulaTransformer extends FormulaTransformer {
 		}
 
 		Formula result = formula.getFormula();
-		if (usedVariables.remove(variable)) {
+		if (usedVariables.getLast().remove(variable)) {
 			result = getCreator().let(variable, expansion, result);
 		}
-		if (usedVariables.remove(negatedVariable)) {
+		if (usedVariables.getLast().remove(negatedVariable)) {
 			result = getCreator().let(negatedVariable, negatedExpansion, result);
 		}
 
