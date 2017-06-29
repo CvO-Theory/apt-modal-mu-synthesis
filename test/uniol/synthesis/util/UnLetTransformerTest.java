@@ -23,6 +23,7 @@ import org.testng.annotations.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
+import uniol.synthesis.adt.mu_calculus.FixedPoint;
 import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.FormulaCreator;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
@@ -61,6 +62,15 @@ public class UnLetTransformerTest {
 		expected = creator.conjunction(expected, expected);
 		expected = creator.conjunction(expected, expected);
 		assertThat(unLet(formula), sameInstance(expected));
+	}
+
+	@Test
+	public void testBoundVariable() {
+		FormulaCreator creator = new FormulaCreator();
+		VariableFormula var = creator.variable("var");
+		Formula innerFormula = creator.fixedPoint(FixedPoint.GREATEST, var, var);
+		Formula formula = creator.let(var, creator.constant(true), innerFormula);
+		assertThat(unLet(formula), sameInstance(innerFormula));
 	}
 }
 
