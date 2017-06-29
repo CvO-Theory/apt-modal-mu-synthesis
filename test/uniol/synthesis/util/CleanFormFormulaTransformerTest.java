@@ -77,7 +77,7 @@ public class CleanFormFormulaTransformerTest {
 		Formula formula = creator.fixedPoint(FixedPoint.GREATEST, var, innerFormula);
 
 		Formula expected = creator.fixedPoint(FixedPoint.GREATEST, var, creator.fixedPoint(FixedPoint.LEAST,
-					creator.variable("{foo0}"), creator.variable("{foo0}")));
+					creator.variable("{foo.0}"), creator.variable("{foo.0}")));
 		assertThat(CleanFormFormulaTransformer.cleanForm(formula), sameInstance(expected));
 	}
 
@@ -96,8 +96,8 @@ public class CleanFormFormulaTransformerTest {
 		VariableFormula var2 = creator.variable("bar");
 		Formula innerFormula = creator.let(var, var2, var);
 		Formula formula = creator.fixedPoint(FixedPoint.GREATEST, var, innerFormula);
-		Formula expected = creator.fixedPoint(FixedPoint.GREATEST, var, creator.let(creator.variable("{foo0}"),
-					var2, creator.variable("{foo0}")));
+		Formula expected = creator.fixedPoint(FixedPoint.GREATEST, var, creator.let(creator.variable("{foo.0}"),
+					var2, creator.variable("{foo.0}")));
 		assertThat(CleanFormFormulaTransformer.cleanForm(formula), sameInstance(expected));
 	}
 
@@ -105,7 +105,7 @@ public class CleanFormFormulaTransformerTest {
 	public void testBoundAndFreeVariable() {
 		FormulaCreator creator = new FormulaCreator();
 		VariableFormula var = creator.variable("var");
-		VariableFormula var2 = creator.variable("{var0}");
+		VariableFormula var2 = creator.variable("{var.0}");
 		Formula formula = creator.conjunction(creator.fixedPoint(FixedPoint.GREATEST, var, var), var);
 		Formula expected = creator.conjunction(creator.fixedPoint(FixedPoint.GREATEST, var2, var2), var);
 		assertThat(CleanFormFormulaTransformer.cleanForm(formula), sameInstance(expected));

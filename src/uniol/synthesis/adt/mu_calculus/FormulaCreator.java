@@ -67,7 +67,7 @@ public class FormulaCreator {
 
 	public VariableFormula freshVariable(String prefix) {
 		synchronized(objects) {
-			return variable("{" + prefix + freshVariableCounter++ + "}");
+			return variable("{" + prefix + "." + freshVariableCounter++ + "}");
 		}
 	}
 
