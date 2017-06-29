@@ -66,6 +66,8 @@ public class CleanFormFormulaTransformer {
 		VariableFormula oldOld = oldVariableReplacements.put(replacement, old);
 		// We are in clean form and thus each bound variable must be different
 		assert oldOld == null;
+
+		cachedFormulas.addLast(new HashMap<Formula, Formula>());
 	}
 
 	private VariableFormula exitScope(VariableFormula variable) {
@@ -76,6 +78,8 @@ public class CleanFormFormulaTransformer {
 			variableReplacements.put(variable, old);
 		else
 			variableReplacements.remove(variable);
+
+		cachedFormulas.removeLast();
 		return replacement;
 	}
 

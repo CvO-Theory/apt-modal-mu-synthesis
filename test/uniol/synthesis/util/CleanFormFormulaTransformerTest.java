@@ -100,6 +100,16 @@ public class CleanFormFormulaTransformerTest {
 					var2, creator.variable("{foo0}")));
 		assertThat(CleanFormFormulaTransformer.cleanForm(formula), sameInstance(expected));
 	}
+
+	@Test
+	public void testBoundAndFreeVariable() {
+		FormulaCreator creator = new FormulaCreator();
+		VariableFormula var = creator.variable("var");
+		VariableFormula var2 = creator.variable("{var0}");
+		Formula formula = creator.conjunction(creator.fixedPoint(FixedPoint.GREATEST, var, var), var);
+		Formula expected = creator.conjunction(creator.fixedPoint(FixedPoint.GREATEST, var2, var2), var);
+		assertThat(CleanFormFormulaTransformer.cleanForm(formula), sameInstance(expected));
+	}
 }
 
 // vim: ft=java:noet:sw=8:sts=8:ts=8:tw=120
