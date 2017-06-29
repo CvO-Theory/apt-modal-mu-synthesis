@@ -25,9 +25,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.commons.collections4.Bag;
-import org.apache.commons.collections4.bag.HashBag;
+import java.util.WeakHashMap;
 
 import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
 import uniol.synthesis.adt.mu_calculus.ConstantFormula;
@@ -40,108 +38,133 @@ import uniol.synthesis.adt.mu_calculus.ModalityFormula;
 import uniol.synthesis.adt.mu_calculus.NegationFormula;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
 
-public class GetFreeVariables extends RecursiveFormulaWalker {
-	final private Deque<Map<VariableFormula, Integer>> freeVariables = new ArrayDeque<>();
-	final private Deque<Bag<VariableFormula>> currentlyBoundVariables = new ArrayDeque<>();
+public class GetFreeVariables {
+	private final static Map<Formula, Map<VariableFormula, Integer>> freeVariables
+		= Collections.synchronizedMap(new WeakHashMap<Formula, Map<VariableFormula, Integer>>());
 
-	private GetFreeVariables() {
-		pushScope();
-	}
-
-	private void pushScope() {
-		freeVariables.addLast(new HashMap<VariableFormula, Integer>());
-		currentlyBoundVariables.addLast(new HashBag<VariableFormula>());
-	}
-
-	private Map<VariableFormula, Integer> popScope() {
-		currentlyBoundVariables.removeLast();
-		return freeVariables.removeLast();
-	}
-
-	private Map<VariableFormula, Integer> currentScopeFree() {
-		return freeVariables.getLast();
-	}
-
-	private Bag<VariableFormula> currentScopeBound() {
-		return currentlyBoundVariables.getLast();
-	}
-
-	private void addFreeVariable(VariableFormula variable, int toAdd) {
-		Map<VariableFormula, Integer> currentScope = currentScopeFree();
-		Integer count = currentScope.get(variable);
-		if (count == null)
-			count = toAdd;
-		else
-			count += toAdd;
-		currentScope.put(variable, count);
-	}
-
-	private void addFreeVariables(Map<VariableFormula, Integer> toAdd) {
-		for (Map.Entry<VariableFormula, Integer> entry : toAdd.entrySet())
-			addFreeVariable(entry.getKey(), entry.getValue());
-	}
-
-	public Map<VariableFormula, Integer> getFreeVariablesCounts() {
-		return Collections.unmodifiableMap(currentScopeFree());
-	}
-
-	public Set<VariableFormula> getFreeVariables() {
-		return getFreeVariablesCounts().keySet();
-	}
-
-	@Override
-	protected void visit(NonRecursive engine, VariableFormula formula) {
-		if (!currentScopeBound().contains(formula))
-			addFreeVariable(formula, 1);
-	}
-
-	@Override
-	protected void enter(NonRecursive engine, FixedPointFormula formula) {
-		currentScopeBound().add(formula.getVariable());
-	}
-
-	@Override
-	protected void exit(NonRecursive engine, FixedPointFormula formula) {
-		boolean changed = currentScopeBound().remove(formula.getVariable(), 1);
-		assert changed;
-	}
-
-	@Override
-	protected void enter(NonRecursive engine, LetFormula formula) {
-		pushScope();
-	}
-
-	@Override
-	protected void exitExpansion(NonRecursive engine, LetFormula formula) {
-		pushScope();
-	}
-
-	@Override
-	protected void exit(NonRecursive engine, LetFormula formula) {
-		Map<VariableFormula, Integer> formulaScope = popScope();
-		Map<VariableFormula, Integer> expansionScope = popScope();
-		VariableFormula variable = formula.getVariable();
-		if (formulaScope.remove(variable) != null) {
-			for (VariableFormula var : currentScopeBound())
-				expansionScope.remove(var);
-			addFreeVariables(expansionScope);
+	private static class FillCache extends FormulaWalker {
+		private FillCache(Formula formula) {
+			super(formula);
 		}
-		for (VariableFormula var : currentScopeBound())
-			formulaScope.remove(var);
-		addFreeVariables(formulaScope);
 
+		@Override
+		public void walk(NonRecursive engine, ConstantFormula formula) {
+			freeVariables.put(formula, Collections.<VariableFormula, Integer>emptyMap());
+		}
+
+		static Map<VariableFormula, Integer> union(Map<VariableFormula, Integer> map1, Map<VariableFormula, Integer> map2) {
+			// TODO: Optimise
+			Map<VariableFormula, Integer> result = new HashMap<>();
+			result.putAll(map1);
+			for (Map.Entry<VariableFormula, Integer> entry : map2.entrySet()) {
+				Integer count = result.get(entry.getKey());
+				if (count == null)
+					count = entry.getValue();
+				else
+					count = entry.getValue() + count;
+				result.put(entry.getKey(), count);
+			}
+			return result;
+		}
+
+		private void handleChild(NonRecursive engine, Formula formula, Formula child) {
+			Map<VariableFormula, Integer> map = freeVariables.get(child);
+			if (map == null) {
+				engine.enqueue(this);
+				engine.enqueue(new FillCache(child));
+				return;
+			}
+			freeVariables.put(formula, map);
+		}
+
+		private void handleChildren(NonRecursive engine, Formula formula, Formula child1, Formula child2) {
+			Map<VariableFormula, Integer> map1 = freeVariables.get(child1);
+			Map<VariableFormula, Integer> map2 = freeVariables.get(child2);
+			if (map1 == null || map2 == null) {
+				engine.enqueue(this);
+				if (map1 == null)
+					engine.enqueue(new FillCache(child1));
+				if (map2 == null)
+					engine.enqueue(new FillCache(child2));
+				return;
+			}
+			freeVariables.put(formula, union(map1, map2));
+		}
+
+		@Override
+		public void walk(NonRecursive engine, ConjunctionFormula formula) {
+			handleChildren(engine, formula, formula.getLeft(), formula.getRight());
+		}
+
+		@Override
+		public void walk(NonRecursive engine, DisjunctionFormula formula) {
+			handleChildren(engine, formula, formula.getLeft(), formula.getRight());
+		}
+
+		@Override
+		public void walk(NonRecursive engine, NegationFormula formula) {
+			handleChild(engine, formula, formula.getFormula());
+		}
+
+		@Override
+		public void walk(NonRecursive engine, VariableFormula formula) {
+			Map<VariableFormula, Integer> map = new HashMap<>();
+			map.put(formula, 1);
+			freeVariables.put(formula, map);
+		}
+
+		@Override
+		public void walk(NonRecursive engine, ModalityFormula formula) {
+			handleChild(engine, formula, formula.getFormula());
+		}
+
+		@Override
+		public void walk(NonRecursive engine, FixedPointFormula formula) {
+			Map<VariableFormula, Integer> map = freeVariables.get(formula.getFormula());
+			if (map == null) {
+				engine.enqueue(this);
+				engine.enqueue(new FillCache(formula.getFormula()));
+				return;
+			}
+			if (map.containsKey(formula.getVariable())) {
+				map = new HashMap<>(map);
+				map.remove(formula.getVariable());
+			}
+			freeVariables.put(formula, map);
+		}
+
+		@Override
+		public void walk(NonRecursive engine, LetFormula formula) {
+			Map<VariableFormula, Integer> mapExpansion = freeVariables.get(formula.getExpansion());
+			Map<VariableFormula, Integer> mapInner = freeVariables.get(formula.getFormula());
+			if (mapExpansion == null || mapInner == null) {
+				engine.enqueue(this);
+				if (mapExpansion == null)
+					engine.enqueue(new FillCache(formula.getExpansion()));
+				if (mapInner == null)
+					engine.enqueue(new FillCache(formula.getFormula()));
+				return;
+			}
+			if (mapInner.containsKey(formula.getVariable())) {
+				mapInner = new HashMap<>(mapInner);
+				mapInner.remove(formula.getVariable());
+				freeVariables.put(formula, union(mapInner, mapExpansion));
+			} else
+				freeVariables.put(formula, mapInner);
+		}
 	}
 
 	static public Map<VariableFormula, Integer> getFreeVariablesCounts(Formula formula) {
-		GetFreeVariables gfv = new GetFreeVariables();
-		gfv.walk(formula);
-		return gfv.getFreeVariablesCounts();
+		Map<VariableFormula, Integer> result = freeVariables.get(formula);
+		if (result == null) {
+			new NonRecursive().run(new FillCache(formula));
+			result = freeVariables.get(formula);
+		}
+		return Collections.unmodifiableMap(result);
 	}
 
 	static public Set<VariableFormula> getFreeVariables(Formula formula) {
-		GetFreeVariables gfv = new GetFreeVariables();
-		gfv.walk(formula);
-		return gfv.getFreeVariables();
+		return getFreeVariablesCounts(formula).keySet();
 	}
 }
 
