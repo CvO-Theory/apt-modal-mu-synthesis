@@ -52,7 +52,6 @@ public class UnLetTransformerTest {
 		VariableFormula var = creator.variable("var");
 		VariableFormula var2 = creator.variable("foo");
 		Formula True = creator.constant(true);
-		Formula False = creator.constant(false);
 		Formula formula = creator.let(var,
 				creator.let(var2, True, creator.conjunction(var2, var2)),
 				creator.let(var, creator.conjunction(var, var),
