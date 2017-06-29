@@ -113,7 +113,9 @@ public class FormulaTransformer extends RecursiveFormulaWalker {
 	public void exit(NonRecursive engine, ConjunctionFormula formula) {
 		Formula left = getResult();
 		Formula right = getResult();
-		ConjunctionFormula result = creator.conjunction(left, right);
+		ConjunctionFormula result = formula;
+		if (!result.getLeft().equals(left) || !result.getRight().equals(right))
+			result = creator.conjunction(left, right);
 		setResult(transform(result));
 	}
 
@@ -125,7 +127,9 @@ public class FormulaTransformer extends RecursiveFormulaWalker {
 	public void exit(NonRecursive engine, DisjunctionFormula formula) {
 		Formula left = getResult();
 		Formula right = getResult();
-		DisjunctionFormula result = creator.disjunction(left, right);
+		DisjunctionFormula result = formula;
+		if (!result.getLeft().equals(left) || !result.getRight().equals(right))
+			result = creator.disjunction(left, right);
 		setResult(transform(result));
 	}
 
@@ -136,7 +140,9 @@ public class FormulaTransformer extends RecursiveFormulaWalker {
 	@Override
 	public void exit(NonRecursive engine, NegationFormula formula) {
 		Formula innerFormula = getResult();
-		NegationFormula result = creator.negate(innerFormula);
+		NegationFormula result = formula;
+		if (!result.getFormula().equals(innerFormula))
+			result = creator.negate(innerFormula);
 		setResult(transform(result));
 	}
 
@@ -147,7 +153,9 @@ public class FormulaTransformer extends RecursiveFormulaWalker {
 	@Override
 	public void exit(NonRecursive engine, ModalityFormula formula) {
 		Formula innerFormula = getResult();
-		ModalityFormula result = creator.modality(formula.getModality(), formula.getEvent(), innerFormula);
+		ModalityFormula result = formula;
+		if (!formula.getFormula().equals(innerFormula))
+			result = creator.modality(formula.getModality(), formula.getEvent(), innerFormula);
 		setResult(transform(result));
 	}
 
@@ -158,7 +166,9 @@ public class FormulaTransformer extends RecursiveFormulaWalker {
 	@Override
 	public void exit(NonRecursive engine, FixedPointFormula formula) {
 		Formula innerFormula = getResult();
-		FixedPointFormula result = creator.fixedPoint(formula.getFixedPoint(), formula.getVariable(), innerFormula);
+		FixedPointFormula result = formula;
+		if (!formula.getFormula().equals(innerFormula))
+			result = creator.fixedPoint(formula.getFixedPoint(), formula.getVariable(), innerFormula);
 		setResult(transform(result));
 	}
 
@@ -174,7 +184,9 @@ public class FormulaTransformer extends RecursiveFormulaWalker {
 	public void exit(NonRecursive engine, LetFormula formula) {
 		Formula innerFormula = getResult();
 		Formula expansion = getResult();
-		LetFormula result = creator.let(formula.getVariable(), expansion, innerFormula);
+		LetFormula result = formula;
+		if (!formula.getFormula().equals(innerFormula) || !formula.getExpansion().equals(expansion))
+			result = creator.let(formula.getVariable(), expansion, innerFormula);
 		setResult(transform(result));
 	}
 }
