@@ -19,8 +19,13 @@
 
 package uniol.synthesis.util;
 
-import java.util.Deque;
 import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.commons.collections4.Bag;
+import org.apache.commons.collections4.bag.HashBag;
 
 import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
 import uniol.synthesis.adt.mu_calculus.ConstantFormula;
@@ -33,161 +38,148 @@ import uniol.synthesis.adt.mu_calculus.ModalityFormula;
 import uniol.synthesis.adt.mu_calculus.NegationFormula;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
 
-public class FormulaTransformer extends RecursiveFormulaWalker {
-	private final Deque<Formula> resultStack = new ArrayDeque<>();
-	private FormulaCreator creator;
+public abstract class FormulaTransformer<C> {
+	private final Bag<VariableFormula> currentlyBoundVariables = new HashBag<>();
+	private final Deque<Map<Formula, C>> cache = new ArrayDeque<>();
 
-	public void reset() {
-	}
-
-	public Formula transform(Formula formula) {
-		resultStack.clear();
-		creator = formula.getCreator();
+	public FormulaTransformer() {
 		reset();
-
-		walk(formula);
-
-		assert resultStack.size() == 1;
-		return resultStack.removeLast();
 	}
 
-	public FormulaCreator getCreator() {
-		return creator;
+	protected void reset() {
+		currentlyBoundVariables.clear();
+		cache.clear();
+		cache.addLast(new HashMap<Formula, C>());
 	}
 
-	private void setResult(Formula formula) {
-		resultStack.addLast(formula);
+	protected C transform(NonRecursive engine, Formula formula) {
+		C result = getCache(formula);
+		if (result == null)
+			enqueueWalker(engine, formula);
+		return result;
 	}
 
-	private Formula getResult() {
-		return resultStack.removeLast();
+	protected C getCache(Formula formula) {
+		return cache.getLast().get(formula);
 	}
 
-	protected Formula transform(ConstantFormula formula) {
-		return formula;
+	protected void setCache(Formula formula, C result) {
+		cache.getLast().put(formula, result);
 	}
 
-	protected Formula transform(ConjunctionFormula formula) {
-		return formula;
+	protected void pushScope() {
+		cache.addLast(new HashMap<Formula, C>());
 	}
 
-	protected Formula transform(DisjunctionFormula formula) {
-		return formula;
+	protected void popScope() {
+		cache.removeLast();
 	}
 
-	protected Formula transform(NegationFormula formula) {
-		return formula;
+	protected boolean isCurrentlyBound(VariableFormula formula) {
+		return currentlyBoundVariables.contains(formula);
 	}
 
-	protected Formula transform(VariableFormula formula) {
-		return formula;
+	protected void enterScope(VariableFormula formula) {
+		currentlyBoundVariables.add(formula);
 	}
 
-	protected Formula transform(ModalityFormula formula) {
-		return formula;
+	protected void exitScope(VariableFormula formula) {
+		currentlyBoundVariables.remove(formula, 1);
 	}
 
-	protected Formula transform(FixedPointFormula formula) {
-		return formula;
-	}
+	protected abstract void enqueueWalker(NonRecursive engine, Formula formula);
 
-	protected Formula transform(LetFormula formula) {
-		return formula;
-	}
+	protected abstract class FillCache extends FormulaWalker {
+		public FillCache(Formula formula) {
+			super(formula);
+		}
 
-	@Override
-	public void visit(NonRecursive engine, ConstantFormula formula) {
-		setResult(transform(formula));
-	}
+		abstract public C conjunction(ConjunctionFormula formula, C transformedLeft, C transformedRight);
+		abstract public C disjunction(DisjunctionFormula formula, C transformedLeft, C transformedRight);
+		abstract public C negate(NegationFormula formula, C transformedChild);
+		abstract public C modality(ModalityFormula formula, C transformedChild);
+		abstract public C fixedPoint(FixedPointFormula formula, C transformedChild);
 
-	@Override
-	public void visit(NonRecursive engine, VariableFormula formula) {
-		setResult(transform(formula));
-	}
+		@Override
+		public void walk(NonRecursive engine, ConjunctionFormula formula) {
+			Formula left = formula.getLeft();
+			Formula right = formula.getRight();
+			C transformedLeft = getCache(left);
+			C transformedRight = getCache(right);
+			if (transformedLeft == null || transformedRight == null) {
+				engine.enqueue(this);
+				if (transformedLeft == null)
+					enqueueWalker(engine, left);
+				if (transformedRight == null)
+					enqueueWalker(engine, right);
+				return;
+			}
+			setCache(formula, conjunction(formula, transformedLeft, transformedRight));
+		}
 
-	@Override
-	public void enter(NonRecursive engine, ConjunctionFormula formula) {
-	}
+		@Override
+		public void walk(NonRecursive engine, DisjunctionFormula formula) {
+			Formula left = formula.getLeft();
+			Formula right = formula.getRight();
+			C transformedLeft = getCache(left);
+			C transformedRight = getCache(right);
+			if (transformedLeft == null || transformedRight == null) {
+				engine.enqueue(this);
+				if (transformedLeft == null)
+					enqueueWalker(engine, left);
+				if (transformedRight == null)
+					enqueueWalker(engine, right);
+				return;
+			}
+			setCache(formula, disjunction(formula, transformedLeft, transformedRight));
+		}
 
-	@Override
-	public void exit(NonRecursive engine, ConjunctionFormula formula) {
-		Formula left = getResult();
-		Formula right = getResult();
-		ConjunctionFormula result = formula;
-		if (!result.getLeft().equals(left) || !result.getRight().equals(right))
-			result = creator.conjunction(left, right);
-		setResult(transform(result));
-	}
+		@Override
+		public void walk(NonRecursive engine, NegationFormula formula) {
+			Formula child = formula.getFormula();
+			C transformedChild = getCache(child);
+			if (transformedChild == null) {
+				engine.enqueue(this);
+				enqueueWalker(engine, child);
+				return;
+			}
+			setCache(formula, negate(formula, transformedChild));
+		}
 
-	@Override
-	public void enter(NonRecursive engine, DisjunctionFormula formula) {
-	}
+		@Override
+		public void walk(NonRecursive engine, ModalityFormula formula) {
+			Formula child = formula.getFormula();
+			C transformedChild = getCache(child);
+			if (transformedChild == null) {
+				engine.enqueue(this);
+				enqueueWalker(engine, child);
+				return;
+			}
+			setCache(formula, modality(formula, transformedChild));
+		}
 
-	@Override
-	public void exit(NonRecursive engine, DisjunctionFormula formula) {
-		Formula left = getResult();
-		Formula right = getResult();
-		DisjunctionFormula result = formula;
-		if (!result.getLeft().equals(left) || !result.getRight().equals(right))
-			result = creator.disjunction(left, right);
-		setResult(transform(result));
-	}
+		@Override
+		public void walk(NonRecursive engine, final FixedPointFormula formula) {
+			enterScope(formula.getVariable());
+			engine.enqueue(new NonRecursive.Walker() {
+				@Override
+				public void walk(NonRecursive engine) {
+					C transformedChild = getCache(formula.getFormula());
+					assert transformedChild != null;
 
-	@Override
-	public void enter(NonRecursive engine, NegationFormula formula) {
-	}
+					exitScope(formula.getVariable());
 
-	@Override
-	public void exit(NonRecursive engine, NegationFormula formula) {
-		Formula innerFormula = getResult();
-		NegationFormula result = formula;
-		if (!result.getFormula().equals(innerFormula))
-			result = creator.negate(innerFormula);
-		setResult(transform(result));
-	}
+					setCache(formula, fixedPoint(formula, transformedChild));
+				}
+			});
+			if (getCache(formula.getFormula()) == null)
+				enqueueWalker(engine, formula.getFormula());
+		}
 
-	@Override
-	public void enter(NonRecursive engine, ModalityFormula formula) {
-	}
-
-	@Override
-	public void exit(NonRecursive engine, ModalityFormula formula) {
-		Formula innerFormula = getResult();
-		ModalityFormula result = formula;
-		if (!formula.getFormula().equals(innerFormula))
-			result = creator.modality(formula.getModality(), formula.getEvent(), innerFormula);
-		setResult(transform(result));
-	}
-
-	@Override
-	public void enter(NonRecursive engine, FixedPointFormula formula) {
-	}
-
-	@Override
-	public void exit(NonRecursive engine, FixedPointFormula formula) {
-		Formula innerFormula = getResult();
-		FixedPointFormula result = formula;
-		if (!formula.getFormula().equals(innerFormula))
-			result = creator.fixedPoint(formula.getFixedPoint(), formula.getVariable(), innerFormula);
-		setResult(transform(result));
-	}
-
-	@Override
-	public void enter(NonRecursive engine, LetFormula formula) {
-	}
-
-	@Override
-	protected void exitExpansion(NonRecursive engine, LetFormula formula) {
-	}
-
-	@Override
-	public void exit(NonRecursive engine, LetFormula formula) {
-		Formula innerFormula = getResult();
-		Formula expansion = getResult();
-		LetFormula result = formula;
-		if (!formula.getFormula().equals(innerFormula) || !formula.getExpansion().equals(expansion))
-			result = creator.let(formula.getVariable(), expansion, innerFormula);
-		setResult(transform(result));
+		@Override
+		public void walk(NonRecursive engine, LetFormula formula) {
+			throw new IllegalArgumentException("Let formulas are not supported");
+		}
 	}
 }
 

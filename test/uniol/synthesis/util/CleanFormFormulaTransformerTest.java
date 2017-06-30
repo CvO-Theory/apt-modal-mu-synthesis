@@ -110,6 +110,33 @@ public class CleanFormFormulaTransformerTest {
 		Formula expected = creator.conjunction(creator.fixedPoint(FixedPoint.GREATEST, var2, var2), var);
 		assertThat(CleanFormFormulaTransformer.cleanForm(formula), sameInstance(expected));
 	}
+
+	@Test
+	public void testBoundVariable() {
+		FormulaCreator creator = new FormulaCreator();
+		VariableFormula var = creator.variable("var");
+		VariableFormula var2 = creator.variable("{var.0}");
+		Formula innerFormula = creator.fixedPoint(FixedPoint.GREATEST, var, var);
+		Formula formula = creator.let(var, var, creator.fixedPoint(FixedPoint.GREATEST, var, var));
+		Formula expected = creator.let(var, var, creator.fixedPoint(FixedPoint.GREATEST, var2, var2));
+		assertThat(CleanFormFormulaTransformer.cleanForm(formula), sameInstance(expected));
+	}
+
+	@Test
+	public void testLetScoping() {
+		FormulaCreator creator = new FormulaCreator();
+		VariableFormula var = creator.variable("var");
+		VariableFormula varb = creator.variable("{var.1}");
+		VariableFormula var2 = creator.variable("var2");
+		VariableFormula var2b = creator.variable("{var2.0}");
+		Formula formula = creator.let(var2, creator.constant(true),
+				creator.let(var2, var, creator.conjunction(var2,
+					creator.fixedPoint(FixedPoint.GREATEST, var, var2))));
+		Formula expected = creator.let(var2, creator.constant(true),
+				creator.let(var2b, var, creator.conjunction(var2b,
+					creator.fixedPoint(FixedPoint.GREATEST, varb, var2b))));
+		assertThat(CleanFormFormulaTransformer.cleanForm(formula), sameInstance(expected));
+	}
 }
 
 // vim: ft=java:noet:sw=8:sts=8:ts=8:tw=120
