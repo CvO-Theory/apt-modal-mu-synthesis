@@ -52,7 +52,7 @@ public abstract class FormulaTransformer<C> {
 		cache.addLast(new HashMap<Formula, C>());
 	}
 
-	protected C transform(NonRecursive engine, Formula formula) {
+	public C transform(NonRecursive engine, Formula formula) {
 		C result = getCache(formula);
 		if (result == null)
 			enqueueWalker(engine, formula);

@@ -141,134 +141,13 @@ public class GetFreeVariablesTest {
 		assertThat(formula, freeVariables(variables("bar"), 1));
 	}
 
-	@Test
-	public void testLetFormula() {
-		Formula True = creator.constant(true);
-		VariableFormula var = creator.variable("foo");
-		Formula formula = creator.let(var, True, True);
-		assertThat(GetFreeVariables.getFreeVariables(formula), empty());
-		assertThat(formula, freeVariables(variables()));
-	}
-
-	@Test
-	public void testLetFormula2() {
-		Formula True = creator.constant(true);
-		VariableFormula var = creator.variable("foo");
-		Formula formula = creator.let(var, True, var);
-		assertThat(GetFreeVariables.getFreeVariables(formula), empty());
-		assertThat(formula, freeVariables(variables()));
-	}
-
-	@Test
-	public void testLetFormula3() {
-		Formula True = creator.constant(true);
+	@Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = "Let formulas are not supported")
+	// This test would fail: The formula (let foo = bar in nu bar. foo) has no free variables, but the
+	// implementation would wrongly say otherwise.
+	public void testLetProblem() {
 		VariableFormula var = creator.variable("foo");
 		VariableFormula var2 = creator.variable("bar");
-		Formula formula = creator.let(var, True, var2);
-		assertThat(GetFreeVariables.getFreeVariables(formula), contains(var2));
-		assertThat(formula, freeVariables(variables("bar"), 1));
-	}
-
-	@Test
-	public void testLetFormula4() {
-		VariableFormula var = creator.variable("foo");
-		VariableFormula var2 = creator.variable("bar");
-		VariableFormula var3 = creator.variable("baz");
-		Formula formula = creator.let(var, var2, var3);
-		assertThat(GetFreeVariables.getFreeVariables(formula), contains(var3));
-		assertThat(formula, freeVariables(variables("baz"), 1));
-	}
-
-	@Test
-	public void testLetFormula5() {
-		VariableFormula var = creator.variable("foo");
-		Formula formula = creator.let(var, var, var);
-		assertThat(GetFreeVariables.getFreeVariables(formula), contains(var));
-		assertThat(formula, freeVariables(variables("foo"), 1));
-	}
-
-	@Test
-	public void testLetFormula6a() {
-		VariableFormula var = creator.variable("foo");
-		VariableFormula var2 = creator.variable("bar");
-		Formula formula = creator.let(var, var, var2);
-		assertThat(GetFreeVariables.getFreeVariables(formula), contains(var2));
-		assertThat(formula, freeVariables(variables("bar"), 1));
-	}
-
-	@Test
-	public void testLetFormula6b() {
-		VariableFormula var = creator.variable("foo");
-		VariableFormula var2 = creator.variable("bar");
-		Formula formula = creator.let(var, var2, var);
-		assertThat(GetFreeVariables.getFreeVariables(formula), contains(var2));
-		assertThat(formula, freeVariables(variables("bar"), 1));
-	}
-
-	@Test
-	public void testLetFormula6c() {
-		VariableFormula var = creator.variable("foo");
-		VariableFormula var2 = creator.variable("bar");
-		Formula formula = creator.let(var2, var, var);
-		assertThat(GetFreeVariables.getFreeVariables(formula), contains(var));
-		assertThat(formula, freeVariables(variables("foo"), 1));
-	}
-
-	@Test
-	public void testLetAndFixedPoint() {
-		VariableFormula var = creator.variable("foo");
-		VariableFormula var2 = creator.variable("bar");
-		Formula innerFormula = creator.let(var, var2, var);
-		Formula formula = creator.fixedPoint(FixedPoint.GREATEST, var, innerFormula);
-		assertThat(GetFreeVariables.getFreeVariables(formula), contains(var2));
-		assertThat(formula, freeVariables(variables("bar"), 1));
-	}
-
-	@Test
-	public void testLetAndFixedPoint2a() {
-		VariableFormula var = creator.variable("foo");
-		VariableFormula var2 = creator.variable("bar");
-		Formula innerFormula = creator.let(var2, var, var);
-		Formula formula = creator.fixedPoint(FixedPoint.GREATEST, var, innerFormula);
-		assertThat(GetFreeVariables.getFreeVariables(formula), empty());
-		assertThat(formula, freeVariables(variables()));
-	}
-
-	@Test
-	public void testLetAndFixedPoint2b() {
-		VariableFormula var = creator.variable("foo");
-		Formula innerFormula = creator.let(var, var, var);
-		Formula formula = creator.fixedPoint(FixedPoint.GREATEST, var, innerFormula);
-		assertThat(GetFreeVariables.getFreeVariables(formula), empty());
-		assertThat(formula, freeVariables(variables()));
-	}
-
-	@Test
-	public void testLetAndFixedPoint3() {
-		VariableFormula var = creator.variable("foo");
-		VariableFormula var2 = creator.variable("bar");
-		Formula innerFormula = creator.fixedPoint(FixedPoint.GREATEST, var, var);
-		Formula formula = creator.let(var, var2, innerFormula);
-		assertThat(GetFreeVariables.getFreeVariables(formula), empty());
-		assertThat(formula, freeVariables(variables()));
-	}
-
-	@Test
-	public void testMultiplicity() {
-		VariableFormula var = creator.variable("foo");
-		VariableFormula var2 = creator.variable("bar");
-		Formula formula = creator.conjunction(
-				creator.conjunction(var, var2),
-				creator.let(var, var2, creator.conjunction(var2, var)));
-		assertThat(GetFreeVariables.getFreeVariables(formula), containsInAnyOrder(var, var2));
-		assertThat(formula, freeVariables(variables("bar", "foo"), 3, 1));
-	}
-
-	@Test
-	public void testBoundVariable() {
-		VariableFormula var = creator.variable("foo");
-		Formula innerFormula = creator.fixedPoint(FixedPoint.GREATEST, var, var);
-		Formula formula = creator.let(var, var, innerFormula);
+		Formula formula = creator.let(var, var2, creator.fixedPoint(FixedPoint.GREATEST, var2, var));
 		assertThat(GetFreeVariables.getFreeVariables(formula), empty());
 		assertThat(formula, freeVariables(variables()));
 	}
