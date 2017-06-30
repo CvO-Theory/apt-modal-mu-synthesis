@@ -36,6 +36,7 @@ public abstract class FormulaWalker implements NonRecursive.Walker {
 	final protected Formula formula;
 
 	public FormulaWalker(Formula formula) {
+		assert formula != null;
 		this.formula = formula;
 	}
 
