@@ -71,26 +71,29 @@ public class SubstitutionTransformerTest {
 		assertThat(SubstitutionTransformer.substitute(formula, variable, substitute), sameInstance(expected));
 	}
 
-	@Test
+	@Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = "No let formula is allowed.*")
 	public void testLetFormula() {
 		Formula True = creator.constant(true);
 		Formula formula = creator.let(variable, True, True);
-		assertThat(SubstitutionTransformer.substitute(formula, variable, substitute), sameInstance(formula));
+		SubstitutionTransformer.substitute(formula, variable, substitute);
 	}
 
-	@Test
-	public void testLetFormula2() {
-		Formula formula = creator.let(variable, variable, variable);
-		Formula expected = creator.let(variable, substitute, variable);
+	// The following test shows why the SubstitutionTransformer cannot easily handle let's: In the original formula,
+	// the fixed point has "foo" (var2) as a free variable. After applying the implicit substitution that the let
+	// represents, this turns into "bar" (var) which is now bound by the fixed point. However, in the conjunction
+	// "foo" (var2) also appears as a free variable.
+	// Thus, after the substitution, this "really free" instance of "bar" (var) should be substituted while the
+	// bound occurrence should stay bound. This cannot be nicely done, thus we just forbid let's in the
+	// substitution.
+	@Test(enabled = false)
+	public void testThatBreaksWithLets() {
+		FormulaCreator creator = new FormulaCreator();
+		VariableFormula variable2 = creator.variable("foo");
+		Formula formula = creator.let(variable2, variable, creator.conjunction(variable2,
+				creator.fixedPoint(FixedPoint.GREATEST, variable, variable2)));
+		Formula expected = creator.let(variable2, variable, creator.conjunction(substitute,
+				creator.fixedPoint(FixedPoint.GREATEST, variable, variable2)));
 		assertThat(SubstitutionTransformer.substitute(formula, variable, substitute), sameInstance(expected));
-	}
-
-	@Test
-	public void testLetFormula3() {
-		Formula True = creator.constant(true);
-		VariableFormula variable2 = creator.freshVariable("bar");
-		Formula formula = creator.let(variable, True, variable2);
-		assertThat(SubstitutionTransformer.substitute(formula, variable, substitute), sameInstance(formula));
 	}
 }
 

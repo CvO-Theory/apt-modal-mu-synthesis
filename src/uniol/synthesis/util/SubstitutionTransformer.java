@@ -174,35 +174,7 @@ public class SubstitutionTransformer {
 
 		@Override
 		public void walk(NonRecursive engine, final LetFormula formula) {
-			engine.enqueue(new NonRecursive.Walker() {
-				@Override
-				public void walk(NonRecursive engine) {
-					Formula child = formula.getFormula();
-					Formula transformedChild = getCache(child);
-
-					currentlyBoundVariables.remove(formula.getVariable(), 1);
-					cachedSubstitutions.removeLast();
-
-					Formula expansion = formula.getExpansion();
-					Formula transformedExpansion = getCache(expansion);
-
-					if (child.equals(transformedChild) && expansion.equals(transformedExpansion))
-						setResult(formula, formula);
-					else
-						setResult(formula, formula.getCreator().let(formula.getVariable(),
-									transformedExpansion, transformedChild));
-				}
-			});
-			engine.enqueue(new FillCache(formula.getFormula()));
-			engine.enqueue(new NonRecursive.Walker() {
-				@Override
-				public void walk(NonRecursive engine) {
-					currentlyBoundVariables.add(formula.getVariable());
-					cachedSubstitutions.addLast(new HashMap<Formula, Formula>());
-				}
-			});
-			if (getCache(formula.getExpansion()) == null)
-				engine.enqueue(new FillCache(formula.getExpansion()));
+			throw new IllegalArgumentException("No let formula is allowed for SubstitutionTransformer");
 		}
 	}
 

@@ -210,21 +210,23 @@ public class MTSToFormulaTest {
 		mts.createArc("s1", "s2", "b").putExtension("may", "may");
 		mts.createArc("s2", "s2", "a").putExtension("may", "may");
 
-		Formula expectedS2 = creator.fixedPoint(FixedPoint.GREATEST, creator.variable("s2"),
+		VariableFormula varS1 = creator.variable("s1");
+		VariableFormula varS2 = creator.variable("s2");
+		Formula expectedS2 = creator.fixedPoint(FixedPoint.GREATEST, varS2,
 				creator.conjunction(
-					creator.modality(un, "a", creator.variable("s2")),
+					creator.modality(un, "a", varS2),
 					creator.modality(un, "b", creator.constant(false))));
 		Formula expectedS1 = creator.conjunction(
 				creator.modality(un, "a", creator.constant(false)),
-				creator.modality(un, "b", expectedS2));
-		VariableFormula varS1 = creator.variable("s1");
-		Formula expected = creator.let(varS1, expectedS1, creator.conjunction(
-				creator.conjunction(
+				creator.modality(un, "b", varS2));
+		Formula inner = creator.conjunction(creator.conjunction(
 					creator.modality(ex, "a", varS1),
 					creator.modality(un, "a", varS1)),
-				creator.modality(un, "b", creator.constant(false))));
+				creator.modality(un, "b", creator.constant(false)));
+		Formula expected1 = creator.let(varS1, creator.let(varS2, expectedS2, expectedS1), inner);
+		Formula expected2 = creator.let(varS2, expectedS2, creator.let(varS1, expectedS1, inner));
 
-		assertThat(new MTSToFormula().mtsToFormula(creator, mts), is(expected));
+		assertThat(new MTSToFormula().mtsToFormula(creator, mts), anyOf(is(expected1), is(expected2)));
 	}
 }
 
