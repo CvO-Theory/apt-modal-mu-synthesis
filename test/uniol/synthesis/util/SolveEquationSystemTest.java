@@ -28,6 +28,7 @@ import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.FormulaCreator;
 import uniol.synthesis.adt.mu_calculus.Modality;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
+import static uniol.synthesis.util.UnLetTransformer.unLet;
 
 import org.testng.annotations.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -106,26 +107,26 @@ public class SolveEquationSystemTest {
 					creator.modality(un, "b", x)));
 
 		// This is the result when we first substitute variable Y
-		Formula solutionX1 = creator.fixedPoint(fp, x, creator.let(y,
+		Formula solutionX1 = unLet(creator.fixedPoint(fp, x, creator.let(y,
 					creator.conjunction(creator.modality(un, "a", False),
 						creator.modality(un, "b", x)),
 					creator.conjunction(creator.modality(ex, "a", y),
-						creator.modality(un, "b", False))));
-		Formula solutionY1 = creator.let(x, solutionX1,
+						creator.modality(un, "b", False)))));
+		Formula solutionY1 = unLet(creator.let(x, solutionX1,
 				creator.conjunction(creator.modality(un, "a", False),
-					creator.modality(un, "b", x)));
+					creator.modality(un, "b", x))));
 
 		// This is the result when we first substitute variable X
-		Formula solutionY2 = creator.fixedPoint(fp, y, creator.let(x,
+		Formula solutionY2 = unLet(creator.fixedPoint(fp, y, creator.let(x,
 					creator.conjunction(
 						creator.modality(ex, "a", y),
 						creator.modality(un, "b", False)),
 					creator.conjunction(
 						creator.modality(un, "a", False),
-						creator.modality(un, "b", x))));
-		Formula solutionX2 = creator.let(y, solutionY2, creator.conjunction(
+						creator.modality(un, "b", x)))));
+		Formula solutionX2 = unLet(creator.let(y, solutionY2, creator.conjunction(
 					creator.modality(ex, "a", y),
-					creator.modality(un, "b", False)));
+					creator.modality(un, "b", False))));
 
 		Map<VariableFormula, Formula> result = new SolveEquationSystem().solve(fp, input);
 		assertThat(result, anyOf(
@@ -150,28 +151,28 @@ public class SolveEquationSystemTest {
 					creator.modality(un, "b", x)));
 
 		// This is the result when we first substitute variable Y
-		Formula solutionX1 = creator.fixedPoint(fp, x, creator.let(y,
+		Formula solutionX1 = unLet(creator.fixedPoint(fp, x, creator.let(y,
 					creator.conjunction(
 						creator.modality(un, "a", x),
 						creator.modality(un, "b", x)),
 					creator.conjunction(
 						creator.modality(ex, "a", y),
-						creator.modality(un, "b", y))));
-		Formula solutionY1 = creator.let(x, solutionX1, creator.conjunction(
+						creator.modality(un, "b", y)))));
+		Formula solutionY1 = unLet(creator.let(x, solutionX1, creator.conjunction(
 					creator.modality(un, "a", x),
-					creator.modality(un, "b", x)));
+					creator.modality(un, "b", x))));
 
 		// This is the result when we first substitute variable X
-		Formula solutionY2 = creator.fixedPoint(fp, y, creator.let(x,
+		Formula solutionY2 = unLet(creator.fixedPoint(fp, y, creator.let(x,
 					creator.conjunction(
 						creator.modality(ex, "a", y),
 						creator.modality(un, "b", y)),
 					creator.conjunction(
 						creator.modality(un, "a", x),
-						creator.modality(un, "b", x))));
-		Formula solutionX2 = creator.let(y, solutionY2, creator.conjunction(
+						creator.modality(un, "b", x)))));
+		Formula solutionX2 = unLet(creator.let(y, solutionY2, creator.conjunction(
 					creator.modality(ex, "a", y),
-					creator.modality(un, "b", y)));
+					creator.modality(un, "b", y))));
 
 		Map<VariableFormula, Formula> result = new SolveEquationSystem().solve(fp, input);
 		assertThat(result, anyOf(

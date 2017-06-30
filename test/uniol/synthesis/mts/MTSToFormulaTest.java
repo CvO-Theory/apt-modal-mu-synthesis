@@ -35,6 +35,7 @@ import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.FormulaCreator;
 import uniol.synthesis.adt.mu_calculus.Modality;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
+import static uniol.synthesis.util.UnLetTransformer.unLet;
 
 import org.testng.annotations.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -223,8 +224,8 @@ public class MTSToFormulaTest {
 					creator.modality(ex, "a", varS1),
 					creator.modality(un, "a", varS1)),
 				creator.modality(un, "b", creator.constant(false)));
-		Formula expected1 = creator.let(varS1, creator.let(varS2, expectedS2, expectedS1), inner);
-		Formula expected2 = creator.let(varS2, expectedS2, creator.let(varS1, expectedS1, inner));
+		Formula expected1 = unLet(creator.let(varS1, creator.let(varS2, expectedS2, expectedS1), inner));
+		Formula expected2 = unLet(creator.let(varS2, expectedS2, creator.let(varS1, expectedS1, inner)));
 
 		assertThat(new MTSToFormula().mtsToFormula(creator, mts), anyOf(is(expected1), is(expected2)));
 	}

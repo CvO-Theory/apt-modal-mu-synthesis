@@ -115,45 +115,10 @@ public class CleanFormFormulaTransformer extends FormulaFormulaTransformer {
 			if (getCache(formula.getFormula()) == null)
 				enqueueWalker(engine, formula.getFormula());
 		}
-
-		@Override
-		public void walk(NonRecursive engine, final LetFormula formula) {
-			engine.enqueue(new NonRecursive.Walker() {
-				@Override
-				public void walk(NonRecursive engine) {
-					Formula child = formula.getFormula();
-					Formula transformedChild = getCache(child);
-
-					VariableFormula newVariable = variableReplacements.get(formula.getVariable());
-					exitScope(formula.getVariable());
-
-					Formula expansion = formula.getExpansion();
-					Formula transformedExpansion = getCache(expansion);
-
-					if (child.equals(transformedChild) && expansion.equals(transformedExpansion)
-							&& formula.getVariable().equals(newVariable))
-						setCache(formula, formula);
-					else
-						setCache(formula, formula.getCreator().let(newVariable,
-									transformedExpansion, transformedChild));
-				}
-			});
-			enqueueWalker(engine, formula.getFormula());
-			engine.enqueue(new NonRecursive.Walker() {
-				@Override
-				public void walk(NonRecursive engine) {
-					enterScope(formula.getVariable());
-				}
-			});
-			if (getCache(formula.getExpansion()) == null)
-				enqueueWalker(engine, formula.getExpansion());
-		}
 	}
 
 	static public Formula cleanForm(Formula formula) {
 		CleanFormFormulaTransformer transformer = new CleanFormFormulaTransformer();
-		for (VariableFormula var : GetFreeVariables.getFreeVariables(formula))
-			transformer.variableReplacements.put(var, var);
 		NonRecursive engine = new NonRecursive();
 		transformer.transform(engine, formula);
 		engine.run();

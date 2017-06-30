@@ -54,7 +54,7 @@ public class SolveEquationSystem {
 					if (entry.getValue().equals(var)) {
 						entry.setValue(definition);
 					} else if (getFreeVariables(entry.getValue()).contains(var)) {
-						entry.setValue(var.getCreator().let(var, definition, entry.getValue()));
+						entry.setValue(substitute(entry.getValue(), var, definition));
 					}
 				}
 			}
