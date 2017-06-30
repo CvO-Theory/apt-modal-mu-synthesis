@@ -20,16 +20,28 @@
 package uniol.synthesis.util;
 
 import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
+import uniol.synthesis.adt.mu_calculus.ConstantFormula;
 import uniol.synthesis.adt.mu_calculus.DisjunctionFormula;
 import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
 import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.ModalityFormula;
 import uniol.synthesis.adt.mu_calculus.NegationFormula;
+import uniol.synthesis.adt.mu_calculus.VariableFormula;
 
 public abstract class FormulaFormulaTransformer extends FormulaTransformer<Formula> {
 	protected abstract class FillCache extends FormulaTransformer<Formula>.FillCache {
 		public FillCache(Formula formula) {
 			super(formula);
+		}
+
+		@Override
+		public void walk(NonRecursive engine, ConstantFormula formula) {
+			setCache(formula, formula);
+		}
+
+		@Override
+		public void walk(NonRecursive engine, VariableFormula formula) {
+			setCache(formula, formula);
 		}
 
 		@Override
