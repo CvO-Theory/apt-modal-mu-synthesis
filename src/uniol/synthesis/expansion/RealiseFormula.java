@@ -41,8 +41,8 @@ import uniol.synthesis.tableau.TableauBuilder;
 import uniol.synthesis.tableau.TableauNode;
 import uniol.synthesis.util.NonRecursive;
 
-import static uniol.synthesis.util.CleanFormFormulaTransformer.cleanForm;
 import static uniol.synthesis.util.PositiveFormFormulaTransformer.positiveForm;
+import static uniol.synthesis.util.UnLetTransformer.unLet;
 
 public class RealiseFormula implements NonRecursive.Walker {
 	static interface ReachingWordTransformerFactory {
@@ -118,7 +118,7 @@ public class RealiseFormula implements NonRecursive.Walker {
 
 	public RealiseFormula(PNProperties properties, Formula formula, RealisationCallback realisationCallback) {
 		// Create an empty TS, the default implementations for factories and forward to next constructor
-		this(getEmptyTS(), cleanForm(positiveForm(formula)), realisationCallback, new MissingArcsFinder<State>(),
+		this(getEmptyTS(), positiveForm(unLet(formula)), realisationCallback, new MissingArcsFinder<State>(),
 				new DefaultReachingWordTransformerFactory(), new DefaultContinueTableauFactory(),
 				new DefaultOverapproximateTS(properties));
 	}

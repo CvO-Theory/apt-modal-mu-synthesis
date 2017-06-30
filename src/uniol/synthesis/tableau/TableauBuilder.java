@@ -40,9 +40,9 @@ import uniol.synthesis.adt.mu_calculus.NegationFormula;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
 import uniol.synthesis.util.FormulaWalker;
 import uniol.synthesis.util.NonRecursive;
-import static uniol.synthesis.util.CleanFormFormulaTransformer.cleanForm;
 import static uniol.synthesis.util.PositiveFormFormulaTransformer.positiveForm;
 import static uniol.synthesis.util.SubstitutionTransformer.substitute;
+import static uniol.synthesis.util.UnLetTransformer.unLet;
 
 public class TableauBuilder<S> {
 	public interface ProgressCallback<S> {
@@ -96,7 +96,7 @@ public class TableauBuilder<S> {
 
 	public void createTableaus(ResultCallback<S> resultCallback, S state, Formula formula,
 			TableauSelection selection) {
-		formula = cleanForm(positiveForm(formula));
+		formula = positiveForm(unLet(formula));
 		expandTableau(resultCallback, Collections.singleton(new TableauNode<S>(followArcs, state, formula)),
 				selection);
 	}
