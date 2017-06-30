@@ -71,7 +71,7 @@ public class SubstitutionTransformerTest {
 		assertThat(SubstitutionTransformer.substitute(formula, variable, substitute), sameInstance(expected));
 	}
 
-	@Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = "No let formula is allowed.*")
+	@Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = "Let formulas are not supported")
 	public void testLetFormula() {
 		Formula True = creator.constant(true);
 		Formula formula = creator.let(variable, True, True);
