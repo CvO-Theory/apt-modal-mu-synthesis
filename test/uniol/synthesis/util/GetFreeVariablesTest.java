@@ -263,6 +263,15 @@ public class GetFreeVariablesTest {
 		assertThat(GetFreeVariables.getFreeVariables(formula), containsInAnyOrder(var, var2));
 		assertThat(formula, freeVariables(variables("bar", "foo"), 3, 1));
 	}
+
+	@Test
+	public void testBoundVariable() {
+		VariableFormula var = creator.variable("foo");
+		Formula innerFormula = creator.fixedPoint(FixedPoint.GREATEST, var, var);
+		Formula formula = creator.let(var, var, innerFormula);
+		assertThat(GetFreeVariables.getFreeVariables(formula), empty());
+		assertThat(formula, freeVariables(variables()));
+	}
 }
 
 // vim: ft=java:noet:sw=8:sts=8:ts=8:tw=120
