@@ -84,11 +84,6 @@ public class CleanFormFormulaTransformer extends FormulaFormulaTransformer {
 		}
 
 		@Override
-		public void walk(NonRecursive engine, ConstantFormula formula) {
-			setCache(formula, formula);
-		}
-
-		@Override
 		public void walk(NonRecursive engine, VariableFormula formula) {
 			VariableFormula replacement = variableReplacements.get(formula);
 			if (replacement != null)
