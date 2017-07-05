@@ -152,8 +152,6 @@ public class PositiveFormFormulaTransformerTest {
 	@Test
 	public void testFixedPoint2() {
 		FormulaCreator creator = new FormulaCreator();
-		Formula True = creator.constant(true);
-		Formula False = creator.constant(false);
 		VariableFormula var = creator.variable("foo");
 		Formula formula = creator.fixedPoint(FixedPoint.GREATEST, var, creator.modality(Modality.EXISTENTIAL, "a", var));
 		Formula expected = creator.fixedPoint(FixedPoint.LEAST, var, creator.modality(Modality.UNIVERSAL, "a", var));
