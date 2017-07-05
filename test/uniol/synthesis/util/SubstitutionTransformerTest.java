@@ -95,6 +95,18 @@ public class SubstitutionTransformerTest {
 				creator.fixedPoint(FixedPoint.GREATEST, variable, variable2)));
 		assertThat(SubstitutionTransformer.substitute(formula, variable, substitute), sameInstance(expected));
 	}
+
+	@Test
+	public void testCache() {
+		FormulaCreator creator = new FormulaCreator();
+		Formula formula = variable;
+		Formula expected = substitute;
+		for (int i = 0; i < 1000; i++) {
+			formula = creator.conjunction(formula, formula);
+			expected = creator.conjunction(expected, expected);
+		}
+		assertThat(SubstitutionTransformer.substitute(formula, variable, substitute), sameInstance(expected));
+	}
 }
 
 // vim: ft=java:noet:sw=8:sts=8:ts=8:tw=120

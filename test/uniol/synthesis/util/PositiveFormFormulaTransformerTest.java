@@ -178,6 +178,15 @@ public class PositiveFormFormulaTransformerTest {
 		VariableFormula var = creator.variable("foo");
 		positiveForm(creator.let(var, var, var));
 	}
+
+	@Test
+	public void testCache() {
+		FormulaCreator creator = new FormulaCreator();
+		Formula formula = creator.variable("foo");
+		for (int i = 0; i < 1000; i++)
+			formula = creator.conjunction(formula, formula);
+		assertThat(positiveForm(formula), sameInstance(formula));
+	}
 }
 
 // vim: ft=java:noet:sw=8:sts=8:ts=8:tw=120

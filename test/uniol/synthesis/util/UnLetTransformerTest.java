@@ -72,6 +72,19 @@ public class UnLetTransformerTest {
 		Formula formula = creator.let(var, creator.constant(true), innerFormula);
 		assertThat(unLet(formula), sameInstance(innerFormula));
 	}
+
+	@Test
+	public void testCache() {
+		FormulaCreator creator = new FormulaCreator();
+		Formula innerFormula = creator.variable("foo");
+		Formula expected = creator.constant(true);
+		for (int i = 0; i < 1000; i++) {
+			innerFormula = creator.conjunction(innerFormula, innerFormula);
+			expected = creator.conjunction(expected, expected);
+		}
+		Formula formula = creator.let(creator.variable("foo"), creator.constant(true), innerFormula);
+		assertThat(unLet(formula), sameInstance(expected));
+	}
 }
 
 // vim: ft=java:noet:sw=8:sts=8:ts=8:tw=120
