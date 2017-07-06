@@ -21,6 +21,7 @@ package uniol.synthesis.adt.mu_calculus;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.testng.annotations.Test;
@@ -243,6 +244,32 @@ public class FormulaFactoryTest {
 		stubCreator(creator, expected);
 
 		assertThat(LetFormula.let(creator, variable, expansion, child), sameInstance(expected));
+	}
+
+	@Test
+	public void testCallMiss() {
+		FormulaCreator creator = mock(FormulaCreator.class);
+		String function = "function";
+		String otherFunction = "otherFunction";
+		List<Formula> arguments = Arrays.asList(mock(Formula.class));
+		List<Formula> otherArguments = Collections.emptyList();
+		stubCreator(creator, new CallFormula(creator, otherFunction, arguments),
+				new CallFormula(creator, function, otherArguments));
+
+		CallFormula formula = CallFormula.call(creator, function, arguments);
+		assertThat(formula.getFunction(), equalTo(function));
+		assertThat(formula.getArguments(), equalTo(arguments));
+	}
+
+	@Test
+	public void testCallHit() {
+		FormulaCreator creator = mock(FormulaCreator.class);
+		String function = "function";
+		List<Formula> arguments = Collections.emptyList();
+		CallFormula expected = new CallFormula(creator, function, arguments);
+		stubCreator(creator, expected);
+
+		assertThat(CallFormula.call(creator, function, arguments), sameInstance(expected));
 	}
 }
 

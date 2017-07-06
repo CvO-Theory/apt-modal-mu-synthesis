@@ -22,10 +22,12 @@ package uniol.synthesis.adt.mu_calculus;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -86,6 +88,16 @@ public class FormulaCreator {
 	public LetFormula let(VariableFormula variable, Formula expansion, Formula formula) {
 		synchronized(objects) {
 			return LetFormula.let(this, variable, expansion, formula);
+		}
+	}
+
+	public CallFormula call(String function, Formula... arguments) {
+		return call(function, Arrays.asList(arguments));
+	}
+
+	public CallFormula call(String function, List<Formula> arguments) {
+		synchronized(objects) {
+			return CallFormula.call(this, function, arguments);
 		}
 	}
 

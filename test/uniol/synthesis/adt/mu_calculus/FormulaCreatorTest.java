@@ -21,6 +21,7 @@ package uniol.synthesis.adt.mu_calculus;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -226,6 +227,29 @@ public class FormulaCreatorTest {
 		assertThat(lf.getExpansion(), sameInstance(True));
 		assertThat(lf.getFormula(), sameInstance(False));
 		assertThat(lf, sameInstance(creator.let(var, True, False)));
+	}
+
+	@Test
+	public void testCallNoArgs() {
+		FormulaCreator creator = new FormulaCreator();
+		String function = "function";
+		CallFormula call = creator.call(function);
+		assertThat(call.getFunction(), equalTo(function));
+		assertThat(call.getArguments(), emptyIterable());
+		assertThat(call, sameInstance(creator.call(function)));
+	}
+
+	@Test
+	public void testCallSomeArgs() {
+		FormulaCreator creator = new FormulaCreator();
+		String function = "function";
+		Formula True = creator.constant(true);
+		Formula False = creator.constant(false);
+		VariableFormula var = creator.variable("foo");
+		CallFormula call = creator.call(function, True, False, var);
+		assertThat(call.getFunction(), equalTo(function));
+		assertThat(call.getArguments(), contains(True, False, var));
+		assertThat(call, sameInstance(creator.call(function, True, False, var)));
 	}
 }
 
