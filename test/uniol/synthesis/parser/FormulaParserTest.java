@@ -196,6 +196,31 @@ public class FormulaParserTest {
 	public void testInvalidCharacter() throws ParseException {
 		FormulaParser.parse(creator, "\u2622");
 	}
+
+	@Test
+	public void testFunctionCallNoArgs() throws ParseException {
+		Formula expected = creator.call("X");
+		assertThat(FormulaParser.parse(creator, "X()"), equalTo(expected));
+	}
+
+	@Test
+	public void testFunctionCallOneArg() throws ParseException {
+		Formula expected = creator.call("X", creator.variable("X"));
+		assertThat(FormulaParser.parse(creator, "X(X)"), equalTo(expected));
+	}
+
+	@Test
+	public void testFunctionCallManyArgs() throws ParseException {
+		Formula x = creator.variable("X");
+		Formula y = creator.variable("Y");
+		Formula expected = creator.call("X", x, x, x, y);
+		assertThat(FormulaParser.parse(creator, "X(X,X,X,Y)"), equalTo(expected));
+	}
+
+	@Test(expectedExceptions = ParseException.class)
+	public void testInvalidCall() throws ParseException {
+		FormulaParser.parse(creator, "X(X,)");
+	}
 }
 
 // vim: ft=java:noet:sw=8:sts=8:ts=8:tw=120

@@ -19,6 +19,10 @@
 
 package uniol.synthesis.parser;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStream;
@@ -104,6 +108,20 @@ public class FormulaParser {
 		public void exitTermLet(MuCalculusFormulaParser.TermLetContext ctx) {
 			formulas.put(ctx, creator.let(creator.variable(ctx.IDENTIFIER().getText()),
 							formulas.get(ctx.term(0)), formulas.get(ctx.term(1))));
+		}
+
+		@Override
+		public void exitTermCall(MuCalculusFormulaParser.TermCallContext ctx) {
+			MuCalculusFormulaParser.ArgumentsContext argsContext = ctx.arguments();
+			List<Formula> args = Collections.emptyList();
+			if (argsContext != null) {
+				List<MuCalculusFormulaParser.TermContext> list = argsContext.term();
+				args = new ArrayList<>(list.size());
+				for (MuCalculusFormulaParser.TermContext tCtx : list) {
+					args.add(formulas.get(tCtx));
+				}
+			}
+			formulas.put(ctx, creator.call(ctx.IDENTIFIER().getText(), args));
 		}
 
 		@Override

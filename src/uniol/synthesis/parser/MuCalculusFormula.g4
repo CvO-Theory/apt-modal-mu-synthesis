@@ -30,13 +30,17 @@ term:		NEGATION term					# termNegation
 	|	term CONJUNCTION term				# termConjunction
 	|	term DISJUNCTION term				# termDisjunction
 	|	LET IDENTIFIER EQUAL term IN term		# termLet
+	|	IDENTIFIER PAREN_OPEN arguments? PAREN_CLOSE	# termCall
 	|	MU IDENTIFIER DOT term				# termLeastFixedPoint
 	|	NU IDENTIFIER DOT term				# termGreatestFixedPoint
 	|	FALSE						# termFalse
 	|	TRUE						# termTrue
 	;
 
+arguments: term (COMMA term)*;
+
 DOT:		'.';
+COMMA:		',';
 PAREN_OPEN:	'(';
 PAREN_CLOSE:	')';
 ANGLE_OPEN:	'<';
