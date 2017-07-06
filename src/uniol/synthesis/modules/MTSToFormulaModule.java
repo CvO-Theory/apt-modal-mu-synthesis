@@ -55,6 +55,8 @@ public class MTSToFormulaModule extends AbstractModule implements Module {
 	@Override
 	public void require(ModuleInputSpec inputSpec) {
 		inputSpec.addParameter("mts", TransitionSystem.class, "The MTS to transform");
+		inputSpec.addOptionalParameterWithDefault("mode", String.class, "deterministic", "deterministic",
+				"Will the formula be interpreted on 'deterministic' systems or on 'generic' ones?");
 	}
 
 	@Override
@@ -65,7 +67,9 @@ public class MTSToFormulaModule extends AbstractModule implements Module {
 	@Override
 	public void run(ModuleInput input, ModuleOutput output) throws ModuleException {
 		TransitionSystem mts = input.getParameter("mts", TransitionSystem.class);
-		Formula formula = new MTSToFormula().mtsToFormula(new FormulaCreator(), mts);
+		String modeString = input.getParameter("mode", String.class);
+		MTSToFormula.Mode mode = MTSToFormula.Mode.valueOf(modeString.toUpperCase());
+		Formula formula = new MTSToFormula(mode).mtsToFormula(new FormulaCreator(), mts);
 		output.setReturnValue("formula", Formula.class, formula);
 	}
 

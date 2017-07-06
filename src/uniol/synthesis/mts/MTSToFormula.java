@@ -38,8 +38,26 @@ import uniol.synthesis.adt.mu_calculus.VariableFormula;
 import uniol.synthesis.util.SolveEquationSystem;
 
 public class MTSToFormula {
+	static public enum Mode {
+		GENERIC, DETERMINISTIC;
+	};
+
+	private final Mode mode;
+
+	public MTSToFormula(Mode mode) {
+		this.mode = mode;
+	}
+
 	protected VariableFormula getVariable(FormulaCreator creator, State state) {
 		return creator.variable(state.getId());
+	}
+
+	protected Collection<Arc> filterPureMayArcs(Collection<Arc> arcs) {
+		Collection<Arc> result = new ArrayList<>(arcs.size());
+		for (Arc arc : arcs)
+			if (arc.hasExtension("may"))
+				result.add(arc);
+		return result;
 	}
 
 	protected Collection<Arc> filterMustArcs(Collection<Arc> arcs) {
@@ -73,6 +91,10 @@ public class MTSToFormula {
 		for (String event : state.getGraph().getAlphabet()) {
 			Collection<Arc> mayArcs = state.getPostsetEdgesByLabel(event);
 			Collection<Arc> mustArcs = filterMustArcs(mayArcs);
+			if (mode.equals(Mode.DETERMINISTIC))
+				// If for a given label there is at most one arc with that label, the existential
+				// modality already makes sure that the target state of the arc behaves correctly.
+				mayArcs = filterPureMayArcs(mayArcs);
 
 			// Each must arc must have an implementation, so we have a conjunction of existential modalities
 			Formula mustFormula = creator.constant(true);
@@ -82,16 +104,21 @@ public class MTSToFormula {
 				mustFormula = conjunction(mustFormula, part);
 			}
 
-			// Each arc must be allowed by a may arc, so we have a disjunction inside a universal modality
-			Formula mayFormula = creator.constant(false);
-			for (Arc arc : mayArcs) {
-				Formula part = getVariable(creator, arc.getTarget());
-				mayFormula = disjunction(mayFormula, part);
-			}
-			mayFormula = creator.modality(Modality.UNIVERSAL, event, mayFormula);
+			if (mustArcs.isEmpty() || mode.equals(Mode.GENERIC)) {
+				// Each arc must be allowed by a may arc, so we have a disjunction inside a universal modality.
+				// If there are must arcs in a deterministic system, they already make sure that one of
+				// the valid targets is reached and this code would not allow more.
+				Formula mayFormula = creator.constant(false);
+				for (Arc arc : mayArcs) {
+					Formula part = getVariable(creator, arc.getTarget());
+					mayFormula = disjunction(mayFormula, part);
+				}
+				mayFormula = creator.modality(Modality.UNIVERSAL, event, mayFormula);
 
-			Formula formula = conjunction(mustFormula, mayFormula);
-			result = conjunction(result, formula);
+				Formula formula = conjunction(mustFormula, mayFormula);
+				result = conjunction(result, formula);
+			} else
+				result = conjunction(result, mustFormula);
 		}
 		return result;
 	}

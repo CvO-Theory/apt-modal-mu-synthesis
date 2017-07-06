@@ -49,7 +49,7 @@ public class MTSToFormulaTest {
 		Formula True = creator.constant(true);
 		Formula False = creator.constant(false);
 
-		MTSToFormula m = new MTSToFormula();
+		MTSToFormula m = new MTSToFormula(null);
 		assertThat(m.conjunction(True, True), is(True));
 		assertThat(m.conjunction(True, False), is(False));
 		assertThat(m.conjunction(False, True), is(False));
@@ -62,7 +62,7 @@ public class MTSToFormulaTest {
 		Formula True = creator.constant(true);
 		Formula False = creator.constant(false);
 
-		MTSToFormula m = new MTSToFormula();
+		MTSToFormula m = new MTSToFormula(null);
 		assertThat(m.disjunction(True, True), is((Formula) creator.disjunction(True, True)));
 		assertThat(m.disjunction(True, False), is(True));
 		assertThat(m.disjunction(False, True), is(True));
@@ -75,7 +75,7 @@ public class MTSToFormulaTest {
 		TransitionSystem mts = new TransitionSystem();
 		mts.createStates("s0", "s1", "s2", "s3");
 
-		MTSToFormula m = new MTSToFormula();
+		MTSToFormula m = new MTSToFormula(null);
 		assertThat(m.getVariable(creator, mts.getNode("s0")), is(creator.variable("s0")));
 		assertThat(m.getVariable(creator, mts.getNode("s1")), is(creator.variable("s1")));
 		assertThat(m.getVariable(creator, mts.getNode("s2")), is(creator.variable("s2")));
@@ -95,7 +95,7 @@ public class MTSToFormulaTest {
 		when(arc4.hasExtension("may")).thenReturn(false);
 
 		Set<Arc> arcs = new LinkedHashSet<>(Arrays.asList(arc1, arc2, arc3, arc4));
-		assertThat(new MTSToFormula().filterMustArcs(arcs), containsInAnyOrder(arc2, arc4));
+		assertThat(new MTSToFormula(null).filterMustArcs(arcs), containsInAnyOrder(arc2, arc4));
 	}
 
 	@Test
@@ -108,7 +108,7 @@ public class MTSToFormulaTest {
 		when(ts.getAlphabet()).thenReturn(alphabet);
 		when(state.getGraph()).thenReturn(ts);
 
-		assertThat(new MTSToFormula().stateToFormula(creator, state), is((Formula) creator.constant(true)));
+		assertThat(new MTSToFormula(null).stateToFormula(creator, state), is((Formula) creator.constant(true)));
 	}
 
 	@Test
@@ -124,14 +124,11 @@ public class MTSToFormulaTest {
 		Formula expected = creator.conjunction(
 				creator.modality(Modality.UNIVERSAL, "a", creator.constant(false)),
 				creator.modality(Modality.UNIVERSAL, "b", creator.constant(false)));
-		assertThat(new MTSToFormula().stateToFormula(creator, state), is(expected));
+		assertThat(new MTSToFormula(MTSToFormula.Mode.GENERIC).stateToFormula(creator, state), is(expected));
+		assertThat(new MTSToFormula(MTSToFormula.Mode.DETERMINISTIC).stateToFormula(creator, state), is(expected));
 	}
 
-	@Test
-	public void testStateToFormulaThreeMustEdges() {
-		Modality ex = Modality.EXISTENTIAL;
-		Modality un = Modality.UNIVERSAL;
-		FormulaCreator creator = new FormulaCreator();
+	private State getThreeMustEdges() {
 		State state = mock(State.class);
 		State target1 = mock(State.class);
 		State target2 = mock(State.class);
@@ -154,6 +151,16 @@ public class MTSToFormulaTest {
 		when(state.getPostsetEdgesByLabel("a")).thenReturn(aPostset);
 		when(state.getPostsetEdgesByLabel("b")).thenReturn(Collections.singleton(arcB));
 
+		return state;
+	}
+
+	@Test
+	public void testStateToFormulaThreeMustEdges_Generic() {
+		State state = getThreeMustEdges();
+		Modality ex = Modality.EXISTENTIAL;
+		Modality un = Modality.UNIVERSAL;
+		FormulaCreator creator = new FormulaCreator();
+
 		VariableFormula x1 = creator.variable("X1");
 		VariableFormula x2 = creator.variable("X2");
 		Formula expected = creator.conjunction(
@@ -171,7 +178,25 @@ public class MTSToFormulaTest {
 					creator.modality(ex, "b", x1),
 					// may-part for b
 					creator.modality(un, "b", x1)));
-		assertThat(new MTSToFormula().stateToFormula(creator, state), is(expected));
+		assertThat(new MTSToFormula(MTSToFormula.Mode.GENERIC).stateToFormula(creator, state), is(expected));
+	}
+
+	@Test
+	public void testStateToFormulaThreeMustEdges_Deterministic() {
+		State state = getThreeMustEdges();
+		Modality ex = Modality.EXISTENTIAL;
+		FormulaCreator creator = new FormulaCreator();
+
+		VariableFormula x1 = creator.variable("X1");
+		VariableFormula x2 = creator.variable("X2");
+		Formula expected = creator.conjunction(
+				// must-part for a
+				creator.conjunction(
+					creator.modality(ex, "a", x1),
+					creator.modality(ex, "a", x2)),
+				// must-part for b
+				creator.modality(ex, "b", x1));
+		assertThat(new MTSToFormula(MTSToFormula.Mode.DETERMINISTIC).stateToFormula(creator, state), is(expected));
 	}
 
 	@Test
@@ -183,7 +208,7 @@ public class MTSToFormulaTest {
 		mts.createStates("s0");
 		mts.setInitialState("s0");
 
-		Map<VariableFormula, Formula> result = new MTSToFormula().mtsToEquationSystem(creator, mts);
+		Map<VariableFormula, Formula> result = new MTSToFormula(null).mtsToEquationSystem(creator, mts);
 		assertThat(result, hasEntry(x0, (Formula) creator.constant(true)));
 		assertThat(result.entrySet(), hasSize(1));
 	}
@@ -195,12 +220,11 @@ public class MTSToFormulaTest {
 		mts.createStates("s0");
 		mts.setInitialState("s0");
 
-		Formula formula = new MTSToFormula().mtsToFormula(creator, mts);
+		Formula formula = new MTSToFormula(null).mtsToFormula(creator, mts);
 		assertThat(formula, is((Formula) creator.constant(true)));
 	}
 
-	@Test
-	public void testMTSToFormula() {
+	public void doTestMTSToFormula(MTSToFormula.Mode mode) {
 		Modality ex = Modality.EXISTENTIAL;
 		Modality un = Modality.UNIVERSAL;
 		FormulaCreator creator = new FormulaCreator();
@@ -220,14 +244,33 @@ public class MTSToFormulaTest {
 		Formula expectedS1 = creator.conjunction(
 				creator.modality(un, "a", creator.constant(false)),
 				creator.modality(un, "b", varS2));
-		Formula inner = creator.conjunction(creator.conjunction(
-					creator.modality(ex, "a", varS1),
-					creator.modality(un, "a", varS1)),
+		Formula inner = null;
+		switch (mode) {
+			case GENERIC:
+				inner = creator.conjunction(
+						creator.modality(ex, "a", varS1),
+						creator.modality(un, "a", varS1));
+				break;
+			case DETERMINISTIC:
+				inner = creator.modality(ex, "a", varS1);
+				break;
+		}
+		inner = creator.conjunction(inner,
 				creator.modality(un, "b", creator.constant(false)));
 		Formula expected1 = unLet(creator.let(varS1, creator.let(varS2, expectedS2, expectedS1), inner));
 		Formula expected2 = unLet(creator.let(varS2, expectedS2, creator.let(varS1, expectedS1, inner)));
 
-		assertThat(new MTSToFormula().mtsToFormula(creator, mts), anyOf(is(expected1), is(expected2)));
+		assertThat(new MTSToFormula(mode).mtsToFormula(creator, mts), anyOf(is(expected1), is(expected2)));
+	}
+
+	@Test
+	public void testMTSToFormula_Generic() {
+		doTestMTSToFormula(MTSToFormula.Mode.GENERIC);
+	}
+
+	@Test
+	public void testMTSToFormula_Deterministic() {
+		doTestMTSToFormula(MTSToFormula.Mode.DETERMINISTIC);
 	}
 }
 
