@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import uniol.synthesis.adt.mu_calculus.CallFormula;
 import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
 import uniol.synthesis.adt.mu_calculus.ConstantFormula;
 import uniol.synthesis.adt.mu_calculus.DisjunctionFormula;
@@ -89,6 +90,26 @@ public class AlphabetFinder extends FormulaTransformer<Set<String>> {
 		@Override
 		public Set<String> fixedPoint(FixedPointFormula formula, Set<String> transformedChild) {
 			return transformedChild;
+		}
+
+		@Override
+		public void walk(NonRecursive engine, CallFormula formula) {
+			boolean enqueuedSelf = false;
+			Set<String> result = new HashSet<>();
+			for (Formula arg : formula.getArguments()) {
+				Set<String> transform = getCache(arg);
+				if (transform != null) {
+					result.addAll(transform);
+					continue;
+				}
+				if (!enqueuedSelf)
+					engine.enqueue(this);
+				enqueuedSelf = true;
+				enqueueWalker(engine, arg);
+			}
+			if (enqueuedSelf)
+				return;
+			setCache(formula, result);
 		}
 	}
 

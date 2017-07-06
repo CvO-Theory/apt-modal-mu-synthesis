@@ -81,6 +81,14 @@ public class AlphabetFinderTest {
 	}
 
 	@Test
+	public void testCall() {
+		Formula formula = creator.call("foo",
+				creator.modality(Modality.UNIVERSAL, "a", creator.constant(true)),
+				creator.modality(Modality.EXISTENTIAL, "c", creator.constant(false)));
+		assertThat(AlphabetFinder.getAlphabet(formula), contains("a", "c"));
+	}
+
+	@Test
 	public void testCache() {
 		Formula formula = creator.modality(Modality.EXISTENTIAL, "a", creator.constant(true));
 		for (int i = 0; i < 1000; i++)
