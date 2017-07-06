@@ -22,6 +22,7 @@ package uniol.synthesis.util;
 import java.util.Deque;
 import java.util.ArrayDeque;
 
+import uniol.synthesis.adt.mu_calculus.CallFormula;
 import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
 import uniol.synthesis.adt.mu_calculus.ConstantFormula;
 import uniol.synthesis.adt.mu_calculus.DisjunctionFormula;
@@ -58,6 +59,8 @@ public abstract class FormulaWalker implements NonRecursive.Walker {
 			walk(engine, (FixedPointFormula) formula);
 		} else if (formula instanceof LetFormula) {
 			walk(engine, (LetFormula) formula);
+		} else if (formula instanceof CallFormula) {
+			walk(engine, (CallFormula) formula);
 		} else {
 			throw new AssertionError("Unknown subclass of formula: " + formula.getClass());
 		}
@@ -71,6 +74,10 @@ public abstract class FormulaWalker implements NonRecursive.Walker {
 	public abstract void walk(NonRecursive engine, ModalityFormula formula);
 	public abstract void walk(NonRecursive engine, FixedPointFormula formula);
 	public abstract void walk(NonRecursive engine, LetFormula formula);
+
+	public void walk(NonRecursive engine, CallFormula formula) {
+		throw new AssertionError("CallFormula not supported, but got: " + formula);
+	}
 }
 
 // vim: ft=java:noet:sw=8:sts=8:ts=8:tw=120

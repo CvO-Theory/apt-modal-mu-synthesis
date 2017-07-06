@@ -19,6 +19,9 @@
 
 package uniol.synthesis.util;
 
+import java.util.List;
+
+import uniol.synthesis.adt.mu_calculus.CallFormula;
 import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
 import uniol.synthesis.adt.mu_calculus.ConstantFormula;
 import uniol.synthesis.adt.mu_calculus.DisjunctionFormula;
@@ -101,6 +104,20 @@ public class PrintFormula extends FormulaWalker {
 		enqueue(engine, " = ");
 		enqueue(engine, formula.getVariable());
 		enqueue(engine, "(let ");
+	}
+
+	@Override
+	public void walk(NonRecursive engine, CallFormula formula) {
+		enqueue(engine, ")");
+		List<Formula> arguments = formula.getArguments();
+		for (int index = arguments.size() - 1; index > 0; index--) {
+			enqueue(engine, arguments.get(index));
+			enqueue(engine, ", ");
+		}
+		if (!arguments.isEmpty())
+			enqueue(engine, arguments.get(0));
+		enqueue(engine, "(");
+		enqueue(engine, formula.getFunction());
 	}
 
 	private void enqueue(NonRecursive engine, Formula formula) {

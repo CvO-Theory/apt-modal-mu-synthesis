@@ -140,6 +140,22 @@ public class PrintFormulaTest {
 		Formula formula = creator.let(var, expansion, inner);
 		test(formula, "(let var = true in false)");
 	}
+
+	@Test
+	public void testCallNoArgs() throws Exception {
+		FormulaCreator creator = new FormulaCreator();
+		Formula formula = creator.call("function");
+		test(formula, "function()");
+	}
+
+	@Test
+	public void testCallWithArgs() throws Exception {
+		FormulaCreator creator = new FormulaCreator();
+		Formula True = creator.constant(true);
+		Formula False = creator.constant(false);
+		Formula formula = creator.call("function", True, False);
+		test(formula, "function(true, false)");
+	}
 }
 
 // vim: ft=java:noet:sw=8:sts=8:ts=8:tw=120
