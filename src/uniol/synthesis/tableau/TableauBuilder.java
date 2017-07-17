@@ -24,8 +24,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashSet;
-import java.util.Queue;
 import java.util.Set;
 
 import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
@@ -114,7 +114,7 @@ public class TableauBuilder<S> {
 		private final ProgressCallback<S> callback;
 		private final ResultCallback<S> resultCallback;
 		private final Collection<TableauNode<S>> leaves = new ArrayList<>();
-		private final Queue<ExpandNodeWalker<S>> todo = new ArrayDeque<>();
+		private final Deque<ExpandNodeWalker<S>> todo = new ArrayDeque<>();
 		private final TableauSelection selection;
 
 		private CreateTableaus(ProgressCallback<S> callback, ResultCallback<S> resultCallback,
@@ -163,7 +163,7 @@ public class TableauBuilder<S> {
 						return;
 				} else {
 					for (TableauNode<S> child : children) {
-						todo.add(new ExpandNodeWalker<S>(child));
+						addToTodo(this, child);
 					}
 				}
 				// Continue handling the children
@@ -173,10 +173,18 @@ public class TableauBuilder<S> {
 				for (Collection<TableauNode<S>> part : expansion) {
 					CreateTableaus<S> split = new CreateTableaus<S>(this);
 					for (TableauNode<S> child : part) {
-						split.todo.add(new ExpandNodeWalker<S>(child));
+						addToTodo(split, child);
 					}
 					engine.enqueue(split);
 				}
+			}
+		}
+
+		static private <S> void addToTodo(CreateTableaus<S> creator, TableauNode<S> child) {
+			if (child.getFormula() instanceof DisjunctionFormula) {
+				creator.todo.addLast(new ExpandNodeWalker<S>(child));
+			} else {
+				creator.todo.addFirst(new ExpandNodeWalker<S>(child));
 			}
 		}
 	}
