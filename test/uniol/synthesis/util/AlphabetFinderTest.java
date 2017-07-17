@@ -85,7 +85,7 @@ public class AlphabetFinderTest {
 		Formula formula = creator.call("foo",
 				creator.modality(Modality.UNIVERSAL, "a", creator.constant(true)),
 				creator.modality(Modality.EXISTENTIAL, "c", creator.constant(false)));
-		assertThat(AlphabetFinder.getAlphabet(formula), contains("a", "c"));
+		assertThat(AlphabetFinder.getAlphabet(formula), containsInAnyOrder("a", "c"));
 	}
 
 	@Test
