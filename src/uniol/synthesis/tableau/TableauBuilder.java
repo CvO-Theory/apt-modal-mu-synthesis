@@ -123,7 +123,7 @@ public class TableauBuilder<S> {
 			this.resultCallback = resultCallback;
 			this.selection = selection;
 			for (TableauNode<S> node : nodes)
-				this.todo.add(new ExpandNodeWalker<S>(node));
+				addToTodo(this, node);
 		}
 
 		private CreateTableaus(CreateTableaus<S> toCopy) {
