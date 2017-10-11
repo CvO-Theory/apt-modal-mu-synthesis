@@ -45,6 +45,7 @@ public class SubstitutionTransformer extends FormulaFormulaTransformer {
 		this.substitution = substitution;
 	}
 
+	@Override
 	protected void enqueueWalker(NonRecursive engine, Formula formula) {
 		engine.enqueue(new Worker(formula));
 	}
