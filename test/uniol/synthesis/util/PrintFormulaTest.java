@@ -19,6 +19,8 @@
 
 package uniol.synthesis.util;
 
+import java.io.IOException;
+
 import org.testng.annotations.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -155,6 +157,37 @@ public class PrintFormulaTest {
 		Formula False = creator.constant(false);
 		Formula formula = creator.call("function", True, False);
 		test(formula, "function(true, false)");
+	}
+
+	@Test
+	public void testIOException() {
+		final IOException ex = new IOException();
+		Appendable appendable = new Appendable() {
+			@Override
+			public Appendable append(char c) throws IOException {
+				throw ex;
+			}
+
+			@Override
+			public Appendable append(CharSequence cs) throws IOException {
+				throw ex;
+			}
+
+			@Override
+			public Appendable append(CharSequence cs, int begin, int end) throws IOException {
+				throw ex;
+			}
+		};
+
+		FormulaCreator creator = new FormulaCreator();
+		Formula True = creator.constant(true);
+
+		try {
+			PrintFormula.printFormula(appendable, True);
+			throw new AssertionError("This line should not be reached");
+		} catch (IOException e) {
+			assertThat(e, sameInstance(ex));
+		}
 	}
 }
 

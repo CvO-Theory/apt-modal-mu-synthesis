@@ -19,6 +19,7 @@
 
 package uniol.synthesis.util;
 
+import java.io.IOException;
 import java.util.List;
 
 import uniol.synthesis.adt.mu_calculus.CallFormula;
@@ -33,9 +34,9 @@ import uniol.synthesis.adt.mu_calculus.NegationFormula;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
 
 public class PrintFormula extends FormulaWalker {
-	private final StringBuilder sb;
+	private final Appendable sb;
 
-	private PrintFormula(StringBuilder sb, Formula formula) {
+	private PrintFormula(Appendable sb, Formula formula) {
 		super(formula);
 		this.sb = sb;
 	}
@@ -128,13 +129,38 @@ public class PrintFormula extends FormulaWalker {
 		engine.enqueue(new NonRecursive.Walker() {
 			@Override
 			public void walk(NonRecursive engine) {
-				sb.append(string);
+				try {
+					sb.append(string);
+				} catch (IOException e) {
+					throw new RuntimeIOException(e);
+				}
 			}
 		});
 	}
 
 	static public void printFormula(StringBuilder sb, Formula formula) {
 		new NonRecursive().run(new PrintFormula(sb, formula));
+	}
+
+	static public void printFormula(Appendable sb, Formula formula) throws IOException {
+		try {
+			new NonRecursive().run(new PrintFormula(sb, formula));
+		} catch (RuntimeIOException e) {
+			throw e.getCause();
+		}
+	}
+
+	static private class RuntimeIOException extends RuntimeException {
+		public static final long serialVersionUID = 0;
+
+		public RuntimeIOException(IOException e) {
+			super(e);
+		}
+
+		@Override
+		public IOException getCause() {
+			return (IOException) super.getCause();
+		}
 	}
 }
 
