@@ -59,12 +59,12 @@ public class LetTransformerTest {
 
 		Formula letted = let(formula);
 
-		Formula expected = creator.let(creator.variable("{cse.0}"),
-				creator.let(creator.variable("{cse.1}"),
-					creator.let(creator.variable("{cse.2}"), base,
-					creator.conjunction(creator.variable("{cse.2}"), creator.variable("{cse.2}"))),
-					creator.conjunction(creator.variable("{cse.1}"), creator.variable("{cse.1}"))),
-				creator.conjunction(creator.variable("{cse.0}"), creator.variable("{cse.0}")));
+		Formula expected = creator.let(creator.variable("cse0"),
+				creator.let(creator.variable("cse1"),
+					creator.let(creator.variable("cse2"), base,
+					creator.conjunction(creator.variable("cse2"), creator.variable("cse2"))),
+					creator.conjunction(creator.variable("cse1"), creator.variable("cse1"))),
+				creator.conjunction(creator.variable("cse0"), creator.variable("cse0")));
 		assertThat(letted, sameInstance(expected));
 		assertThat(unLet(letted), sameInstance(formula));
 	}
@@ -85,19 +85,19 @@ public class LetTransformerTest {
 		Formula letted = let(formula);
 
 		// The let-form of this is one of the following:
-		// let {cse.1} = (true&&true) in let {cse.0} = (false||false) in ({cse.1} && {cse.0}) && ({cse.0} && {cse.1})
-		// let {cse.0} = (false||false) in let {cse.1} = (true&&true) in ({cse.1} && {cse.0}) && ({cse.0} && {cse.1})
+		// let cse1 = (true&&true) in let cse0 = (false||false) in (cse1 && cse0) && (cse0 && cse1)
+		// let cse0 = (false||false) in let cse1 = (true&&true) in (cse1 && cse0) && (cse0 && cse1)
 		Formula inner = creator.conjunction(
-				creator.conjunction(creator.variable("{cse.0}"), creator.variable("{cse.1}")),
-				creator.conjunction(creator.variable("{cse.1}"), creator.variable("{cse.0}")));
-		Formula expected1 = creator.let(creator.variable("{cse.0}"),
+				creator.conjunction(creator.variable("cse0"), creator.variable("cse1")),
+				creator.conjunction(creator.variable("cse1"), creator.variable("cse0")));
+		Formula expected1 = creator.let(creator.variable("cse0"),
 					inner1,
-					creator.let(creator.variable("{cse.1}"),
+					creator.let(creator.variable("cse1"),
 						inner2,
 						inner));
-		Formula expected2 = creator.let(creator.variable("{cse.1}"),
+		Formula expected2 = creator.let(creator.variable("cse1"),
 					inner2,
-					creator.let(creator.variable("{cse.0}"),
+					creator.let(creator.variable("cse0"),
 						inner1,
 						inner));
 		assertThat(letted, anyOf(sameInstance(expected1), sameInstance(expected2)));
@@ -116,9 +116,9 @@ public class LetTransformerTest {
 
 		Formula letted = let(formula);
 
-		VariableFormula cse0 = creator.variable("{cse.0}");
-		VariableFormula cse1 = creator.variable("{cse.1}");
-		VariableFormula cse2 = creator.variable("{cse.2}");
+		VariableFormula cse0 = creator.variable("cse0");
+		VariableFormula cse1 = creator.variable("cse1");
+		VariableFormula cse2 = creator.variable("cse2");
 		Formula expected = creator.let(cse0,
 				creator.modality(Modality.UNIVERSAL, "b", False),
 			creator.let(cse1,
@@ -141,8 +141,8 @@ public class LetTransformerTest {
 
 		Formula letted = let(formula);
 
-		VariableFormula cse0 = creator.variable("{cse.0}");
-		VariableFormula cse1 = creator.variable("{cse.1}");
+		VariableFormula cse0 = creator.variable("cse0");
+		VariableFormula cse1 = creator.variable("cse1");
 		Formula expected = creator.let(cse0,
 				creator.modality(Modality.UNIVERSAL, "a", False),
 			creator.let(cse1,

@@ -70,7 +70,7 @@ public class FormulaCreator {
 	public VariableFormula freshVariable(String prefix) {
 		synchronized(objects) {
 			while (true) {
-				String name = "{" + prefix + "." + freshVariableCounter++ + "}";
+				String name = prefix + freshVariableCounter++;
 				VariableFormula var = VariableFormula.variable(this, name, true);
 				if (var != null)
 					return var;

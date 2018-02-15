@@ -78,7 +78,7 @@ public class CleanFormFormulaTransformerTest {
 
 		Formula clean = CleanFormFormulaTransformer.cleanForm(formula);
 		Formula expected = creator.fixedPoint(FixedPoint.GREATEST, var, creator.fixedPoint(FixedPoint.LEAST,
-					creator.variable("{foo.0}"), creator.variable("{foo.0}")));
+					creator.variable("foo0"), creator.variable("foo0")));
 		assertThat(clean, sameInstance(expected));
 	}
 

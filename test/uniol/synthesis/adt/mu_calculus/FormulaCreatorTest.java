@@ -187,9 +187,9 @@ public class FormulaCreatorTest {
 		VariableFormula var0 = creator.freshVariable("foo");
 		VariableFormula var1 = creator.freshVariable("foo");
 		VariableFormula var2 = creator.freshVariable("foo");
-		assertThat(var0.getVariable(), equalTo("{foo.0}"));
-		assertThat(var1.getVariable(), equalTo("{foo.1}"));
-		assertThat(var2.getVariable(), equalTo("{foo.2}"));
+		assertThat(var0.getVariable(), equalTo("foo0"));
+		assertThat(var1.getVariable(), equalTo("foo1"));
+		assertThat(var2.getVariable(), equalTo("foo2"));
 	}
 
 	@Test
