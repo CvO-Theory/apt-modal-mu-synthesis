@@ -63,13 +63,18 @@ public class FormulaCreator {
 
 	public VariableFormula variable(String var) {
 		synchronized(objects) {
-			return VariableFormula.variable(this, var);
+			return VariableFormula.variable(this, var, false);
 		}
 	}
 
 	public VariableFormula freshVariable(String prefix) {
 		synchronized(objects) {
-			return variable("{" + prefix + "." + freshVariableCounter++ + "}");
+			while (true) {
+				String name = "{" + prefix + "." + freshVariableCounter++ + "}";
+				VariableFormula var = VariableFormula.variable(this, name, true);
+				if (var != null)
+					return var;
+			}
 		}
 	}
 

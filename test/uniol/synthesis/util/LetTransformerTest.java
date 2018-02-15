@@ -81,6 +81,9 @@ public class LetTransformerTest {
 		Formula formula = creator.conjunction(
 				creator.conjunction(inner1, inner2),
 				creator.conjunction(inner2, inner1));
+
+		Formula letted = let(formula);
+
 		// The let-form of this is one of the following:
 		// let {cse.1} = (true&&true) in let {cse.0} = (false||false) in ({cse.1} && {cse.0}) && ({cse.0} && {cse.1})
 		// let {cse.0} = (false||false) in let {cse.1} = (true&&true) in ({cse.1} && {cse.0}) && ({cse.0} && {cse.1})
@@ -97,7 +100,7 @@ public class LetTransformerTest {
 					creator.let(creator.variable("{cse.0}"),
 						inner1,
 						inner));
-		assertThat(let(formula), anyOf(sameInstance(expected1), sameInstance(expected2)));
+		assertThat(letted, anyOf(sameInstance(expected1), sameInstance(expected2)));
 	}
 
 	@Test
@@ -111,6 +114,8 @@ public class LetTransformerTest {
 				creator.conjunction(inner2,
 					creator.conjunction(inner1, inner)));
 
+		Formula letted = let(formula);
+
 		VariableFormula cse0 = creator.variable("{cse.0}");
 		VariableFormula cse1 = creator.variable("{cse.1}");
 		VariableFormula cse2 = creator.variable("{cse.2}");
@@ -122,7 +127,7 @@ public class LetTransformerTest {
 				creator.conjunction(cse1, cse0),
 				creator.conjunction(cse2, creator.conjunction(cse0,
 					creator.conjunction(cse1, cse2))))));
-		assertThat(let(formula), sameInstance(expected));
+		assertThat(letted, sameInstance(expected));
 	}
 
 	@Test
@@ -134,6 +139,8 @@ public class LetTransformerTest {
 				creator.modality(Modality.UNIVERSAL, "b", False));
 		Formula formula = creator.conjunction(inner2, creator.conjunction(inner2, inner1));
 
+		Formula letted = let(formula);
+
 		VariableFormula cse0 = creator.variable("{cse.0}");
 		VariableFormula cse1 = creator.variable("{cse.1}");
 		Formula expected = creator.let(cse0,
@@ -141,7 +148,7 @@ public class LetTransformerTest {
 			creator.let(cse1,
 				creator.conjunction(cse0, creator.modality(Modality.UNIVERSAL, "b", False)),
 			creator.conjunction(cse1, creator.conjunction(cse1, cse0))));
-		assertThat(let(formula), sameInstance(expected));
+		assertThat(letted, sameInstance(expected));
 	}
 }
 

@@ -199,7 +199,7 @@ public class FormulaFactoryTest {
 		FormulaCreator creator = mock(FormulaCreator.class);
 		stubCreator(creator, new VariableFormula(creator, "foo"));
 
-		VariableFormula formula = VariableFormula.variable(creator, "bar");
+		VariableFormula formula = VariableFormula.variable(creator, "bar", false);
 		assertThat(formula.getVariable(), equalTo("bar"));
 	}
 
@@ -213,7 +213,20 @@ public class FormulaFactoryTest {
 		VariableFormula expected = new VariableFormula(creator, a1);
 		stubCreator(creator, expected);
 
-		assertThat(VariableFormula.variable(creator, a2), sameInstance(expected));
+		assertThat(VariableFormula.variable(creator, a2, false), sameInstance(expected));
+	}
+
+	@Test
+	public void testVariableHitButIgnored() {
+		String a1 = new String(new char[] { 'a' });
+		String a2 = new String(new char[] { 'a' });
+		assertThat(a1, not(sameInstance(a2)));
+
+		FormulaCreator creator = mock(FormulaCreator.class);
+		VariableFormula expected = new VariableFormula(creator, a1);
+		stubCreator(creator, expected);
+
+		assertThat(VariableFormula.variable(creator, a2, true), nullValue());
 	}
 
 	@Test
