@@ -57,7 +57,7 @@
 		<mkdir dir="test-classes/" />
 		<depend srcdir="test/" destdir="test-classes/">
 			<classpath>
-				<dirset dir="classes/" includes="*" />
+				<dirset dir="classes/" />
 			</classpath>
 		</depend>
 		<javac includes="**" encoding="utf-8" destdir="test-classes" source="1.7" target="1.7" debug="true" includeantruntime="false">
