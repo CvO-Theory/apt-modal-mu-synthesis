@@ -42,6 +42,8 @@ import uniol.synthesis.util.AlphabetFinder;
 import uniol.synthesis.util.FormulaFormulaTransformer;
 import uniol.synthesis.util.NonRecursive;
 
+import static uniol.synthesis.util.UnLetTransformer.unLet;
+
 @AptModule
 public class HidingOperatorModule extends AbstractModule implements Module {
 	@Override
@@ -72,6 +74,7 @@ public class HidingOperatorModule extends AbstractModule implements Module {
 
 	// Get the alphabet and use HidingFindingTransformer to find & transform all hide invocations
 	public static Formula handleHide(Formula formula) {
+		formula = unLet(formula);
 		Set<String> alphabet = AlphabetFinder.getAlphabet(formula);
 		HidingFindingTransformer hide = new HidingFindingTransformer(alphabet);
 		NonRecursive engine = new NonRecursive();
