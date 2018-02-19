@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.Executor;
 
 import org.apache.commons.collections4.Transformer;
 
@@ -102,11 +103,10 @@ public class RealiseFormulaTest {
 		State state = mock(State.class);
 		when(ts.getInitialState()).thenReturn(state);
 
-		AddToSetRealisationCallback addToSet = new AddToSetRealisationCallback();
-		new RealiseFormula.Worker(new RealiseFormula(addToSet, null, null, null, null, 1),
-				ts, tableau).run();
+		RealiseFormula realise = new RealiseFormula(new NeverCalledRealisationCallback(), null, null, null, null, 1);
+		new RealiseFormula.Worker(realise, ts, tableau, null).run();
 
-		assertThat(addToSet.result, contains(pairWith(ts, tableau)));
+		assertThat(realise.pendingRealisations, contains(pairWith(ts, tableau)));
 	}
 
 	@Test
@@ -125,7 +125,7 @@ public class RealiseFormulaTest {
 
 		new RealiseFormula.Worker(new RealiseFormula(new NeverCalledRealisationCallback(), missingArcsFinder,
 					new StateWithSameNameTransformerFactory(), continueTableauFactory,
-				new NOPOverapproximateTS(), 1), ts, tableau).run();
+				new NOPOverapproximateTS(), 1), ts, tableau, null).run();
 
 		verify(missingArcsFinder, times(1)).findMissing(tableau);
 		verify(continueTableauFactory, times(1)).continueTableau((Tableau<State>) anyObject());
@@ -143,7 +143,7 @@ public class RealiseFormulaTest {
 
 		new RealiseFormula.Worker(new RealiseFormula(new NeverCalledRealisationCallback(), missingArcsFinder,
 				new StateWithSameNameTransformerFactory(), continueTableauFactory,
-				overapproximateTS, 1), ts, tableau).run();
+				overapproximateTS, 1), ts, tableau, null).run();
 
 		verify(missingArcsFinder, times(1)).findMissing(tableau);
 		verify(continueTableauFactory, times(2)).continueTableau((Tableau<State>) anyObject());
@@ -176,20 +176,20 @@ public class RealiseFormulaTest {
 		MissingArcsFinder<State> missingArcsFinder = mock(MissingArcsFinder.class);
 		RealiseFormula.ContinueTableauFactory continueTableauFactory
 			= mock(RealiseFormula.ContinueTableauFactory.class);
+		Executor executor = mock(Executor.class);
 
 		when(missingArcsFinder.findMissing(tableau)).thenReturn(Collections.<Pair<State, String>>emptySet());
 		when(continueTableauFactory.continueTableau((Tableau) anyObject())).thenReturn(new HashSet<Tableau<State>>(
 					Arrays.asList(tableau1, tableau2)));
 
-		Set<RealiseFormula.Worker> next = new RealiseFormula.Worker(new RealiseFormula(
+		new RealiseFormula.Worker(new RealiseFormula(
 					new NeverCalledRealisationCallback(), missingArcsFinder,
 					new StateWithSameNameTransformerFactory(), continueTableauFactory,
-					new NOPOverapproximateTS(), 1), ts, tableau).run();
+					new NOPOverapproximateTS(), 1), ts, tableau, executor).run();
 
 		verify(missingArcsFinder, times(1)).findMissing(tableau);
 		verify(continueTableauFactory, times(1)).continueTableau((Tableau<State>) anyObject());
-
-		assertThat(next, hasSize(2));
+		verify(executor, times(2)).execute(Mockito.isA(RealiseFormula.Worker.class));
 	}
 
 	@Test
@@ -219,21 +219,21 @@ public class RealiseFormulaTest {
 		RealiseFormula.ContinueTableauFactory continueTableauFactory
 			= mock(RealiseFormula.ContinueTableauFactory.class);
 		RealiseFormula.OverapproximateTS overapprox = spy(new NOPOverapproximateTS());
+		Executor executor = mock(Executor.class);
 
 		Pair<State, String> missingArc = new Pair<>(ts.getInitialState(), "a");
 		when(missingArcsFinder.findMissing(tableau)).thenReturn(Collections.singleton(missingArc));
 		when(continueTableauFactory.continueTableau(tableau)).thenReturn(Collections.singleton(tableau));
 
-		Set<RealiseFormula.Worker> next = new RealiseFormula.Worker(new RealiseFormula(
+		new RealiseFormula.Worker(new RealiseFormula(
 					new NeverCalledRealisationCallback(), missingArcsFinder,
 					new StateWithSameNameTransformerFactory(), continueTableauFactory, overapprox,
-					multiple ? 2 : 1), ts, tableau).run();
+					multiple ? 2 : 1), ts, tableau, executor).run();
 
 		verify(missingArcsFinder, times(multiple ? 2 : 1)).findMissing(tableau);
 		verify(continueTableauFactory, times(multiple ? 3 : 2)).continueTableau((Tableau<State>) anyObject());
 		verify(overapprox, times(1)).overapproximate((TransitionSystem) anyObject());
-
-		assertThat(next, hasSize(1));
+		verify(executor, times(1)).execute(Mockito.isA(RealiseFormula.Worker.class));
 	}
 
 	@Test

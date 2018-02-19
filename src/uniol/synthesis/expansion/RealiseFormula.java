@@ -21,9 +21,12 @@ package uniol.synthesis.expansion;
 
 import java.util.ArrayDeque;
 import java.util.Collections;
-import java.util.Deque;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Collection;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Executor;
 import org.apache.commons.collections4.Transformer;
 
 import uniol.apt.adt.ts.State;
@@ -112,6 +115,9 @@ public class RealiseFormula {
 	private final OverapproximateTS overapproximateTS;
 	private final int maxStepsWithoutApproximations;
 
+	private final AtomicInteger unfinishedWorkers = new AtomicInteger(0);
+	final Collection<Pair<TransitionSystem, Tableau<State>>> pendingRealisations = new ArrayDeque<>();
+
 	public RealiseFormula(PNProperties properties, RealisationCallback realisationCallback) {
 		this(properties, realisationCallback, properties.isKBounded() ? 2 * properties.getKForKBounded() : 2);
 	}
@@ -136,21 +142,30 @@ public class RealiseFormula {
 		this.maxStepsWithoutApproximations = maxStepsWithoutApproximations;
 	}
 
-	static class Worker {
+	static class Worker implements Runnable {
 		private final RealiseFormula rf;
-		final TransitionSystem ts;
-		final Tableau<State> tableau;
+		private final TransitionSystem ts;
+		private final Tableau<State> tableau;
+		private final Executor executor;
 
-		public Worker(RealiseFormula rf, TransitionSystem ts, Tableau<State> tableau) {
+		public Worker(RealiseFormula rf, TransitionSystem ts, Tableau<State> tableau, Executor executor) {
 			this.rf = rf;
 			this.ts = ts;
 			this.tableau = tableau;
+			this.executor = executor;
+
+			rf.unfinishedWorkers.incrementAndGet();
 		}
 
-		public Set<Worker> run() {
+		@Override
+		public void run() {
 			if (tableau.isSuccessful()) {
-				rf.realisationCallback.foundRealisation(ts, tableau);
-				return Collections.emptySet();
+				rf.unfinishedWorkers.decrementAndGet();
+				synchronized(rf.pendingRealisations) {
+					rf.pendingRealisations.add(new Pair<TransitionSystem, Tableau<State>>(ts, tableau));
+					rf.pendingRealisations.notify();
+				}
+				return;
 			}
 
 			TransitionSystem currentTs = new TransitionSystem(ts);
@@ -185,10 +200,15 @@ public class RealiseFormula {
 			// instances for continuing there.
 			TransitionSystem overapproxTS = rf.overapproximateTS.overapproximate(currentTs);
 			Tableau<State> transformedTableau = currentTableau.transform(rf.reachingWordTransformerFactory.create(overapproxTS));
-			Set<Worker> result = new HashSet<>();
 			for (Tableau<State> newTableau : rf.continueTableauFactory.continueTableau(transformedTableau))
-				result.add(new Worker(rf, overapproxTS, newTableau));
-			return result;
+				executor.execute(new Worker(rf, overapproxTS, newTableau, executor));
+
+			// Signal the main thread if we were the last worker
+			if (rf.unfinishedWorkers.decrementAndGet() == 0) {
+				synchronized(rf.pendingRealisations) {
+					rf.pendingRealisations.notify();
+				}
+			}
 		}
 	}
 
@@ -204,12 +224,27 @@ public class RealiseFormula {
 
 		Tableau<State> tableau = new Tableau<State>(Collections.singleton(new TableauNode<State>(
 						new StateFollowArcs(), ts.getInitialState(), formula)));
-		Deque<Worker> todo = new ArrayDeque<Worker>();
-		todo.add(new Worker(this, ts, tableau));
+		ForkJoinPool pool = new ForkJoinPool();
+		pool.execute(new Worker(this, ts, tableau, pool));
 
-		while (!todo.isEmpty()) {
-			todo.addAll(todo.removeLast().run());
+		// Wait for all tasks to be done
+		synchronized(pendingRealisations) {
+			while (unfinishedWorkers.get() > 0) {
+				for (Pair<TransitionSystem, Tableau<State>> pair : pendingRealisations)
+					realisationCallback.foundRealisation(pair.getFirst(), pair.getSecond());
+				pendingRealisations.clear();
+
+				try {
+					pendingRealisations.wait();
+				} catch (InterruptedException e) {
+					// Hm... What to do with this?
+					throw new AssertionError(e);
+				}
+			}
 		}
+
+		for (Pair<TransitionSystem, Tableau<State>> pair : pendingRealisations)
+			realisationCallback.foundRealisation(pair.getFirst(), pair.getSecond());
 	}
 }
 
