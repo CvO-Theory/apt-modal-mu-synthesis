@@ -80,7 +80,7 @@ public class RealiseFormulaIntegrationTest {
 
 	private Pair<TransitionSystem, Tableau<State>> realiseUnique(PNProperties properties, Formula formula) {
 		final Result result = new Result();
-		new NonRecursive().run(new RealiseFormula(properties, formula,
+		new RealiseFormula(properties,
 					new RealiseFormula.RealisationCallback() {
 						@Override
 						public void foundRealisation(TransitionSystem ts, Tableau<State> tableau) {
@@ -89,7 +89,7 @@ public class RealiseFormulaIntegrationTest {
 							result.resultTS = ts;
 							result.resultTab = tableau;
 						}
-		}));
+		}).realise(formula);
 
 		assertThat(result.resultTS, not(nullValue()));
 		assertThat(result.resultTab, not(nullValue()));
@@ -207,13 +207,13 @@ public class RealiseFormulaIntegrationTest {
 
 		PNProperties properties = new PNProperties().requireKBounded(3);
 
-		new NonRecursive().run(new RealiseFormula(properties, formula,
+		new RealiseFormula(properties,
 					new RealiseFormula.RealisationCallback() {
 						@Override
 						public void foundRealisation(TransitionSystem ts, Tableau<State> tableau) {
 							fail();
 						}
-					}));
+					}).realise(formula);
 	}
 
 	@Test
@@ -230,13 +230,13 @@ public class RealiseFormulaIntegrationTest {
 		PNProperties properties = new PNProperties().requireKBounded(1);
 
 		final Set<Pair<TransitionSystem, Tableau<State>>> result = new HashSet<>();
-		new NonRecursive().run(new RealiseFormula(properties, formula,
+		new RealiseFormula(properties,
 					new RealiseFormula.RealisationCallback() {
 						@Override
 						public void foundRealisation(TransitionSystem ts, Tableau<State> tableau) {
 							result.add(new Pair<>(ts, tableau));
 						}
-					}));
+					}).realise(formula);
 
 		// Create the expected ts
 		TransitionSystem expected1 = new TransitionSystem();
@@ -265,7 +265,7 @@ public class RealiseFormulaIntegrationTest {
 		expectedTS.setInitialState(expectedTS.createState());
 
 		final boolean[] alreadyCalled = new boolean[1];
-		new NonRecursive().run(new RealiseFormula(properties, formula,
+		new RealiseFormula(properties,
 					new RealiseFormula.RealisationCallback() {
 						@Override
 						public void foundRealisation(TransitionSystem ts, Tableau<State> tableau) {
@@ -274,7 +274,7 @@ public class RealiseFormulaIntegrationTest {
 							assertThat(ts, isomorphicTo(expectedTS));
 							assertThat(tableau, hasLeaves(contains(hasStateAndFormula(ts.getInitialState(), creator.constant(true)))));
 						}
-					}));
+					}).realise(formula);
 		assertThat(alreadyCalled[0], is(true));
 	}
 }

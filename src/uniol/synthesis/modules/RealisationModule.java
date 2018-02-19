@@ -82,7 +82,7 @@ public class RealisationModule extends AbstractModule implements Module {
 		final StringWriter resultString = new StringWriter();
 		final String[] separator = new String[] { "" };
 
-		new NonRecursive().run(new RealiseFormula(properties, formula, new RealiseFormula.RealisationCallback() {
+		new RealiseFormula(properties, new RealiseFormula.RealisationCallback() {
 			@Override
 			public void foundRealisation(TransitionSystem ts, Tableau<State> tableau) {
 				resultString.append(separator[0]);
@@ -96,7 +96,7 @@ public class RealisationModule extends AbstractModule implements Module {
 
 				separator[0] = "\n\n===========\n\n";
 			}
-		}));
+		}).realise(formula);
 
 		output.setReturnValue("result", String.class, resultString.toString());
 	}
