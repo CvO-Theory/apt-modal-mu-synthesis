@@ -19,9 +19,12 @@
 
 package uniol.synthesis.util;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import uniol.synthesis.adt.mu_calculus.CallFormula;
 import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.LetFormula;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
@@ -80,6 +83,27 @@ public class UnLetTransformer extends FormulaFormulaTransformer {
 			});
 			enqueueWalker(engine, formula.getFormula());
 			pushScope();
+		}
+
+		@Override
+		public void walk(NonRecursive engine, CallFormula formula) {
+			List<Formula> transformedArguments = new ArrayList<>(formula.getArguments().size());
+			boolean hadUnhandled = false;
+			for (Formula argument : formula.getArguments()) {
+				Formula transformed = getCache(argument);
+				if (transformed != null) {
+					transformedArguments.add(transformed);
+				} else {
+					if (!hadUnhandled)
+						engine.enqueue(this);
+					hadUnhandled = true;
+					enqueueWalker(engine, argument);
+				}
+			}
+			if (hadUnhandled)
+				return;
+			setCache(formula, formula.getCreator().
+					call(formula.getFunction(), transformedArguments));
 		}
 	}
 
