@@ -41,6 +41,7 @@ import uniol.synthesis.tableau.TableauBuilder;
 import uniol.synthesis.tableau.TableauNode;
 import uniol.synthesis.util.NonRecursive;
 
+import static uniol.apt.util.DebugUtil.debug;
 import static uniol.synthesis.util.PositiveFormFormulaTransformer.positiveForm;
 import static uniol.synthesis.util.UnLetTransformer.unLet;
 
@@ -109,6 +110,7 @@ public class RealiseFormula implements NonRecursive.Walker {
 	private final ReachingWordTransformerFactory reachingWordTransformerFactory;
 	private final ContinueTableauFactory continueTableauFactory;
 	private final OverapproximateTS overapproximateTS;
+	private final int maxStepsWithoutApproximations;
 
 	static private TransitionSystem getEmptyTS() {
 		TransitionSystem ts = new TransitionSystem();
@@ -117,27 +119,34 @@ public class RealiseFormula implements NonRecursive.Walker {
 	}
 
 	public RealiseFormula(PNProperties properties, Formula formula, RealisationCallback realisationCallback) {
+		this(properties, formula, realisationCallback,
+				properties.isKBounded() ? 2 * properties.getKForKBounded() : 2);
+	}
+
+	public RealiseFormula(PNProperties properties, Formula formula, RealisationCallback realisationCallback,
+			int maxStepsWithoutApproximations) {
 		// Create an empty TS, the default implementations for factories and forward to next constructor
 		this(getEmptyTS(), positiveForm(unLet(formula)), realisationCallback, new MissingArcsFinder<State>(),
 				new DefaultReachingWordTransformerFactory(), new DefaultContinueTableauFactory(),
-				new DefaultOverapproximateTS(properties));
+				new DefaultOverapproximateTS(properties), maxStepsWithoutApproximations);
 	}
 
 	private RealiseFormula(TransitionSystem ts, Formula formula, RealisationCallback realisationCallback,
 			MissingArcsFinder<State> missingArcsFinder, ReachingWordTransformerFactory
 			reachingWordTransformerFactory, ContinueTableauFactory continueTableauFactory,
-			OverapproximateTS overapproximateTS) {
+			OverapproximateTS overapproximateTS, int maxStepsWithoutApproximations) {
 		// Create a tableau that relates the initial state to the whole formula and call next constructor
 		this(ts, new Tableau<State>(Collections.singleton(new TableauNode<State>(new StateFollowArcs(),
 							ts.getInitialState(), formula))), realisationCallback,
 				missingArcsFinder, reachingWordTransformerFactory, continueTableauFactory,
-				overapproximateTS);
+				overapproximateTS, maxStepsWithoutApproximations);
 	}
 
 	RealiseFormula(TransitionSystem ts, Tableau<State> tableau, RealisationCallback realisationCallback,
 			MissingArcsFinder<State> missingArcsFinder, ReachingWordTransformerFactory
 			reachingWordTransformerFactory, ContinueTableauFactory continueTableauFactory,
-			OverapproximateTS overapproximateTS) {
+			OverapproximateTS overapproximateTS, int maxStepsWithoutApproximations) {
+		assert maxStepsWithoutApproximations > 0;
 		this.ts = ts;
 		this.tableau = tableau;
 		this.realisationCallback = realisationCallback;
@@ -145,12 +154,13 @@ public class RealiseFormula implements NonRecursive.Walker {
 		this.reachingWordTransformerFactory = reachingWordTransformerFactory;
 		this.continueTableauFactory = continueTableauFactory;
 		this.overapproximateTS = overapproximateTS;
+		this.maxStepsWithoutApproximations = maxStepsWithoutApproximations;
 	}
 
 	private RealiseFormula(RealiseFormula parent, TransitionSystem ts, Tableau<State> tableau) {
 		this(ts, tableau, parent.realisationCallback, parent.missingArcsFinder,
 				parent.reachingWordTransformerFactory, parent.continueTableauFactory,
-				parent.overapproximateTS);
+				parent.overapproximateTS, parent.maxStepsWithoutApproximations);
 	}
 
 	@Override
@@ -159,13 +169,39 @@ public class RealiseFormula implements NonRecursive.Walker {
 			realisationCallback.foundRealisation(ts, tableau);
 			return;
 		}
-		TransitionSystem newTS = new TransitionSystem(ts);
-		for (Pair<State, String> missingArc : missingArcsFinder.findMissing(tableau)) {
-			newTS.createArc(missingArc.getFirst(), newTS.createState(), missingArc.getSecond());
+
+		TransitionSystem currentTs = new TransitionSystem(ts);
+		Tableau<State> currentTableau = tableau.transform(reachingWordTransformerFactory.create(currentTs));
+		Set<Tableau<State>> nextTableaus = null;
+
+		// Do up to maxStepsWithoutApproximations iterations...
+		for (int i = 0; i < maxStepsWithoutApproximations; i++) {
+			// ...extending the TS with missing arcs...
+			Set<Pair<State, String>> missing = missingArcsFinder.findMissing(currentTableau);
+			if (missing.isEmpty()) {
+				debug("Aborting extension in iteration ", i, " since there were no missing arcs");
+				break;
+			}
+			for (Pair<State, String> missingArc : missing) {
+				currentTs.createArc(missingArc.getFirst(), currentTs.createState(), missingArc.getSecond());
+			}
+
+			// ...and then continuing the tableau for the extended ts.
+			nextTableaus = continueTableauFactory.continueTableau(currentTableau);
+			if (nextTableaus.size() == 1) {
+				currentTableau = nextTableaus.iterator().next();
+			} else {
+				// But if we hit a disjunction (= multiple new tableaus are created),
+				// stop the iteration.
+				debug("Aborting extension in iteration ", i, " due to a disjunction");
+				break;
+			}
 		}
 
-		TransitionSystem overapproxTS = overapproximateTS.overapproximate(newTS);
-		Tableau<State> transformedTableau = tableau.transform(reachingWordTransformerFactory.create(overapproxTS));
+		// Overapproximate the current ts, transform the tableau to the overapproximated ts and create child
+		// instances for continuing there.
+		TransitionSystem overapproxTS = overapproximateTS.overapproximate(currentTs);
+		Tableau<State> transformedTableau = currentTableau.transform(reachingWordTransformerFactory.create(overapproxTS));
 		for (Tableau<State> newTableau : continueTableauFactory.continueTableau(transformedTableau))
 			engine.enqueue(new RealiseFormula(this, overapproxTS, newTableau));
 	}
