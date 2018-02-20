@@ -225,22 +225,25 @@ public class RealiseFormula {
 		Tableau<State> tableau = new Tableau<State>(Collections.singleton(new TableauNode<State>(
 						new StateFollowArcs(), ts.getInitialState(), formula)));
 		ForkJoinPool pool = new ForkJoinPool();
-		pool.execute(new Worker(this, ts, tableau, pool));
+		try {
+			pool.execute(new Worker(this, ts, tableau, pool));
 
-		// Wait for all tasks to be done
-		synchronized(pendingRealisations) {
-			while (unfinishedWorkers.get() > 0) {
-				for (Pair<TransitionSystem, Tableau<State>> pair : pendingRealisations)
-					realisationCallback.foundRealisation(pair.getFirst(), pair.getSecond());
-				pendingRealisations.clear();
-
-				try {
-					pendingRealisations.wait();
-				} catch (InterruptedException e) {
-					// Hm... What to do with this?
-					throw new AssertionError(e);
+			// Wait for all tasks to be done
+			synchronized(pendingRealisations) {
+				while (unfinishedWorkers.get() > 0) {
+					for (Pair<TransitionSystem, Tableau<State>> pair : pendingRealisations)
+						realisationCallback.foundRealisation(pair.getFirst(), pair.getSecond());
+					pendingRealisations.clear();
+					try {
+						pendingRealisations.wait();
+					} catch (InterruptedException e) {
+						// Hm... What to do with this?
+						throw new AssertionError(e);
+					}
 				}
 			}
+		} finally {
+			pool.shutdownNow();
 		}
 
 		for (Pair<TransitionSystem, Tableau<State>> pair : pendingRealisations)
