@@ -105,7 +105,7 @@ public class TableauBuilder<S> {
 		expandTableau(resultCallback, tableau.getLeaves(), selection);
 	}
 
-	private void expandTableau(ResultCallback<S> resultCallback, Set<TableauNode<S>> nodes,
+	private void expandTableau(ResultCallback<S> resultCallback, Collection<TableauNode<S>> nodes,
 			TableauSelection selection) {
 		new NonRecursive().run(new CreateTableaus<S>(callback, resultCallback, nodes, selection));
 	}
@@ -118,7 +118,7 @@ public class TableauBuilder<S> {
 		private final TableauSelection selection;
 
 		private CreateTableaus(ProgressCallback<S> callback, ResultCallback<S> resultCallback,
-				Set<TableauNode<S>> nodes, TableauSelection selection) {
+				Collection<TableauNode<S>> nodes, TableauSelection selection) {
 			this.callback = callback;
 			this.resultCallback = resultCallback;
 			this.selection = selection;

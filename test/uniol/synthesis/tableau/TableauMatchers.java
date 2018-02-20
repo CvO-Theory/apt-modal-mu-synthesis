@@ -76,9 +76,9 @@ public class TableauMatchers {
 	}
 
 	static public Matcher<Tableau<State>> hasLeaves(final Matcher<Iterable<? extends TableauNode<State>>> nodesMatcher) {
-		return new FeatureMatcher<Tableau<State>, Set<TableauNode<State>>>(nodesMatcher, "getLeaves", "getLeaves") {
+		return new FeatureMatcher<Tableau<State>, Collection<TableauNode<State>>>(nodesMatcher, "getLeaves", "getLeaves") {
 			@Override
-			protected Set<TableauNode<State>> featureValueOf(Tableau<State> tableau) {
+			protected Collection<TableauNode<State>> featureValueOf(Tableau<State> tableau) {
 				return tableau.getLeaves();
 			}
 		};

@@ -22,18 +22,17 @@ package uniol.synthesis.tableau;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Set;
 
 import org.apache.commons.collections4.Transformer;
 
 public class Tableau<S> {
-	private final Set<TableauNode<S>> leaves;
+	private final Collection<TableauNode<S>> leaves;
 
 	public Tableau(Collection<TableauNode<S>> leaves) {
-		this.leaves = Collections.unmodifiableSet(new HashSet<TableauNode<S>>(leaves));
+		this.leaves = Collections.unmodifiableCollection(new HashSet<TableauNode<S>>(leaves));
 	}
 
-	public Set<TableauNode<S>> getLeaves() {
+	public Collection<TableauNode<S>> getLeaves() {
 		return leaves;
 	}
 
@@ -45,7 +44,7 @@ public class Tableau<S> {
 	}
 
 	public Tableau<S> transform(final Transformer<S, S> transformer) {
-		Set<TableauNode<S>> result = new HashSet<>();
+		Collection<TableauNode<S>> result = new HashSet<>();
 		for (TableauNode<S> leave : leaves)
 			result.add(leave.transform(transformer));
 		return new Tableau<S>(result);
