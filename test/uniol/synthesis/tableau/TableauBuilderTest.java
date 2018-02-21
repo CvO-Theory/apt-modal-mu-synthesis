@@ -336,8 +336,9 @@ public class TableauBuilderTest {
 		Formula True = creator.constant(true);
 		Formula formula = creator.conjunction(True, True);
 
+		TableauNode<State> leave = new TableauNode<State>(null, state, True);
 		assertThat(createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
-					.and(hasLeaves(contains(new TableauNode<State>(null, state, True))))));
+					.and(hasLeaves(contains(leave, leave)))));
 	}
 
 	@Test

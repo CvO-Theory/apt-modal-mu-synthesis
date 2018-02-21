@@ -144,7 +144,7 @@ public class RealiseFormula {
 
 	static class Worker implements Runnable {
 		private final RealiseFormula rf;
-		private final TransitionSystem ts;
+		final TransitionSystem ts;
 		private final Tableau<State> tableau;
 		private final Executor executor;
 
@@ -159,49 +159,69 @@ public class RealiseFormula {
 
 		@Override
 		public void run() {
-			if (tableau.isSuccessful()) {
-				synchronized(rf.pendingRealisations) {
-					rf.unfinishedWorkers.decrementAndGet();
-					rf.pendingRealisations.add(new Pair<TransitionSystem, Tableau<State>>(ts, tableau));
-					rf.pendingRealisations.notify();
+			// Overapproximate the current ts and transform the tableau to the overapproximated ts
+			TransitionSystem overapproxTS = rf.overapproximateTS.overapproximate(ts);
+			Tableau<State> transformedTableau = tableau.transform(rf.reachingWordTransformerFactory.create(overapproxTS));
+
+			// For each possible way to continue the tableau, expand the ts
+			for (Tableau<State> currentTableau : rf.continueTableauFactory.continueTableau(transformedTableau)) {
+				if (currentTableau.isSuccessful()) {
+					synchronized(rf.pendingRealisations) {
+						rf.pendingRealisations.add(new Pair<TransitionSystem, Tableau<State>>(overapproxTS, currentTableau));
+						rf.pendingRealisations.notify();
+					}
+					continue;
 				}
-				return;
+
+				// The ts that is expanded according to the tableau; since following iterations still
+				// need overapproxTS we cannot modify that directly. However, if no arcs are missing at
+				// all, we do not want to copy it at all, so this is done lazily.
+				TransitionSystem currentTs = null;
+
+				// The set of tableaus that were produced as extensions of currentTableau for currentTs
+				Set<Tableau<State>> nextTableaus = null;
+
+				// Do up to maxStepsWithoutApproximations iterations...
+				for (int i = 0; i < rf.maxStepsWithoutApproximations; i++) {
+					// ...extending the TS with missing arcs...
+					Set<Pair<State, String>> missing = rf.missingArcsFinder.findMissing(currentTableau);
+					if (missing.isEmpty()) {
+						debug("Aborting extension in iteration ", i, " since there were no missing arcs");
+						break;
+					}
+					// Make sure that we do not modify the original overapproximated TS
+					if (currentTs == null)
+						currentTs = new TransitionSystem(overapproxTS);
+					for (Pair<State, String> missingArc : missing) {
+						currentTs.createArc(missingArc.getFirst(), currentTs.createState(), missingArc.getSecond());
+					}
+
+					// ...and then continuing the tableau for the extended ts.
+					nextTableaus = rf.continueTableauFactory.continueTableau(currentTableau);
+					if (nextTableaus.size() == 1) {
+						currentTableau = nextTableaus.iterator().next();
+						nextTableaus = null;
+					} else {
+						// But if we hit a disjunction (= multiple new tableaus are created),
+						// stop the iteration.
+						debug("Aborting extension in iteration ", i, " due to a disjunction");
+						break;
+					}
+				}
+
+				if (currentTs == null)
+					// The above loop did not create a copy; we can just use the TS without copying
+					currentTs = overapproxTS;
+
+				if (nextTableaus == null)
+					// The above loop aborted because it found no missing arcs or hit the iteration
+					// limit; continue with its last tableau
+					nextTableaus = Collections.singleton(currentTableau);
+
+				// Create child instances for continuing where needed
+				for (Tableau<State> newTableau : nextTableaus)
+					executor.execute(new Worker(rf, currentTs, newTableau, executor));
 			}
-
-			TransitionSystem currentTs = new TransitionSystem(ts);
-			Tableau<State> currentTableau = tableau.transform(rf.reachingWordTransformerFactory.create(currentTs));
-			Set<Tableau<State>> nextTableaus = null;
-
-			// Do up to maxStepsWithoutApproximations iterations...
-			for (int i = 0; i < rf.maxStepsWithoutApproximations; i++) {
-				// ...extending the TS with missing arcs...
-				Set<Pair<State, String>> missing = rf.missingArcsFinder.findMissing(currentTableau);
-				if (missing.isEmpty()) {
-					debug("Aborting extension in iteration ", i, " since there were no missing arcs");
-					break;
-				}
-				for (Pair<State, String> missingArc : missing) {
-					currentTs.createArc(missingArc.getFirst(), currentTs.createState(), missingArc.getSecond());
-				}
-
-				// ...and then continuing the tableau for the extended ts.
-				nextTableaus = rf.continueTableauFactory.continueTableau(currentTableau);
-				if (nextTableaus.size() == 1) {
-					currentTableau = nextTableaus.iterator().next();
-				} else {
-					// But if we hit a disjunction (= multiple new tableaus are created),
-					// stop the iteration.
-					debug("Aborting extension in iteration ", i, " due to a disjunction");
-					break;
-				}
-			}
-
-			// Overapproximate the current ts, transform the tableau to the overapproximated ts and create child
-			// instances for continuing there.
-			TransitionSystem overapproxTS = rf.overapproximateTS.overapproximate(currentTs);
-			Tableau<State> transformedTableau = currentTableau.transform(rf.reachingWordTransformerFactory.create(overapproxTS));
-			for (Tableau<State> newTableau : rf.continueTableauFactory.continueTableau(transformedTableau))
-				executor.execute(new Worker(rf, overapproxTS, newTableau, executor));
 
 			// Signal the main thread if we were the last worker
 			if (rf.unfinishedWorkers.decrementAndGet() == 0) {

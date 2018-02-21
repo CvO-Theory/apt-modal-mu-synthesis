@@ -124,7 +124,11 @@ public class RealiseFormulaIntegrationTest {
 		expected.createArc("s2", "s3", "a");
 		expected.createArc("s3", "s0", "c");
 
-		assertThat(tableau, hasLeaves(contains(hasStateAndFormula(ts.getInitialState(), creator.constant(true)))));
+		assertThat(tableau, hasLeaves(contains(
+						hasStateAndFormula(ts.getInitialState(), creator.constant(true)),
+						hasStateAndFormula(ts.getInitialState(), creator.constant(true)),
+						hasStateAndFormula(ts.getInitialState(), creator.constant(true)),
+						hasStateAndFormula(ts.getInitialState(), creator.constant(true)))));
 		assertThat(ts, isomorphicTo(expected));
 	}
 
