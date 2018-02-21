@@ -160,8 +160,8 @@ public class RealiseFormula {
 		@Override
 		public void run() {
 			if (tableau.isSuccessful()) {
-				rf.unfinishedWorkers.decrementAndGet();
 				synchronized(rf.pendingRealisations) {
+					rf.unfinishedWorkers.decrementAndGet();
 					rf.pendingRealisations.add(new Pair<TransitionSystem, Tableau<State>>(ts, tableau));
 					rf.pendingRealisations.notify();
 				}
