@@ -54,18 +54,48 @@ public class CallExpansionModule extends AbstractModule implements Module {
 	@Override
 	public String getLongDescription() {
 		FormulaCreator creator = new FormulaCreator();
-		Formula ex1 = creator.conjunction(
+		Formula addEvents = creator.conjunction(
+				creator.modality(Modality.UNIVERSAL, "b", creator.constant(true)),
+				creator.modality(Modality.UNIVERSAL, "c", creator.constant(true)));
+		Formula exGlobal = creator.conjunction(
+				creator.call("global", creator.modality(Modality.EXISTENTIAL, "a", creator.constant(true))),
+				addEvents);
+		Formula exEventually = creator.conjunction(
+				creator.call("eventually", creator.variable("a")),
+				addEvents);
+		Formula exHide1 = creator.conjunction(
 				creator.call("hide", creator.modality(Modality.EXISTENTIAL, "a", creator.variable("P"))),
-				creator.modality(Modality.UNIVERSAL, "b", creator.constant(true)));
-		Formula ex1hidden = handleHide(ex1);
+				addEvents);
+		Formula exHide2 = creator.conjunction(
+				creator.call("hide", creator.modality(Modality.UNIVERSAL, "a", creator.variable("P"))),
+				addEvents);
+		Formula exGlobalExpanded = handleCalls(exGlobal);
+		Formula exEventuallyExpanded = handleCalls(exEventually);
+		Formula exHide1Expanded = handleCalls(exHide1);
+		Formula exHide2Expanded = handleCalls(exHide2);
 		return getShortDescription() + ". The supported functions are:\n" +
-			"- hide(beta) hides the environment in beta.\n" +
-			"\nIn hide(beta), a local and a global alphabet is computed by collecting the events that " +
-			"appear inside of modalities in beta and in the full formula. Each modality inside of beta " +
-			"is replaced so that all events which are not local are hidden, e.g. " + ex1 + ", which " +
-			"means 'after a, P holds' is replaced with " + ex1hidden + ", which means that after a " +
-			"finite sequence of b's, there is an a after which P holds.";
-
+			"- global(beta): beta holds in all reachable state.\n" +
+			"- eventually(e): every path is either finite or contains event e.\n" +
+			"- hide(beta): hide environment actions in beta.\n" +
+			"\nAll these expansion rely on a global alphabet. That is the alphabet containing all the " +
+			"events which appear inside of modalities in the full formula. The following examples use the " +
+			"subformula " + addEvents + ", which is equivalent to true, to add events b and c to this " +
+			"alphabet.\n" +
+			"\n" + exGlobal + ", which expresses that in all reachable states event a is enabled, " +
+			"expands to " + exGlobalExpanded + ".\n" +
+			"\n" + exEventually + ", which expresses that eventually a deadlock is reached or event a is " +
+			"possible, expands to " + exEventuallyExpanded + ".\n" +
+			"\nIn hide(beta), the local alphabet of events appearing in beta is computed. The meaning of " +
+			"modalities is changes so that events of the environment are hidden. For existential " +
+			"modalities this means that instead of 'a is possible next', the meaning is 'a is possible " +
+			"after a finite sequence of external events'. For example " + exHide1 + ", which means " +
+			"'after one a, P holds' is replaced with " + exHide1Expanded + ", which means that there is " +
+			"a path so that after a finite sequence of b's and c's, there is an 'a' after which P " +
+			"holds.\n" +
+			"The hide function handles universal modalities differently: " + exHide2 + ", which expresses" +
+			"that if 'a' is possible, afterwards P holds, expands to " + exHide2Expanded + " which " +
+			"expresses that on all paths either the environment diverges (does an infinite sequence of" +
+			"steps), a deadlock is reached, or an 'a' is possible after which P holds.";
 	}
 
 	@Override
@@ -86,24 +116,24 @@ public class CallExpansionModule extends AbstractModule implements Module {
 	@Override
 	public void run(ModuleInput input, ModuleOutput output) throws ModuleException {
 		Formula formula = input.getParameter("formula", Formula.class);
-		output.setReturnValue("formula", Formula.class, handleHide(formula));
+		output.setReturnValue("formula", Formula.class, handleCalls(formula));
 	}
 
-	// Get the alphabet and use HidingFindingTransformer to find & transform all hide invocations
-	public static Formula handleHide(Formula formula) {
+	// Get the alphabet and use CallFindingTransformer to find & transform all supported invocations
+	public static Formula handleCalls(Formula formula) {
 		formula = unLet(formula);
 		Set<String> alphabet = AlphabetFinder.getAlphabet(formula);
-		HidingFindingTransformer hide = new HidingFindingTransformer(alphabet);
+		CallFindingTransformer hide = new CallFindingTransformer(alphabet);
 		NonRecursive engine = new NonRecursive();
 		hide.transform(engine, formula);
 		engine.run();
 		return hide.transform(engine, formula);
 	}
 
-	private static class HidingFindingTransformer extends FormulaFormulaTransformer {
+	private static class CallFindingTransformer extends FormulaFormulaTransformer {
 		private final Set<String> fullAlphabet;
 
-		public HidingFindingTransformer(Set<String> fullAlphabet) {
+		public CallFindingTransformer(Set<String> fullAlphabet) {
 			this.fullAlphabet = fullAlphabet;
 		}
 
@@ -119,22 +149,64 @@ public class CallExpansionModule extends AbstractModule implements Module {
 
 			@Override
 			public void walk(NonRecursive engine, CallFormula formula) {
-				Formula replacement = formula;
-				if (formula.getFunction().equals("hide")) {
-					if (formula.getArguments().size() != 1)
-						throw new RuntimeException("Need exactly one argument, but found: " + formula);
-					Formula arg = formula.getArguments().get(0);
-					Formula expanded = getCache(arg);
-					if (expanded == null) {
-						engine.enqueue(this);
-						enqueueWalker(engine, arg);
-						return;
-					}
-					replacement = expandOneHide(arg, fullAlphabet);
+				// Currently, all supported calls have just one argument
+				if (formula.getArguments().size() != 1)
+					throw new RuntimeException("Need exactly one argument, but found: " + formula);
+
+				// First expand the argument
+				Formula argument = getCache(formula.getArguments().get(0));
+				if (argument == null) {
+					engine.enqueue(this);
+					enqueueWalker(engine, formula.getArguments().get(0));
+					return;
+				}
+
+				// Then handle the actual call
+				Formula replacement;
+				switch (formula.getFunction()) {
+					case "hide":
+						replacement = expandOneHide(argument, fullAlphabet);
+						break;
+					case "global":
+						replacement = expandOneGlobal(argument, fullAlphabet);
+						break;
+					case "eventually":
+						replacement = expandOneEventually(argument, fullAlphabet);
+						break;
+					default:
+						throw new RuntimeException("Unsupported function call '" + formula.getFunction() + "'");
 				}
 				setCache(formula, replacement);
 			}
 		}
+	}
+
+	// Expand the formula inside of a global application.
+	public static Formula expandOneGlobal(Formula formula, Set<String> fullAlphabet) {
+		FormulaCreator creator = formula.getCreator();
+		VariableFormula var = creator.freshVariable("g");
+		for (String event : fullAlphabet) {
+			formula = creator.conjunction(formula,
+					creator.modality(Modality.UNIVERSAL, event, var));
+		}
+		return creator.fixedPoint(FixedPoint.GREATEST, var, formula);
+	}
+
+	public static Formula expandOneEventually(Formula formula, Set<String> fullAlphabet) {
+		if (!(formula instanceof VariableFormula))
+			throw new RuntimeException("Eventually needs a variable as its argument that is then "
+					+ "interpreted as an event, but got: " + formula);
+		FormulaCreator creator = formula.getCreator();
+		VariableFormula var = creator.freshVariable("e");
+		String eventually = ((VariableFormula) formula).getVariable();
+		formula = creator.modality(Modality.UNIVERSAL, eventually, creator.constant(true));
+		for (String event : fullAlphabet) {
+			if (event.equals(eventually))
+				continue;
+			formula = creator.conjunction(formula,
+					creator.modality(Modality.UNIVERSAL, event, var));
+		}
+		return creator.fixedPoint(FixedPoint.LEAST, var, formula);
 	}
 
 	// Expand the formula inside of a hide application. This replaces all modalities so that events that do not
@@ -178,9 +250,9 @@ public class CallExpansionModule extends AbstractModule implements Module {
 				for (String event : expansionAlphabet) {
 					Formula sub = creator.modality(formula.getModality(), event, var);
 					if (conj)
-						result = creator.conjunction(sub, result);
+						result = creator.conjunction(result, sub);
 					else
-						result = creator.disjunction(sub, result);
+						result = creator.disjunction(result, sub);
 				}
 				if (conj)
 					result = creator.fixedPoint(FixedPoint.GREATEST, var, result);
