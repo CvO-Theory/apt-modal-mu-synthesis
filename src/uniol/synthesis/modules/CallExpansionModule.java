@@ -45,15 +45,32 @@ import uniol.synthesis.util.NonRecursive;
 import static uniol.synthesis.util.UnLetTransformer.unLet;
 
 @AptModule
-public class HidingOperatorModule extends AbstractModule implements Module {
+public class CallExpansionModule extends AbstractModule implements Module {
 	@Override
 	public String getShortDescription() {
-		return "Expand the hiding operator h() in a formula";
+		return "Expand some function call operators in a formula";
+	}
+
+	@Override
+	public String getLongDescription() {
+		FormulaCreator creator = new FormulaCreator();
+		Formula ex1 = creator.conjunction(
+				creator.call("hide", creator.modality(Modality.EXISTENTIAL, "a", creator.variable("P"))),
+				creator.modality(Modality.UNIVERSAL, "b", creator.constant(true)));
+		Formula ex1hidden = handleHide(ex1);
+		return getShortDescription() + ". The supported functions are:\n" +
+			"- hide(beta) hides the environment in beta.\n" +
+			"\nIn hide(beta), a local and a global alphabet is computed by collecting the events that " +
+			"appear inside of modalities in beta and in the full formula. Each modality inside of beta " +
+			"is replaced so that all events which are not local are hidden, e.g. " + ex1 + ", which " +
+			"means 'after a, P holds' is replaced with " + ex1hidden + ", which means that after a " +
+			"finite sequence of b's, there is an a after which P holds.";
+
 	}
 
 	@Override
 	public String getName() {
-		return "hiding_expansion";
+		return "call_expansion";
 	}
 
 	@Override
@@ -103,7 +120,7 @@ public class HidingOperatorModule extends AbstractModule implements Module {
 			@Override
 			public void walk(NonRecursive engine, CallFormula formula) {
 				Formula replacement = formula;
-				if (formula.getFunction().equals("h")) {
+				if (formula.getFunction().equals("hide")) {
 					if (formula.getArguments().size() != 1)
 						throw new RuntimeException("Need exactly one argument, but found: " + formula);
 					Formula arg = formula.getArguments().get(0);
@@ -120,7 +137,7 @@ public class HidingOperatorModule extends AbstractModule implements Module {
 		}
 	}
 
-	// Expand the formula inside of a hide application. This replaces all modalities so that modalities that do not
+	// Expand the formula inside of a hide application. This replaces all modalities so that events that do not
 	// appear inside of this formula are ignored.
 	public static Formula expandOneHide(Formula formula, Set<String> fullAlphabet) {
 		Set<String> subAlphabet = AlphabetFinder.getAlphabet(formula);
