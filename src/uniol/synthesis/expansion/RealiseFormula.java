@@ -72,7 +72,7 @@ public class RealiseFormula {
 			final Set<Tableau<State>> result = new HashSet<>();
 			TableauBuilder.ResultCallback<State> cb = new TableauBuilder.ResultCallback<State>() {
 				@Override
-				public void foundTableau(Tableau<State> tableau) {
+				public void foundTableau(NonRecursive engine, Tableau<State> tableau) {
 					result.add(tableau);
 				}
 			};

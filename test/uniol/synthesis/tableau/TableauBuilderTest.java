@@ -56,7 +56,7 @@ public class TableauBuilderTest {
 	private TableauBuilder.ResultCallback<State> nopResultCallback() {
 		return new TableauBuilder.ResultCallback<State>() {
 			@Override
-			public void foundTableau(Tableau<State> tableau) {
+			public void foundTableau(NonRecursive engine, Tableau<State> tableau) {
 			}
 		};
 	}
@@ -70,7 +70,7 @@ public class TableauBuilderTest {
 		final Collection<Tableau<State>> result = new ArrayList<>();
 		TableauBuilder.ResultCallback<State> cb = new TableauBuilder.ResultCallback<State>() {
 			@Override
-			public void foundTableau(Tableau<State> tableau) {
+			public void foundTableau(NonRecursive engine, Tableau<State> tableau) {
 				result.add(tableau);
 			}
 		};
@@ -84,7 +84,7 @@ public class TableauBuilderTest {
 		final Collection<Tableau<State>> result = new ArrayList<>();
 		TableauBuilder.ResultCallback<State> cb = new TableauBuilder.ResultCallback<State>() {
 			@Override
-			public void foundTableau(Tableau<State> tableau) {
+			public void foundTableau(NonRecursive engine, Tableau<State> tableau) {
 				result.add(tableau);
 			}
 		};

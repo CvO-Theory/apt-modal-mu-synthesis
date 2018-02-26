@@ -62,7 +62,7 @@ public class TableauBuilder<S> {
 	}
 
 	public interface ResultCallback<S> {
-		public void foundTableau(Tableau<S> tableau);
+		public void foundTableau(NonRecursive engine, Tableau<S> tableau);
 	}
 
 	static public enum TableauSelection {
@@ -139,7 +139,7 @@ public class TableauBuilder<S> {
 			ExpandNodeWalker<S> next = todo.poll();
 			if (next == null) {
 				// We are done creating a tableau
-				resultCallback.foundTableau(new Tableau<S>(leaves));
+				resultCallback.foundTableau(engine, new Tableau<S>(leaves));
 				return;
 			}
 

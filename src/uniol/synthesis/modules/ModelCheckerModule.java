@@ -81,7 +81,7 @@ public class ModelCheckerModule extends AbstractModule implements Module {
 		final Set<Tableau<State>> tableaus = new HashSet<>();
 		TableauBuilder.ResultCallback<State> cb = new TableauBuilder.ResultCallback<State>() {
 			@Override
-			public void foundTableau(Tableau<State> tableau) {
+			public void foundTableau(NonRecursive engine, Tableau<State> tableau) {
 				tableaus.add(tableau);
 			}
 		};
