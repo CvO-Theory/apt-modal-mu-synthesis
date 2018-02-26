@@ -199,13 +199,19 @@ public class CallExpansionModule extends AbstractModule implements Module {
 		FormulaCreator creator = formula.getCreator();
 		VariableFormula var = creator.freshVariable("e");
 		String eventually = ((VariableFormula) formula).getVariable();
-		formula = creator.modality(Modality.UNIVERSAL, eventually, creator.constant(true));
+		formula = null;
 		for (String event : fullAlphabet) {
 			if (event.equals(eventually))
 				continue;
-			formula = creator.conjunction(formula,
-					creator.modality(Modality.UNIVERSAL, event, var));
+			Formula subformula = creator.modality(Modality.UNIVERSAL, event, var);
+			if (formula == null)
+				formula = subformula;
+			else
+				formula = creator.conjunction(formula, subformula);
 		}
+		if (formula == null)
+			// Huh? Only one event in the alphabet? Of course no infinite paths without this event exist.
+			return creator.constant(true);
 		return creator.fixedPoint(FixedPoint.LEAST, var, formula);
 	}
 
