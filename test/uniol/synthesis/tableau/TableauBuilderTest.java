@@ -38,6 +38,7 @@ import uniol.synthesis.adt.mu_calculus.FormulaCreator;
 import uniol.synthesis.adt.mu_calculus.LetFormula;
 import uniol.synthesis.adt.mu_calculus.Modality;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
+import uniol.synthesis.util.NonRecursive;
 import static uniol.synthesis.tableau.TableauMatchers.*;
 
 @SuppressWarnings("unchecked")
@@ -73,7 +74,9 @@ public class TableauBuilderTest {
 				result.add(tableau);
 			}
 		};
-		new TableauBuilder<State>(new StateFollowArcs()).createTableaus(cb, state, formula, selection);
+		NonRecursive engine = new NonRecursive();
+		new TableauBuilder<State>(new StateFollowArcs()).createTableaus(engine, cb, state, formula, selection);
+		engine.run();
 		return result;
 	}
 
@@ -670,8 +673,10 @@ public class TableauBuilderTest {
 				}
 			}
 		};
-		new TableauBuilder<State>(new StateFollowArcs(), callback).createTableaus(nopResultCallback(), s0,
-				formula0, TableauBuilder.TableauSelection.ALL);
+		NonRecursive engine = new NonRecursive();
+		new TableauBuilder<State>(new StateFollowArcs(), callback).createTableaus(engine, nopResultCallback(),
+				s0, formula0, TableauBuilder.TableauSelection.ALL);
+		engine.run();
 
 		assertThat(callCount[0], equalTo(4));
 	}
@@ -696,8 +701,10 @@ public class TableauBuilderTest {
 				}
 			}
 		};
-		new TableauBuilder<State>(null, callback).createTableaus(nopResultCallback(), s, formula,
+		NonRecursive engine = new NonRecursive();
+		new TableauBuilder<State>(null, callback).createTableaus(engine, nopResultCallback(), s, formula,
 				TableauBuilder.TableauSelection.ALL);
+		engine.run();
 
 		assertThat(callCount[0], equalTo(1));
 	}

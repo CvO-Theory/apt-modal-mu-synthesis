@@ -94,20 +94,22 @@ public class TableauBuilder<S> {
 		this.callback = callback;
 	}
 
-	public void createTableaus(ResultCallback<S> resultCallback, S state, Formula formula,
+	public void createTableaus(NonRecursive engine, ResultCallback<S> resultCallback, S state, Formula formula,
 			TableauSelection selection) {
 		formula = positiveForm(unLet(formula));
-		expandTableau(resultCallback, Collections.singleton(new TableauNode<S>(followArcs, state, formula)),
-				selection);
+		expandTableau(engine, resultCallback, Collections.singleton(
+					new TableauNode<S>(followArcs, state, formula)), selection);
 	}
 
 	public void continueTableau(ResultCallback<S> resultCallback, Tableau<S> tableau, TableauSelection selection) {
-		expandTableau(resultCallback, tableau.getLeaves(), selection);
+		NonRecursive engine = new NonRecursive();
+		expandTableau(engine, resultCallback, tableau.getLeaves(), selection);
+		engine.run();
 	}
 
-	private void expandTableau(ResultCallback<S> resultCallback, Collection<TableauNode<S>> nodes,
-			TableauSelection selection) {
-		new NonRecursive().run(new CreateTableaus<S>(callback, resultCallback, nodes, selection));
+	private void expandTableau(NonRecursive engine, ResultCallback<S> resultCallback,
+			Collection<TableauNode<S>> nodes, TableauSelection selection) {
+		engine.enqueue(new CreateTableaus<S>(callback, resultCallback, nodes, selection));
 	}
 
 	static private class CreateTableaus<S> implements NonRecursive.Walker {

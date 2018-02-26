@@ -41,6 +41,7 @@ import uniol.synthesis.tableau.GraphvizProgressCallback;
 import uniol.synthesis.tableau.StateFollowArcs;
 import uniol.synthesis.tableau.Tableau;
 import uniol.synthesis.tableau.TableauBuilder;
+import uniol.synthesis.util.NonRecursive;
 
 @AptModule
 public class ModelCheckerModule extends AbstractModule implements Module {
@@ -85,8 +86,10 @@ public class ModelCheckerModule extends AbstractModule implements Module {
 			}
 		};
 		GraphvizProgressCallback<State> callback = new GraphvizProgressCallback<State>();
+		NonRecursive engine = new NonRecursive();
 		new TableauBuilder<State>(new StateFollowArcs(), callback)
-			.createTableaus(cb, lts.getInitialState(), formula, selection);
+			.createTableaus(engine, cb, lts.getInitialState(), formula, selection);
+		engine.run();
 
 		boolean success = false;
 		List<String> missingArcs = new ArrayList<>();
