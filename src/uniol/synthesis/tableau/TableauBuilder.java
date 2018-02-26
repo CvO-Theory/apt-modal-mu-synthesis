@@ -101,10 +101,8 @@ public class TableauBuilder<S> {
 					new TableauNode<S>(followArcs, state, formula)), selection);
 	}
 
-	public void continueTableau(ResultCallback<S> resultCallback, Tableau<S> tableau, TableauSelection selection) {
-		NonRecursive engine = new NonRecursive();
+	public void continueTableau(NonRecursive engine, ResultCallback<S> resultCallback, Tableau<S> tableau, TableauSelection selection) {
 		expandTableau(engine, resultCallback, tableau.getLeaves(), selection);
-		engine.run();
 	}
 
 	private void expandTableau(NonRecursive engine, ResultCallback<S> resultCallback,

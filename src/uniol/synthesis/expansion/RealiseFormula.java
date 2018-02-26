@@ -76,8 +76,10 @@ public class RealiseFormula {
 					result.add(tableau);
 				}
 			};
-			new TableauBuilder<State>(new StateFollowArcs()).continueTableau(cb, tableau,
+			NonRecursive engine = new NonRecursive();
+			new TableauBuilder<State>(new StateFollowArcs()).continueTableau(engine, cb, tableau,
 					TableauBuilder.TableauSelection.ALL);
+			engine.run();
 			return result;
 		}
 	}
