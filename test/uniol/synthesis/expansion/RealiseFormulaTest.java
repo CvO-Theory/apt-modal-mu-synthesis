@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.Executor;
 
 import org.apache.commons.collections4.Transformer;
 
@@ -107,13 +106,13 @@ public class RealiseFormulaTest {
 
 		when(continueTableauFactory.continueTableau(tableau)).thenReturn(Collections.singleton(tableau));
 
-		RealiseFormula realise = new RealiseFormula(new NeverCalledRealisationCallback(), null,
-				new StateWithSameNameTransformerFactory(), continueTableauFactory,
-				new NOPOverapproximateTS(), 1);
+		AddToSetRealisationCallback addToSet = new AddToSetRealisationCallback();
+		RealiseFormula realise = new RealiseFormula(addToSet, null, new StateWithSameNameTransformerFactory(),
+				continueTableauFactory, new NOPOverapproximateTS(), 1);
 
-		new RealiseFormula.Worker(realise, ts, tableau, null).run();
+		new RealiseFormula.Worker(realise, ts, tableau).walk(null);
 
-		assertThat(realise.pendingRealisations, contains(pairWith(ts, tableau)));
+		assertThat(addToSet.result, contains(pairWith(ts, tableau)));
 	}
 
 	static private TransitionSystem getExpandedTS(TransitionSystem ts, Set<Pair<State, String>> missingArcs) {
@@ -122,7 +121,7 @@ public class RealiseFormulaTest {
 		RealiseFormula.ContinueTableauFactory continueTableauFactory
 			= mock(RealiseFormula.ContinueTableauFactory.class);
 		RealiseFormula.OverapproximateTS overapproximateTS = mock(RealiseFormula.OverapproximateTS.class);
-		Executor executor = mock(Executor.class);
+		NonRecursive engine = mock(NonRecursive.class);
 
 		when(overapproximateTS.overapproximate(ts)).thenReturn(ts);
 		when(missingArcsFinder.findMissing(tableau)).thenReturn(missingArcs);
@@ -130,13 +129,13 @@ public class RealiseFormulaTest {
 
 		new RealiseFormula.Worker(new RealiseFormula(new NeverCalledRealisationCallback(), missingArcsFinder,
 				new StateWithSameNameTransformerFactory(), continueTableauFactory,
-				overapproximateTS, 1), ts, tableau, executor).run();
+				overapproximateTS, 1), ts, tableau).walk(engine);
 
 		verify(missingArcsFinder, times(1)).findMissing(tableau);
 		verify(continueTableauFactory, times(1 + missingArcs.size())).continueTableau((Tableau<State>) anyObject());
 
 		ArgumentCaptor<RealiseFormula.Worker> nextWorkerCaptor = ArgumentCaptor.forClass(RealiseFormula.Worker.class);
-		verify(executor, times(1)).execute(nextWorkerCaptor.capture());
+		verify(engine, times(1)).enqueue(nextWorkerCaptor.capture());
 		return nextWorkerCaptor.getValue().ts;
 	}
 
@@ -175,7 +174,7 @@ public class RealiseFormulaTest {
 		MissingArcsFinder<State> missingArcsFinder = mock(MissingArcsFinder.class);
 		RealiseFormula.ContinueTableauFactory continueTableauFactory
 			= mock(RealiseFormula.ContinueTableauFactory.class);
-		Executor executor = mock(Executor.class);
+		NonRecursive engine = mock(NonRecursive.class);
 
 		when(missingArcsFinder.findMissing(tableau)).thenReturn(Collections.<Pair<State, String>>emptySet());
 		when(continueTableauFactory.continueTableau((Tableau) anyObject())).thenReturn(new HashSet<Tableau<State>>(
@@ -184,12 +183,12 @@ public class RealiseFormulaTest {
 		new RealiseFormula.Worker(new RealiseFormula(
 					new NeverCalledRealisationCallback(), missingArcsFinder,
 					new StateWithSameNameTransformerFactory(), continueTableauFactory,
-					new NOPOverapproximateTS(), 1), ts, tableau, executor).run();
+					new NOPOverapproximateTS(), 1), ts, tableau).walk(engine);
 
 		verify(missingArcsFinder, times(1)).findMissing(tableau1);
 		verify(missingArcsFinder, times(1)).findMissing(tableau2);
 		verify(continueTableauFactory, times(1)).continueTableau((Tableau<State>) anyObject());
-		verify(executor, times(2)).execute(Mockito.isA(RealiseFormula.Worker.class));
+		verify(engine, times(2)).enqueue(Mockito.isA(RealiseFormula.Worker.class));
 	}
 
 	@Test
@@ -219,7 +218,7 @@ public class RealiseFormulaTest {
 		RealiseFormula.ContinueTableauFactory continueTableauFactory
 			= mock(RealiseFormula.ContinueTableauFactory.class);
 		RealiseFormula.OverapproximateTS overapprox = spy(new NOPOverapproximateTS());
-		Executor executor = mock(Executor.class);
+		NonRecursive engine = mock(NonRecursive.class);
 
 		Pair<State, String> missingArc = new Pair<>(ts.getInitialState(), "a");
 		when(missingArcsFinder.findMissing(tableau)).thenReturn(Collections.singleton(missingArc));
@@ -228,12 +227,12 @@ public class RealiseFormulaTest {
 		new RealiseFormula.Worker(new RealiseFormula(
 					new NeverCalledRealisationCallback(), missingArcsFinder,
 					new StateWithSameNameTransformerFactory(), continueTableauFactory, overapprox,
-					multiple ? 2 : 1), ts, tableau, executor).run();
+					multiple ? 2 : 1), ts, tableau).walk(engine);
 
 		verify(missingArcsFinder, times(multiple ? 2 : 1)).findMissing(tableau);
 		verify(continueTableauFactory, times(multiple ? 3 : 2)).continueTableau((Tableau<State>) anyObject());
 		verify(overapprox, times(1)).overapproximate((TransitionSystem) anyObject());
-		verify(executor, times(1)).execute(Mockito.isA(RealiseFormula.Worker.class));
+		verify(engine, times(1)).enqueue(Mockito.isA(RealiseFormula.Worker.class));
 	}
 
 	@Test

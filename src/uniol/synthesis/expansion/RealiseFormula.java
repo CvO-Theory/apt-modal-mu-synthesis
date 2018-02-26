@@ -117,9 +117,6 @@ public class RealiseFormula {
 	private final OverapproximateTS overapproximateTS;
 	private final int maxStepsWithoutApproximations;
 
-	private final AtomicInteger unfinishedWorkers = new AtomicInteger(0);
-	final Collection<Pair<TransitionSystem, Tableau<State>>> pendingRealisations = new ArrayDeque<>();
-
 	public RealiseFormula(PNProperties properties, RealisationCallback realisationCallback) {
 		this(properties, realisationCallback, properties.isKBounded() ? 2 * properties.getKForKBounded() : 2);
 	}
@@ -144,23 +141,19 @@ public class RealiseFormula {
 		this.maxStepsWithoutApproximations = maxStepsWithoutApproximations;
 	}
 
-	static class Worker implements Runnable {
+	static class Worker implements NonRecursive.Walker {
 		private final RealiseFormula rf;
 		final TransitionSystem ts;
 		private final Tableau<State> tableau;
-		private final Executor executor;
 
-		public Worker(RealiseFormula rf, TransitionSystem ts, Tableau<State> tableau, Executor executor) {
+		public Worker(RealiseFormula rf, TransitionSystem ts, Tableau<State> tableau) {
 			this.rf = rf;
 			this.ts = ts;
 			this.tableau = tableau;
-			this.executor = executor;
-
-			rf.unfinishedWorkers.incrementAndGet();
 		}
 
 		@Override
-		public void run() {
+		public void walk(NonRecursive engine) {
 			// Overapproximate the current ts and transform the tableau to the overapproximated ts
 			TransitionSystem overapproxTS = rf.overapproximateTS.overapproximate(ts);
 			Tableau<State> transformedTableau = tableau.transform(rf.reachingWordTransformerFactory.create(overapproxTS));
@@ -168,10 +161,7 @@ public class RealiseFormula {
 			// For each possible way to continue the tableau, expand the ts
 			for (Tableau<State> currentTableau : rf.continueTableauFactory.continueTableau(transformedTableau)) {
 				if (currentTableau.isSuccessful()) {
-					synchronized(rf.pendingRealisations) {
-						rf.pendingRealisations.add(new Pair<TransitionSystem, Tableau<State>>(overapproxTS, currentTableau));
-						rf.pendingRealisations.notify();
-					}
+					rf.realisationCallback.foundRealisation(overapproxTS, currentTableau);
 					continue;
 				}
 
@@ -222,14 +212,7 @@ public class RealiseFormula {
 
 				// Create child instances for continuing where needed
 				for (Tableau<State> newTableau : nextTableaus)
-					executor.execute(new Worker(rf, currentTs, newTableau, executor));
-			}
-
-			// Signal the main thread if we were the last worker
-			if (rf.unfinishedWorkers.decrementAndGet() == 0) {
-				synchronized(rf.pendingRealisations) {
-					rf.pendingRealisations.notify();
-				}
+					engine.enqueue(new Worker(rf, currentTs, newTableau));
 			}
 		}
 	}
@@ -246,30 +229,7 @@ public class RealiseFormula {
 
 		Tableau<State> tableau = new Tableau<State>(Collections.singleton(new TableauNode<State>(
 						new StateFollowArcs(), ts.getInitialState(), formula)));
-		ForkJoinPool pool = new ForkJoinPool();
-		try {
-			pool.execute(new Worker(this, ts, tableau, pool));
-
-			// Wait for all tasks to be done
-			synchronized(pendingRealisations) {
-				while (unfinishedWorkers.get() > 0) {
-					for (Pair<TransitionSystem, Tableau<State>> pair : pendingRealisations)
-						realisationCallback.foundRealisation(pair.getFirst(), pair.getSecond());
-					pendingRealisations.clear();
-					try {
-						pendingRealisations.wait();
-					} catch (InterruptedException e) {
-						// Hm... What to do with this?
-						throw new AssertionError(e);
-					}
-				}
-			}
-		} finally {
-			pool.shutdownNow();
-		}
-
-		for (Pair<TransitionSystem, Tableau<State>> pair : pendingRealisations)
-			realisationCallback.foundRealisation(pair.getFirst(), pair.getSecond());
+		new NonRecursive().run(new Worker(this, ts, tableau));
 	}
 }
 
