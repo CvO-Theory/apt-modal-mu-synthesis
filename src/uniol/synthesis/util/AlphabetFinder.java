@@ -21,6 +21,7 @@ package uniol.synthesis.util;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import uniol.synthesis.adt.mu_calculus.CallFormula;
@@ -44,10 +45,10 @@ public class AlphabetFinder extends FormulaTransformer<Set<String>> {
 			super(formula);
 		}
 
-		private Set<String> union(Set<String> set1, Set<String> set2) {
+		private Set<String> union(List<Set<String>> sets) {
 			Set<String> result = new HashSet<>();
-			result.addAll(set1);
-			result.addAll(set2);
+			for (Set<String> set : sets)
+				result.addAll(set);
 			return result;
 		}
 
@@ -62,15 +63,13 @@ public class AlphabetFinder extends FormulaTransformer<Set<String>> {
 		}
 
 		@Override
-		public Set<String> conjunction(ConjunctionFormula formula, Set<String> transformedLeft,
-				Set<String> transformedRight) {
-			return union(transformedLeft, transformedRight);
+		public Set<String> conjunction(ConjunctionFormula formula, List<Set<String>> transformedChildren) {
+			return union(transformedChildren);
 		}
 
 		@Override
-		public Set<String> disjunction(DisjunctionFormula formula, Set<String> transformedLeft,
-				Set<String> transformedRight) {
-			return union(transformedLeft, transformedRight);
+		public Set<String> disjunction(DisjunctionFormula formula, List<Set<String>> transformedChildren) {
+			return union(transformedChildren);
 		}
 
 		@Override
