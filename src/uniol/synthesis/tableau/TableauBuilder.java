@@ -222,16 +222,18 @@ public class TableauBuilder<S> {
 
 		@Override
 		public void walk(NonRecursive engine, ConjunctionFormula formula) {
-			TableauNode<S> left = node.createChild(formula.getLeft());
-			TableauNode<S> right = node.createChild(formula.getRight());
-			expansion = Collections.singleton(Arrays.asList(left, right));
+			Collection<TableauNode<S>> children = new ArrayList<>(formula.getFormulas().size());
+			for (Formula child : formula.getFormulas())
+				children.add(node.createChild(child));
+			expansion = Collections.singleton(children);
 		}
 
 		@Override
 		public void walk(NonRecursive engine, DisjunctionFormula formula) {
-			Collection<TableauNode<S>> left = Collections.singleton(node.createChild(formula.getLeft()));
-			Collection<TableauNode<S>> right = Collections.singleton(node.createChild(formula.getRight()));
-			expansion = Arrays.asList(left, right);
+			Collection<Collection<TableauNode<S>>> children = new ArrayList<>(formula.getFormulas().size());
+			for (Formula child : formula.getFormulas())
+				children.add(Collections.singleton(node.createChild(child)));
+			expansion = children;
 		}
 
 		@Override
