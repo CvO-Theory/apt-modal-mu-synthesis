@@ -22,9 +22,7 @@ package uniol.synthesis.mts;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import uniol.apt.adt.ts.Arc;
 import uniol.apt.adt.ts.State;

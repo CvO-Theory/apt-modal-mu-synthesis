@@ -22,7 +22,6 @@ package uniol.synthesis.tableau;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class GraphvizProgressCallback<S> implements TableauBuilder.ProgressCallback<S> {
 	private final StringBuilder builder = new StringBuilder("digraph img {\n");

@@ -19,14 +19,9 @@
 
 package uniol.synthesis.expansion;
 
-import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.Collection;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.Executor;
 import org.apache.commons.collections4.Transformer;
 
 import uniol.apt.adt.ts.State;

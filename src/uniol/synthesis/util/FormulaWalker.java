@@ -19,9 +19,6 @@
 
 package uniol.synthesis.util;
 
-import java.util.Deque;
-import java.util.ArrayDeque;
-
 import uniol.synthesis.adt.mu_calculus.CallFormula;
 import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
 import uniol.synthesis.adt.mu_calculus.ConstantFormula;

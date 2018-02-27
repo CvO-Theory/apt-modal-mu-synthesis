@@ -19,20 +19,11 @@
 
 package uniol.synthesis.util;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
-import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
-import uniol.synthesis.adt.mu_calculus.ConstantFormula;
-import uniol.synthesis.adt.mu_calculus.DisjunctionFormula;
 import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
 import uniol.synthesis.adt.mu_calculus.Formula;
-import uniol.synthesis.adt.mu_calculus.LetFormula;
-import uniol.synthesis.adt.mu_calculus.ModalityFormula;
-import uniol.synthesis.adt.mu_calculus.NegationFormula;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
 
 public class CleanFormFormulaTransformer extends FormulaFormulaTransformer {
