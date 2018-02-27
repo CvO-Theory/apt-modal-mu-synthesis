@@ -21,6 +21,7 @@ package uniol.synthesis.util;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
@@ -46,18 +47,23 @@ public class GetFreeVariables extends FormulaTransformer<Map<VariableFormula, In
 			super(formula);
 		}
 
-		private Map<VariableFormula, Integer> union(Map<VariableFormula, Integer> map1,
-				Map<VariableFormula, Integer> map2) {
+		private Map<VariableFormula, Integer> union(List<Map<VariableFormula, Integer>> children) {
 			// TODO: Optimise
-			Map<VariableFormula, Integer> result = new HashMap<>();
-			result.putAll(map1);
-			for (Map.Entry<VariableFormula, Integer> entry : map2.entrySet()) {
-				Integer count = result.get(entry.getKey());
-				if (count == null)
-					count = entry.getValue();
-				else
-					count = entry.getValue() + count;
-				result.put(entry.getKey(), count);
+			Map<VariableFormula, Integer> result = null;
+			for (Map<VariableFormula, Integer> map : children) {
+				if (result == null) {
+					result = new HashMap<>();
+					result.putAll(map);
+				} else {
+					for (Map.Entry<VariableFormula, Integer> entry : map.entrySet()) {
+						Integer count = result.get(entry.getKey());
+						if (count == null)
+							count = entry.getValue();
+						else
+							count = entry.getValue() + count;
+						result.put(entry.getKey(), count);
+					}
+				}
 			}
 			return result;
 		}
@@ -76,16 +82,14 @@ public class GetFreeVariables extends FormulaTransformer<Map<VariableFormula, In
 
 		@Override
 		public Map<VariableFormula, Integer> conjunction(ConjunctionFormula formula,
-				Map<VariableFormula, Integer> transformedLeft,
-				Map<VariableFormula, Integer> transformedRight) {
-			return union(transformedLeft, transformedRight);
+				List<Map<VariableFormula, Integer>> transformedChildren) {
+			return union(transformedChildren);
 		}
 
 		@Override
 		public Map<VariableFormula, Integer> disjunction(DisjunctionFormula formula,
-				Map<VariableFormula, Integer> transformedLeft,
-				Map<VariableFormula, Integer> transformedRight) {
-			return union(transformedLeft, transformedRight);
+				List<Map<VariableFormula, Integer>> transformedChildren) {
+			return union(transformedChildren);
 		}
 
 		@Override
