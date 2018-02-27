@@ -19,6 +19,8 @@
 
 package uniol.synthesis.util;
 
+import java.util.List;
+
 import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
 import uniol.synthesis.adt.mu_calculus.ConstantFormula;
 import uniol.synthesis.adt.mu_calculus.DisjunctionFormula;
@@ -45,19 +47,23 @@ public abstract class FormulaFormulaTransformer extends FormulaTransformer<Formu
 		}
 
 		@Override
-		public Formula conjunction(ConjunctionFormula formula,
-				Formula transformedLeft, Formula transformedRight) {
-			if (formula.getLeft().equals(transformedLeft) && formula.getRight().equals(transformedRight))
-				return formula;
-			return formula.getCreator().conjunction(transformedLeft, transformedRight);
+		public Formula conjunction(ConjunctionFormula formula, List<Formula> transformed) {
+			assert formula.getFormulas().size() == transformed.size();
+			for (int i = 0; i < transformed.size(); i++) {
+				if (!formula.getFormulas().get(i).equals(transformed.get(i)))
+					return formula.getCreator().conjunction(transformed);
+			}
+			return formula;
 		}
 
 		@Override
-		public Formula disjunction(DisjunctionFormula formula,
-				Formula transformedLeft, Formula transformedRight) {
-			if (formula.getLeft().equals(transformedLeft) && formula.getRight().equals(transformedRight))
-				return formula;
-			return formula.getCreator().disjunction(transformedLeft, transformedRight);
+		public Formula disjunction(DisjunctionFormula formula, List<Formula> transformed) {
+			assert formula.getFormulas().size() == transformed.size();
+			for (int i = 0; i < transformed.size(); i++) {
+				if (!formula.getFormulas().get(i).equals(transformed.get(i)))
+					return formula.getCreator().disjunction(transformed);
+			}
+			return formula;
 		}
 
 		@Override
