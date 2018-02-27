@@ -148,12 +148,12 @@ public class LetTransformer implements NonRecursive.Walker {
 		}
 
 		private void enqueueFormula(NonRecursive engine, Formula formula) {
-			FormulaInfo info = formulaInfo.get(formula);
-			assert info != null : formula;
-			if (info.shouldLet())
-				engine.enqueue(new CopyFormula(info.getVariable()));
+			FormulaInfo inf = formulaInfo.get(formula);
+			assert inf != null : formula;
+			if (inf.shouldLet())
+				engine.enqueue(new CopyFormula(inf.getVariable()));
 			else
-				engine.enqueue(new BuildFormula(info));
+				engine.enqueue(new BuildFormula(inf));
 		}
 
 		@Override

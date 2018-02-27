@@ -72,8 +72,8 @@ public abstract class FormulaWalker implements NonRecursive.Walker {
 	public abstract void walk(NonRecursive engine, FixedPointFormula formula);
 	public abstract void walk(NonRecursive engine, LetFormula formula);
 
-	public void walk(NonRecursive engine, CallFormula formula) {
-		throw new AssertionError("CallFormula not supported, but got: " + formula);
+	public void walk(NonRecursive engine, CallFormula call) {
+		throw new AssertionError("CallFormula not supported, but got: " + call);
 	}
 }
 
