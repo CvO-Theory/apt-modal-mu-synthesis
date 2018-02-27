@@ -19,6 +19,8 @@
 
 package uniol.synthesis.util;
 
+import java.util.List;
+
 import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
 import uniol.synthesis.adt.mu_calculus.ConstantFormula;
 import uniol.synthesis.adt.mu_calculus.DisjunctionFormula;
@@ -78,15 +80,13 @@ public class PositiveFormFormulaTransformer {
 				}
 
 				@Override
-				public Formula conjunction(ConjunctionFormula formula,
-						Formula transformedLeft, Formula transformedRight) {
-					return formula.getCreator().disjunction(transformedLeft, transformedRight);
+				public Formula conjunction(ConjunctionFormula formula, List<Formula> transformedChildren) {
+					return formula.getCreator().disjunction(transformedChildren);
 				}
 
 				@Override
-				public Formula disjunction(DisjunctionFormula formula,
-						Formula transformedLeft, Formula transformedRight) {
-					return formula.getCreator().conjunction(transformedLeft, transformedRight);
+				public Formula disjunction(DisjunctionFormula formula, List<Formula> transformedChildren) {
+					return formula.getCreator().conjunction(transformedChildren);
 				}
 
 				@Override
