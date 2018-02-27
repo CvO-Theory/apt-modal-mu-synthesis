@@ -21,6 +21,7 @@ package uniol.synthesis.util;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.ListIterator;
 
 import uniol.synthesis.adt.mu_calculus.CallFormula;
 import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
@@ -52,18 +53,26 @@ public class PrintFormula extends FormulaWalker {
 	@Override
 	public void walk(NonRecursive engine, ConjunctionFormula formula) {
 		enqueue(engine, ")");
-		enqueue(engine, formula.getRight());
-		enqueue(engine, "&&");
-		enqueue(engine, formula.getLeft());
+		List<Formula> formulas = formula.getFormulas();
+		ListIterator<Formula> iter = formulas.listIterator(formulas.size());
+		while (iter.hasPrevious()) {
+			enqueue(engine, iter.previous());
+			if (iter.hasPrevious())
+				enqueue(engine, "&&");
+		}
 		enqueue(engine, "(");
 	}
 
 	@Override
 	public void walk(NonRecursive engine, DisjunctionFormula formula) {
 		enqueue(engine, ")");
-		enqueue(engine, formula.getRight());
-		enqueue(engine, "||");
-		enqueue(engine, formula.getLeft());
+		List<Formula> formulas = formula.getFormulas();
+		ListIterator<Formula> iter = formulas.listIterator(formulas.size());
+		while (iter.hasPrevious()) {
+			enqueue(engine, iter.previous());
+			if (iter.hasPrevious())
+				enqueue(engine, "||");
+		}
 		enqueue(engine, "(");
 	}
 
