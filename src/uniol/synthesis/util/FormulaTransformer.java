@@ -96,30 +96,11 @@ public abstract class FormulaTransformer<C> {
 			super(formula);
 		}
 
-		// TODO: Make these abstract
-		public C conjunction(ConjunctionFormula formula, List<C> transformed) {
-			assert transformed.size() == 2;
-			return conjunction(formula, transformed.get(0), transformed.get(1));
-		}
-
-		public C disjunction(DisjunctionFormula formula, List<C> transformed) {
-			assert transformed.size() == 2;
-			return disjunction(formula, transformed.get(0), transformed.get(1));
-		}
-
+		abstract public C conjunction(ConjunctionFormula formula, List<C> transformed);
+		abstract public C disjunction(DisjunctionFormula formula, List<C> transformed);
 		abstract public C negate(NegationFormula formula, C transformedChild);
 		abstract public C modality(ModalityFormula formula, C transformedChild);
 		abstract public C fixedPoint(FixedPointFormula formula, C transformedChild);
-
-		@Deprecated
-		public C conjunction(ConjunctionFormula formula, C transformedLeft, C transformedRight) {
-			throw new AssertionError("This code should not be reached");
-		}
-
-		@Deprecated
-		public C disjunction(DisjunctionFormula formula, C transformedLeft, C transformedRight) {
-			throw new AssertionError("This code should not be reached");
-		}
 
 		@Override
 		public void walk(NonRecursive engine, ConjunctionFormula formula) {
