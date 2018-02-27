@@ -44,6 +44,7 @@ import uniol.synthesis.adt.mu_calculus.ModalityFormula;
 import uniol.synthesis.adt.mu_calculus.NegationFormula;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
 
+@SuppressWarnings("unchecked")
 public class FormulaCreatorTest {
 	static private void clearSoftReferences() {
 		WeakReference<Object> ref = new WeakReference<>(new Object());
@@ -156,8 +157,7 @@ public class FormulaCreatorTest {
 		Formula True = creator.constant(true);
 		Formula False = creator.constant(false);
 		ConjunctionFormula conj = creator.conjunction(True, False);
-		assertThat(conj.getLeft(), sameInstance(True));
-		assertThat(conj.getRight(), sameInstance(False));
+		assertThat(conj.getFormulas(), contains(sameInstance(True), sameInstance(False)));
 		assertThat(conj, sameInstance(creator.conjunction(True, False)));
 	}
 
@@ -167,8 +167,7 @@ public class FormulaCreatorTest {
 		Formula True = creator.constant(true);
 		Formula False = creator.constant(false);
 		DisjunctionFormula disj = creator.disjunction(True, False);
-		assertThat(disj.getLeft(), sameInstance(True));
-		assertThat(disj.getRight(), sameInstance(False));
+		assertThat(disj.getFormulas(), contains(sameInstance(True), sameInstance(False)));
 		assertThat(disj, sameInstance(creator.disjunction(True, False)));
 	}
 

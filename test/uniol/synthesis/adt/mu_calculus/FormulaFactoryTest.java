@@ -59,8 +59,7 @@ public class FormulaFactoryTest {
 				new ConjunctionFormula(creator, other, right));
 
 		ConjunctionFormula formula = ConjunctionFormula.conjunction(creator, left, right);
-		assertThat(formula.getLeft(), equalTo(left));
-		assertThat(formula.getRight(), equalTo(right));
+		assertThat(formula.getFormulas(), contains(equalTo(left), equalTo(right)));
 	}
 
 	@Test
@@ -102,8 +101,7 @@ public class FormulaFactoryTest {
 				new DisjunctionFormula(creator, other, right));
 
 		DisjunctionFormula formula = DisjunctionFormula.disjunction(creator, left, right);
-		assertThat(formula.getLeft(), equalTo(left));
-		assertThat(formula.getRight(), equalTo(right));
+		assertThat(formula.getFormulas(), contains(equalTo(left), equalTo(right)));
 	}
 
 	@Test

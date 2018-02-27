@@ -19,6 +19,10 @@
 
 package uniol.synthesis.adt.mu_calculus;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 public class DisjunctionFormula extends AbstractFormula {
 	final private Formula left;
 	final private Formula right;
@@ -29,10 +33,16 @@ public class DisjunctionFormula extends AbstractFormula {
 		this.right = right;
 	}
 
+	public List<Formula> getFormulas() {
+		return Collections.unmodifiableList(Arrays.asList(left, right));
+	}
+
+	@Deprecated
 	public Formula getRight() {
 		return right;
 	}
 
+	@Deprecated
 	public Formula getLeft() {
 		return left;
 	}
