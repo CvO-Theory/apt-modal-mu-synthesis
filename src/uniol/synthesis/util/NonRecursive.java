@@ -26,7 +26,7 @@ public class NonRecursive {
 	private final Deque<Walker> todo = new ArrayDeque<Walker>();
 
 	public interface Walker {
-		public void walk(NonRecursive engine);
+		void walk(NonRecursive engine);
 	}
 
 	public void reset() {

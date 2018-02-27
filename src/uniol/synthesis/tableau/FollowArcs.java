@@ -25,7 +25,7 @@ import java.util.Set;
  * Interface for getting the preset of a node.
  */
 public interface FollowArcs<S> {
-	public Set<S> followArcs(S node, String label);
+	Set<S> followArcs(S node, String label);
 }
 
 // vim: ft=java:noet:sw=8:sts=8:ts=8:tw=120

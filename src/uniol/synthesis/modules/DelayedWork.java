@@ -25,7 +25,7 @@ import java.io.Writer;
 import uniol.apt.module.exception.ModuleException;
 
 public interface DelayedWork {
-	public void generateOutput(Writer writer) throws IOException, ModuleException;
+	void generateOutput(Writer writer) throws IOException, ModuleException;
 }
 
 // vim: ft=java:noet:sw=8:sts=8:ts=8:tw=120

@@ -46,8 +46,8 @@ import static uniol.synthesis.util.PositiveFormFormulaTransformer.positiveForm;
 import static uniol.synthesis.util.UnLetTransformer.unLet;
 
 public class RealiseFormula {
-	static interface ReachingWordTransformerFactory {
-		public Transformer<State, State> create(TransitionSystem target);
+	interface ReachingWordTransformerFactory {
+		Transformer<State, State> create(TransitionSystem target);
 	}
 
 	static class DefaultReachingWordTransformerFactory implements ReachingWordTransformerFactory {
@@ -57,8 +57,8 @@ public class RealiseFormula {
 		}
 	}
 
-	static interface ContinueTableauFactory {
-		public Set<Tableau<State>> continueTableau(Tableau<State> tableau);
+	interface ContinueTableauFactory {
+		Set<Tableau<State>> continueTableau(Tableau<State> tableau);
 	}
 
 	static class DefaultContinueTableauFactory implements ContinueTableauFactory {
@@ -79,8 +79,8 @@ public class RealiseFormula {
 		}
 	}
 
-	static interface OverapproximateTS {
-		public TransitionSystem overapproximate(TransitionSystem ts);
+	interface OverapproximateTS {
+		TransitionSystem overapproximate(TransitionSystem ts);
 	}
 
 	static class DefaultOverapproximateTS implements OverapproximateTS {
@@ -101,8 +101,8 @@ public class RealiseFormula {
 		}
 	}
 
-	static public interface RealisationCallback {
-		public void foundRealisation(TransitionSystem ts, Tableau<State> tableau);
+	public interface RealisationCallback {
+		void foundRealisation(TransitionSystem ts, Tableau<State> tableau);
 	}
 
 	private final RealisationCallback realisationCallback;

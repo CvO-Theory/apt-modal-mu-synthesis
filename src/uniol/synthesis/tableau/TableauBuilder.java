@@ -44,12 +44,12 @@ import static uniol.synthesis.util.UnLetTransformer.unLet;
 
 public class TableauBuilder<S> {
 	public interface ProgressCallback<S> {
-		public void children(TableauNode<S> node, Collection<? extends Collection<TableauNode<S>>> children);
+		void children(TableauNode<S> node, Collection<? extends Collection<TableauNode<S>>> children);
 	}
 
 	static private final ProgressCallback<Object> NOP_PROGRESS = new ProgressCallback<Object>() {
 		@Override
-		public void children(TableauNode<Object> node,
+		void children(TableauNode<Object> node,
 				Collection<? extends Collection<TableauNode<Object>>> children) {
 		}
 	};
@@ -61,7 +61,7 @@ public class TableauBuilder<S> {
 	}
 
 	public interface ResultCallback<S> {
-		public void foundTableau(NonRecursive engine, Tableau<S> tableau);
+		void foundTableau(NonRecursive engine, Tableau<S> tableau);
 	}
 
 	static public enum TableauSelection {
