@@ -201,7 +201,7 @@ public class LetTransformer implements NonRecursive.Walker {
 		@Override
 		public void walk(NonRecursive engine, FixedPointFormula formula) {
 			enqueueLets(engine);
-			engine.enqueue(new BuildFixedPoint( formula.getFixedPoint(), formula.getVariable()));
+			engine.enqueue(new BuildFixedPoint(formula.getFixedPoint(), formula.getVariable()));
 			enqueueFormula(engine, formula.getFormula());
 		}
 
@@ -333,10 +333,10 @@ public class LetTransformer implements NonRecursive.Walker {
 		}
 
 		private void assign(NonRecursive engine, Formula... children) {
-			FormulaInfo own = formulaInfo.get(formula);
+			FormulaInfo own = formulaInfo.get(super.getFormula());
 			if (own == null) {
-				own = new FormulaInfo(parent, formula);
-				formulaInfo.put(formula, own);
+				own = new FormulaInfo(parent, super.getFormula());
+				formulaInfo.put(super.getFormula(), own);
 
 				engine.enqueue(new AssignTopoSortNumber(own));
 
@@ -344,7 +344,7 @@ public class LetTransformer implements NonRecursive.Walker {
 					engine.enqueue(new AssignInfo(child, own));
 
 			} else if (parent != null) {
-				assert formula.equals(own.formula);
+				assert super.getFormula().equals(own.formula);
 				own.mergeAncestor(parent);
 			}
 		}

@@ -31,11 +31,15 @@ import uniol.synthesis.adt.mu_calculus.NegationFormula;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
 
 public abstract class FormulaWalker implements NonRecursive.Walker {
-	final protected Formula formula;
+	final private Formula formula;
 
 	public FormulaWalker(Formula formula) {
 		assert formula != null;
 		this.formula = formula;
+	}
+
+	public Formula getFormula() {
+		return formula;
 	}
 
 	@Override
