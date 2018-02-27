@@ -24,39 +24,42 @@ import java.util.Collections;
 import java.util.List;
 
 public class ConjunctionFormula extends AbstractFormula {
-	final private Formula left;
-	final private Formula right;
+	final private Formula[] formulas;
 
-	protected ConjunctionFormula(FormulaCreator creator, Formula left, Formula right) {
+	protected ConjunctionFormula(FormulaCreator creator, Formula[] formulas) {
 		super(creator);
-		this.left = left;
-		this.right = right;
+		this.formulas = formulas;
 	}
 
 	public List<Formula> getFormulas() {
-		return Collections.unmodifiableList(Arrays.asList(left, right));
+		return Collections.unmodifiableList(Arrays.asList(formulas));
 	}
 
 	@Deprecated
 	public Formula getRight() {
-		return right;
+		if (formulas.length != 2)
+			throw new RuntimeException();
+		return formulas[1];
 	}
 
 	@Deprecated
 	public Formula getLeft() {
-		return left;
+		if (formulas.length != 2)
+			throw new RuntimeException();
+		return formulas[0];
 	}
 
-	static ConjunctionFormula conjunction(FormulaCreator creator, Formula left, Formula right) {
-		int hashCode = left.hashCode() ^ Integer.rotateLeft(right.hashCode(), 16);
+	static ConjunctionFormula conjunction(FormulaCreator creator, List<Formula> children) {
+		// TODO XXX: 'Flatten' conjunctions of conjunctions
+		int hashCode = children.hashCode();
 		for (Formula formula : creator.getFormulasWithHashCode(hashCode)) {
 			if (formula instanceof ConjunctionFormula) {
 				ConjunctionFormula result = (ConjunctionFormula) formula;
-				if (result.getLeft().equals(left) && result.getRight().equals(right))
+				if (result.getFormulas().equals(children))
 					return result;
 			}
 		}
-		ConjunctionFormula result = new ConjunctionFormula(creator, left, right);
+		ConjunctionFormula result = new ConjunctionFormula(creator, children.toArray(new Formula[0]));
 		creator.addFormulaInternal(hashCode, result);
 		return result;
 	}

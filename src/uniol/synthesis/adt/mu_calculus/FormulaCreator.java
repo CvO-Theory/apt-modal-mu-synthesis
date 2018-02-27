@@ -49,15 +49,23 @@ public class FormulaCreator {
 		}
 	}
 
-	public ConjunctionFormula conjunction(Formula left, Formula right) {
+	public ConjunctionFormula conjunction(Formula... children) {
+		return conjunction(Arrays.asList(children));
+	}
+
+	public ConjunctionFormula conjunction(List<Formula> children) {
 		synchronized(objects) {
-			return ConjunctionFormula.conjunction(this, left, right);
+			return ConjunctionFormula.conjunction(this, children);
 		}
 	}
 
-	public DisjunctionFormula disjunction(Formula left, Formula right) {
+	public DisjunctionFormula disjunction(Formula... children) {
+		return disjunction(Arrays.asList(children));
+	}
+
+	public DisjunctionFormula disjunction(List<Formula> children) {
 		synchronized(objects) {
-			return DisjunctionFormula.disjunction(this, left, right);
+			return DisjunctionFormula.disjunction(this, children);
 		}
 	}
 

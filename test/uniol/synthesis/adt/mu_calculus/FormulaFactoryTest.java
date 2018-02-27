@@ -29,6 +29,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings("unchecked")
 public class FormulaFactoryTest {
 	static private class WrongFormula implements Formula {
 		final private FormulaCreator creator;
@@ -55,10 +56,12 @@ public class FormulaFactoryTest {
 		Formula left = mock(Formula.class);
 		Formula right = mock(Formula.class);
 		Formula other = mock(Formula.class);
-		stubCreator(creator, new ConjunctionFormula(creator, other, other), new ConjunctionFormula(creator, left, other),
-				new ConjunctionFormula(creator, other, right));
+		stubCreator(creator,
+				new ConjunctionFormula(creator, new Formula[] { other, other }),
+				new ConjunctionFormula(creator, new Formula[] { left, other }),
+				new ConjunctionFormula(creator, new Formula[] { other, right }));
 
-		ConjunctionFormula formula = ConjunctionFormula.conjunction(creator, left, right);
+		ConjunctionFormula formula = ConjunctionFormula.conjunction(creator, Arrays.asList(left, right));
 		assertThat(formula.getFormulas(), contains(equalTo(left), equalTo(right)));
 	}
 
@@ -67,10 +70,10 @@ public class FormulaFactoryTest {
 		FormulaCreator creator = mock(FormulaCreator.class);
 		Formula left = mock(Formula.class);
 		Formula right = mock(Formula.class);
-		ConjunctionFormula expected = new ConjunctionFormula(creator, left, right);
+		ConjunctionFormula expected = new ConjunctionFormula(creator, new Formula[] { left, right });
 		stubCreator(creator, expected);
 
-		assertThat(ConjunctionFormula.conjunction(creator, left, right), sameInstance(expected));
+		assertThat(ConjunctionFormula.conjunction(creator, Arrays.asList(left, right)), sameInstance(expected));
 	}
 
 	@Test
@@ -97,10 +100,12 @@ public class FormulaFactoryTest {
 		Formula left = mock(Formula.class);
 		Formula right = mock(Formula.class);
 		Formula other = mock(Formula.class);
-		stubCreator(creator, new DisjunctionFormula(creator, other, other), new DisjunctionFormula(creator, left, other),
-				new DisjunctionFormula(creator, other, right));
+		stubCreator(creator,
+				new DisjunctionFormula(creator, new Formula[] { other, other }),
+				new DisjunctionFormula(creator, new Formula[] { left, other }),
+				new DisjunctionFormula(creator, new Formula[] { other, right }));
 
-		DisjunctionFormula formula = DisjunctionFormula.disjunction(creator, left, right);
+		DisjunctionFormula formula = DisjunctionFormula.disjunction(creator, Arrays.asList(left, right));
 		assertThat(formula.getFormulas(), contains(equalTo(left), equalTo(right)));
 	}
 
@@ -109,10 +114,10 @@ public class FormulaFactoryTest {
 		FormulaCreator creator = mock(FormulaCreator.class);
 		Formula left = mock(Formula.class);
 		Formula right = mock(Formula.class);
-		DisjunctionFormula expected = new DisjunctionFormula(creator, left, right);
+		DisjunctionFormula expected = new DisjunctionFormula(creator, new Formula[] { left, right });
 		stubCreator(creator, expected);
 
-		assertThat(DisjunctionFormula.disjunction(creator, left, right), sameInstance(expected));
+		assertThat(DisjunctionFormula.disjunction(creator, Arrays.asList(left, right)), sameInstance(expected));
 	}
 
 	@Test
