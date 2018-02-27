@@ -165,17 +165,17 @@ public class LetTransformer implements NonRecursive.Walker {
 		@Override
 		public void walk(NonRecursive engine, ConjunctionFormula formula) {
 			enqueueLets(engine);
-			engine.enqueue(new BuildConjunction());
-			enqueueFormula(engine, formula.getLeft());
-			enqueueFormula(engine, formula.getRight());
+			engine.enqueue(new BuildConjunction(formula.getFormulas().size()));
+			for (Formula child : formula.getFormulas())
+				enqueueFormula(engine, child);
 		}
 
 		@Override
 		public void walk(NonRecursive engine, DisjunctionFormula formula) {
 			enqueueLets(engine);
-			engine.enqueue(new BuildDisjunction());
-			enqueueFormula(engine, formula.getLeft());
-			enqueueFormula(engine, formula.getRight());
+			engine.enqueue(new BuildDisjunction(formula.getFormulas().size()));
+			for (Formula child : formula.getFormulas())
+				enqueueFormula(engine, child);
 		}
 
 		@Override
@@ -252,16 +252,34 @@ public class LetTransformer implements NonRecursive.Walker {
 	}
 
 	private class BuildConjunction extends AbstractBuildFormula {
+		private final int children;
+
+		public BuildConjunction(int children) {
+			this.children = children;
+		}
+
 		@Override
 		public void walk(NonRecursive engine) {
-			setResult(creator.conjunction(super.getResult(), super.getResult()));
+			List<Formula> formulas = new ArrayList<>(children);
+			for (int i = 0; i < children; i++)
+				formulas.add(super.getResult());
+			setResult(creator.conjunction(formulas));
 		}
 	}
 
 	private class BuildDisjunction extends AbstractBuildFormula {
+		private final int children;
+
+		public BuildDisjunction(int children) {
+			this.children = children;
+		}
+
 		@Override
 		public void walk(NonRecursive engine) {
-			setResult(creator.disjunction(super.getResult(), super.getResult()));
+			List<Formula> formulas = new ArrayList<>(children);
+			for (int i = 0; i < children; i++)
+				formulas.add(super.getResult());
+			setResult(creator.disjunction(formulas));
 		}
 	}
 
@@ -338,12 +356,12 @@ public class LetTransformer implements NonRecursive.Walker {
 
 		@Override
 		public void walk(NonRecursive engine, ConjunctionFormula formula) {
-			assign(engine, formula.getLeft(), formula.getRight());
+			assign(engine, formula.getFormulas().toArray(new Formula[0]));
 		}
 
 		@Override
 		public void walk(NonRecursive engine, DisjunctionFormula formula) {
-			assign(engine, formula.getLeft(), formula.getRight());
+			assign(engine, formula.getFormulas().toArray(new Formula[0]));
 		}
 
 		@Override
