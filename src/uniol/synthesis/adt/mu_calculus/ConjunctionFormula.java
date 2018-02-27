@@ -19,6 +19,7 @@
 
 package uniol.synthesis.adt.mu_calculus;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -36,7 +37,17 @@ public class ConjunctionFormula extends AbstractFormula {
 	}
 
 	static ConjunctionFormula conjunction(FormulaCreator creator, List<Formula> children) {
-		// TODO XXX: 'Flatten' conjunctions of conjunctions
+		List<Formula> flattened = new ArrayList<>();
+		for (Formula formula : children) {
+			if (formula instanceof ConjunctionFormula)
+				flattened.addAll(((ConjunctionFormula) formula).getFormulas());
+			else
+				flattened.add(formula);
+		}
+		return conjunctionInternal(creator, flattened);
+	}
+
+	static ConjunctionFormula conjunctionInternal(FormulaCreator creator, List<Formula> children) {
 		int hashCode = children.hashCode();
 		for (Formula formula : creator.getFormulasWithHashCode(hashCode)) {
 			if (formula instanceof ConjunctionFormula) {

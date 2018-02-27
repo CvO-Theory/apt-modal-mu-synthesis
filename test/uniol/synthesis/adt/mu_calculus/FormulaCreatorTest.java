@@ -162,6 +162,18 @@ public class FormulaCreatorTest {
 	}
 
 	@Test
+	public void testConjunctionFlattening() {
+		FormulaCreator creator = new FormulaCreator();
+		Formula True = creator.constant(true);
+		Formula False = creator.constant(false);
+		ConjunctionFormula conj = creator.conjunction(True, False);
+		conj = creator.conjunction(conj, conj);
+		assertThat(conj.getFormulas(), contains(sameInstance(True), sameInstance(False), sameInstance(True),
+					sameInstance(False)));
+		assertThat(conj, sameInstance(creator.conjunction(True, False, True, False)));
+	}
+
+	@Test
 	public void testDisjunction() {
 		FormulaCreator creator = new FormulaCreator();
 		Formula True = creator.constant(true);
@@ -169,6 +181,18 @@ public class FormulaCreatorTest {
 		DisjunctionFormula disj = creator.disjunction(True, False);
 		assertThat(disj.getFormulas(), contains(sameInstance(True), sameInstance(False)));
 		assertThat(disj, sameInstance(creator.disjunction(True, False)));
+	}
+
+	@Test
+	public void testDisjunctionFlattening() {
+		FormulaCreator creator = new FormulaCreator();
+		Formula True = creator.constant(true);
+		Formula False = creator.constant(false);
+		DisjunctionFormula disj = creator.disjunction(True, False);
+		disj = creator.disjunction(disj, disj);
+		assertThat(disj.getFormulas(), contains(sameInstance(True), sameInstance(False), sameInstance(True),
+					sameInstance(False)));
+		assertThat(disj, sameInstance(creator.disjunction(True, False, True, False)));
 	}
 
 	@Test

@@ -19,6 +19,7 @@
 
 package uniol.synthesis.adt.mu_calculus;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -36,7 +37,17 @@ public class DisjunctionFormula extends AbstractFormula {
 	}
 
 	static DisjunctionFormula disjunction(FormulaCreator creator, List<Formula> children) {
-		// TODO XXX: 'Flatten' disjunctions of disjunctions
+		List<Formula> flattened = new ArrayList<>();
+		for (Formula formula : children) {
+			if (formula instanceof DisjunctionFormula)
+				flattened.addAll(((DisjunctionFormula) formula).getFormulas());
+			else
+				flattened.add(formula);
+		}
+		return disjunctionInternal(creator, flattened);
+	}
+
+	static DisjunctionFormula disjunctionInternal(FormulaCreator creator, List<Formula> children) {
 		int hashCode = ~children.hashCode();
 		for (Formula formula : creator.getFormulasWithHashCode(hashCode)) {
 			if (formula instanceof DisjunctionFormula) {
