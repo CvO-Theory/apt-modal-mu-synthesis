@@ -114,13 +114,8 @@ public class PrintFormulaTest {
 	public void testConjunctionOfThree() throws Exception {
 		FormulaCreator creator = new FormulaCreator();
 		Formula formula = creator.conjunction(creator.constant(true), creator.constant(false), creator.variable("var"));
-		/* FIXME: The following does not work currently
 		test(formula, "(true&&false&&var)");
 		test(creator.negate(formula), "(!(true&&false&&var))");
-		Instead, just this part works:
-		*/
-		assertThat(formula, hasToString("(true&&false&&var)"));
-		assertThat(creator.negate(formula), hasToString("(!(true&&false&&var))"));
 	}
 
 	@Test
@@ -135,12 +130,8 @@ public class PrintFormulaTest {
 	public void testDisjunctionOfThree() throws Exception {
 		FormulaCreator creator = new FormulaCreator();
 		Formula formula = creator.disjunction(creator.constant(true), creator.constant(false), creator.variable("var"));
-		/* Same as for testConjunctionOfThree
 		test(formula, "(true||false||var)");
 		test(creator.negate(formula), "(!(true||false||var))");
-		*/
-		assertThat(formula, hasToString("(true||false||var)"));
-		assertThat(creator.negate(formula), hasToString("(!(true||false||var))"));
 	}
 
 	@Test
