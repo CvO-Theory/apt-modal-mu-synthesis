@@ -90,7 +90,7 @@ public class RealisationModule extends AbstractModule implements Module {
 
 								new AptLTSRenderer().render(ts, writer);
 								writer.flush();
-							} catch (IOException|ModuleException e) {
+							} catch (IOException | ModuleException e) {
 								throw new RuntimeException(e);
 							}
 						}

@@ -68,7 +68,7 @@ public class GetFreeVariables extends FormulaTransformer<Map<VariableFormula, In
 
 		@Override
 		public void walk(NonRecursive engine, ConstantFormula formula) {
-			setCache(formula,Collections.<VariableFormula, Integer>emptyMap());
+			setCache(formula, Collections.<VariableFormula, Integer>emptyMap());
 		}
 
 		@Override

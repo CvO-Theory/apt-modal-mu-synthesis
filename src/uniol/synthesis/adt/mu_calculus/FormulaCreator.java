@@ -38,13 +38,13 @@ public class FormulaCreator {
 	private int freshVariableCounter = 0;
 
 	public ConstantFormula constant(boolean value) {
-		synchronized(objects) {
+		synchronized (objects) {
 			return ConstantFormula.constant(this, value);
 		}
 	}
 
 	public NegationFormula negate(Formula formula) {
-		synchronized(objects) {
+		synchronized (objects) {
 			return NegationFormula.negate(this, formula);
 		}
 	}
@@ -54,7 +54,7 @@ public class FormulaCreator {
 	}
 
 	public ConjunctionFormula conjunction(List<Formula> children) {
-		synchronized(objects) {
+		synchronized (objects) {
 			return ConjunctionFormula.conjunction(this, children);
 		}
 	}
@@ -64,19 +64,19 @@ public class FormulaCreator {
 	}
 
 	public DisjunctionFormula disjunction(List<Formula> children) {
-		synchronized(objects) {
+		synchronized (objects) {
 			return DisjunctionFormula.disjunction(this, children);
 		}
 	}
 
 	public VariableFormula variable(String var) {
-		synchronized(objects) {
+		synchronized (objects) {
 			return VariableFormula.variable(this, var, false);
 		}
 	}
 
 	public VariableFormula freshVariable(String prefix) {
-		synchronized(objects) {
+		synchronized (objects) {
 			while (true) {
 				String name = prefix + freshVariableCounter++;
 				VariableFormula var = VariableFormula.variable(this, name, true);
@@ -87,19 +87,19 @@ public class FormulaCreator {
 	}
 
 	public FixedPointFormula fixedPoint(FixedPoint fixedPoint, VariableFormula var, Formula formula) {
-		synchronized(objects) {
+		synchronized (objects) {
 			return FixedPointFormula.fixedPoint(this, fixedPoint, var, formula);
 		}
 	}
 
 	public ModalityFormula modality(Modality modality, String event, Formula formula) {
-		synchronized(objects) {
+		synchronized (objects) {
 			return ModalityFormula.modality(this, modality, event, formula);
 		}
 	}
 
 	public LetFormula let(VariableFormula variable, Formula expansion, Formula formula) {
-		synchronized(objects) {
+		synchronized (objects) {
 			return LetFormula.let(this, variable, expansion, formula);
 		}
 	}
@@ -109,7 +109,7 @@ public class FormulaCreator {
 	}
 
 	public CallFormula call(String function, List<Formula> arguments) {
-		synchronized(objects) {
+		synchronized (objects) {
 			return CallFormula.call(this, function, arguments);
 		}
 	}
