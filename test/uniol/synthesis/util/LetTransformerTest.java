@@ -53,17 +53,17 @@ public class LetTransformerTest {
 		FormulaCreator creator = new FormulaCreator();
 		Formula base = creator.negate(creator.constant(true));
 		Formula formula = base;
-		formula = creator.conjunction(formula, formula);
-		formula = creator.conjunction(formula, formula);
-		formula = creator.conjunction(formula, formula);
+		formula = creator.conjunction(creator.negate(formula), creator.negate(formula));
+		formula = creator.conjunction(creator.negate(formula), creator.negate(formula));
+		formula = creator.conjunction(creator.negate(formula), creator.negate(formula));
 
 		Formula letted = let(formula);
 
 		Formula expected = creator.let(creator.variable("cse0"),
-				creator.let(creator.variable("cse1"),
-					creator.let(creator.variable("cse2"), base,
-					creator.conjunction(creator.variable("cse2"), creator.variable("cse2"))),
-					creator.conjunction(creator.variable("cse1"), creator.variable("cse1"))),
+				creator.negate(creator.let(creator.variable("cse1"),
+					creator.negate(creator.let(creator.variable("cse2"), creator.negate(base),
+					creator.conjunction(creator.variable("cse2"), creator.variable("cse2")))),
+					creator.conjunction(creator.variable("cse1"), creator.variable("cse1")))),
 				creator.conjunction(creator.variable("cse0"), creator.variable("cse0")));
 		assertThat(letted, sameInstance(expected));
 		assertThat(unLet(letted), sameInstance(formula));
@@ -73,14 +73,14 @@ public class LetTransformerTest {
 	public void testMixOfConjunctionsAndDisjunctions() {
 		FormulaCreator creator = new FormulaCreator();
 
-		// Construct ((true&&true)&&(false||false))&&((false||false)&&(true&&true))
+		// Construct (!(!(true&&true)&&(false||false)))&&(!((false||false)&&!(true&&true)))
 		Formula True = creator.constant(true);
 		Formula False = creator.constant(false);
-		Formula inner1 = creator.conjunction(True, True);
+		Formula inner1 = creator.negate(creator.conjunction(True, True));
 		Formula inner2 = creator.disjunction(False, False);
 		Formula formula = creator.conjunction(
-				creator.conjunction(inner1, inner2),
-				creator.conjunction(inner2, inner1));
+				creator.negate(creator.conjunction(inner1, inner2)),
+				creator.negate(creator.conjunction(inner2, inner1)));
 
 		Formula letted = let(formula);
 
@@ -88,8 +88,8 @@ public class LetTransformerTest {
 		// let cse1 = (true&&true) in let cse0 = (false||false) in (cse1 && cse0) && (cse0 && cse1)
 		// let cse0 = (false||false) in let cse1 = (true&&true) in (cse1 && cse0) && (cse0 && cse1)
 		Formula inner = creator.conjunction(
-				creator.conjunction(creator.variable("cse0"), creator.variable("cse1")),
-				creator.conjunction(creator.variable("cse1"), creator.variable("cse0")));
+				creator.negate(creator.conjunction(creator.variable("cse0"), creator.variable("cse1"))),
+				creator.negate(creator.conjunction(creator.variable("cse1"), creator.variable("cse0"))));
 		Formula expected1 = creator.let(creator.variable("cse0"),
 					inner1,
 					creator.let(creator.variable("cse1"),
@@ -109,10 +109,10 @@ public class LetTransformerTest {
 		Formula False = creator.constant(false);
 		Formula inner1 = creator.modality(Modality.UNIVERSAL, "a", False);
 		Formula inner2 = creator.modality(Modality.UNIVERSAL, "b", False);
-		Formula inner = creator.conjunction(inner1, inner2);
+		Formula inner = creator.negate(creator.conjunction(inner1, inner2));
 		Formula formula = creator.conjunction(inner,
-				creator.conjunction(inner2,
-					creator.conjunction(inner1, inner)));
+				creator.negate(creator.conjunction(inner2,
+					creator.negate(creator.conjunction(inner1, inner)))));
 
 		Formula letted = let(formula);
 
@@ -124,9 +124,9 @@ public class LetTransformerTest {
 			creator.let(cse1,
 				creator.modality(Modality.UNIVERSAL, "a", False),
 			creator.let(cse2,
-				creator.conjunction(cse1, cse0),
-				creator.conjunction(cse2, creator.conjunction(cse0,
-					creator.conjunction(cse1, cse2))))));
+				creator.negate(creator.conjunction(cse1, cse0)),
+				creator.conjunction(cse2, creator.negate(creator.conjunction(cse0,
+					creator.negate(creator.conjunction(cse1, cse2))))))));
 		assertThat(letted, sameInstance(expected));
 	}
 
@@ -135,9 +135,9 @@ public class LetTransformerTest {
 		FormulaCreator creator = new FormulaCreator();
 		Formula False = creator.constant(false);
 		Formula inner1 = creator.modality(Modality.UNIVERSAL, "a", False);
-		Formula inner2 = creator.conjunction(inner1,
-				creator.modality(Modality.UNIVERSAL, "b", False));
-		Formula formula = creator.conjunction(inner2, creator.conjunction(inner2, inner1));
+		Formula inner2 = creator.negate(creator.conjunction(inner1,
+				creator.modality(Modality.UNIVERSAL, "b", False)));
+		Formula formula = creator.conjunction(inner2, creator.negate(creator.conjunction(inner2, inner1)));
 
 		Formula letted = let(formula);
 
@@ -146,8 +146,8 @@ public class LetTransformerTest {
 		Formula expected = creator.let(cse0,
 				creator.modality(Modality.UNIVERSAL, "a", False),
 			creator.let(cse1,
-				creator.conjunction(cse0, creator.modality(Modality.UNIVERSAL, "b", False)),
-			creator.conjunction(cse1, creator.conjunction(cse1, cse0))));
+				creator.negate(creator.conjunction(cse0, creator.modality(Modality.UNIVERSAL, "b", False))),
+			creator.conjunction(cse1, creator.negate(creator.conjunction(cse1, cse0)))));
 		assertThat(letted, sameInstance(expected));
 	}
 }
