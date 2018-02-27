@@ -20,8 +20,10 @@
 package uniol.synthesis.util;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections4.Bag;
@@ -94,44 +96,69 @@ public abstract class FormulaTransformer<C> {
 			super(formula);
 		}
 
-		abstract public C conjunction(ConjunctionFormula formula, C transformedLeft, C transformedRight);
-		abstract public C disjunction(DisjunctionFormula formula, C transformedLeft, C transformedRight);
+		// TODO: Make these abstract
+		public C conjunction(ConjunctionFormula formula, List<C> transformed) {
+			assert transformed.size() == 2;
+			return conjunction(formula, transformed.get(0), transformed.get(1));
+		}
+
+		public C disjunction(DisjunctionFormula formula, List<C> transformed) {
+			assert transformed.size() == 2;
+			return disjunction(formula, transformed.get(0), transformed.get(1));
+		}
+
 		abstract public C negate(NegationFormula formula, C transformedChild);
 		abstract public C modality(ModalityFormula formula, C transformedChild);
 		abstract public C fixedPoint(FixedPointFormula formula, C transformedChild);
 
+		@Deprecated
+		public C conjunction(ConjunctionFormula formula, C transformedLeft, C transformedRight) {
+			throw new AssertionError("This code should not be reached");
+		}
+
+		@Deprecated
+		public C disjunction(DisjunctionFormula formula, C transformedLeft, C transformedRight) {
+			throw new AssertionError("This code should not be reached");
+		}
+
 		@Override
 		public void walk(NonRecursive engine, ConjunctionFormula formula) {
-			Formula left = formula.getLeft();
-			Formula right = formula.getRight();
-			C transformedLeft = getCache(left);
-			C transformedRight = getCache(right);
-			if (transformedLeft == null || transformedRight == null) {
-				engine.enqueue(this);
-				if (transformedLeft == null)
-					enqueueWalker(engine, left);
-				if (transformedRight == null)
-					enqueueWalker(engine, right);
-				return;
+			List<C> transformed = new ArrayList<>();
+			boolean enqueuedSelf = false;
+			for (Formula child : formula.getFormulas()) {
+				C transformedChild = getCache(child);
+				if (transformedChild == null) {
+					if (!enqueuedSelf)
+						engine.enqueue(this);
+					enqueuedSelf = true;
+					enqueueWalker(engine, child);
+				} else
+					transformed.add(transformedChild);
 			}
-			setCache(formula, conjunction(formula, transformedLeft, transformedRight));
+			if (enqueuedSelf)
+				return;
+
+			setCache(formula, conjunction(formula, transformed));
 		}
 
 		@Override
 		public void walk(NonRecursive engine, DisjunctionFormula formula) {
-			Formula left = formula.getLeft();
-			Formula right = formula.getRight();
-			C transformedLeft = getCache(left);
-			C transformedRight = getCache(right);
-			if (transformedLeft == null || transformedRight == null) {
-				engine.enqueue(this);
-				if (transformedLeft == null)
-					enqueueWalker(engine, left);
-				if (transformedRight == null)
-					enqueueWalker(engine, right);
-				return;
+			List<C> transformed = new ArrayList<>();
+			boolean enqueuedSelf = false;
+			for (Formula child : formula.getFormulas()) {
+				C transformedChild = getCache(child);
+				if (transformedChild == null) {
+					if (!enqueuedSelf)
+						engine.enqueue(this);
+					enqueuedSelf = true;
+					enqueueWalker(engine, child);
+				} else
+					transformed.add(transformedChild);
 			}
-			setCache(formula, disjunction(formula, transformedLeft, transformedRight));
+			if (enqueuedSelf)
+				return;
+
+			setCache(formula, disjunction(formula, transformed));
 		}
 
 		@Override
