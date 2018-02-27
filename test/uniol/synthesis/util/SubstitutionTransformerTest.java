@@ -104,6 +104,10 @@ public class SubstitutionTransformerTest {
 		for (int i = 0; i < 1000; i++) {
 			formula = creator.conjunction(formula, formula);
 			expected = creator.conjunction(expected, expected);
+
+			// Prevent conjunction() from flattening everything
+			formula = creator.disjunction(formula, creator.constant(false));
+			expected = creator.disjunction(expected, creator.constant(false));
 		}
 		assertThat(SubstitutionTransformer.substitute(formula, variable, substitute), sameInstance(expected));
 	}

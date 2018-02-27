@@ -86,8 +86,11 @@ public class CleanFormFormulaTransformerTest {
 	public void testCache() {
 		FormulaCreator creator = new FormulaCreator();
 		Formula formula = creator.variable("foo");
-		for (int i = 0; i < 1000; i++)
+		for (int i = 0; i < 1000; i++) {
 			formula = creator.conjunction(formula, formula);
+			// Prevent conjunction() from flattening everything
+			formula = creator.disjunction(formula, creator.constant(false));
+		}
 		assertThat(CleanFormFormulaTransformer.cleanForm(formula), sameInstance(formula));
 	}
 }

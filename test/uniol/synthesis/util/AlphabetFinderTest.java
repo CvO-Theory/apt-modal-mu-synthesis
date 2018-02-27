@@ -91,8 +91,11 @@ public class AlphabetFinderTest {
 	@Test
 	public void testCache() {
 		Formula formula = creator.modality(Modality.EXISTENTIAL, "a", creator.constant(true));
-		for (int i = 0; i < 1000; i++)
+		for (int i = 0; i < 1000; i++) {
 			formula = creator.conjunction(formula, formula);
+			// Prevent conjunction() from flattening everything
+			formula = creator.disjunction(formula, creator.constant(false));
+		}
 		// There are now 2^1000 occurrences of the modality in the formula
 		assertThat(AlphabetFinder.getAlphabet(formula), contains("a"));
 	}

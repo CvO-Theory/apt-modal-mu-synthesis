@@ -81,6 +81,10 @@ public class UnLetTransformerTest {
 		for (int i = 0; i < 1000; i++) {
 			innerFormula = creator.conjunction(innerFormula, innerFormula);
 			expected = creator.conjunction(expected, expected);
+
+			// Prevent conjunction() from flattening everything
+			innerFormula = creator.disjunction(innerFormula, creator.constant(false));
+			expected = creator.disjunction(expected, creator.constant(false));
 		}
 		Formula formula = creator.let(creator.variable("foo"), creator.constant(true), innerFormula);
 		assertThat(unLet(formula), sameInstance(expected));

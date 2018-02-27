@@ -156,8 +156,11 @@ public class GetFreeVariablesTest {
 	public void testCache() {
 		VariableFormula var = creator.variable("foo");
 		Formula formula = var;
-		for (int i = 0; i < 1000; i++)
+		for (int i = 0; i < 1000; i++) {
 			formula = creator.conjunction(formula, formula);
+			// Prevent conjunction() from flattening everything
+			formula = creator.disjunction(formula, creator.constant(false));
+		}
 		// There are now 2^1000 occurrences of "foo" in the formula
 		assertThat(GetFreeVariables.getFreeVariables(formula), contains(var));
 		assertThat(formula, freeVariables(variables("foo"), 0)); // FIXME: Integer overflow
