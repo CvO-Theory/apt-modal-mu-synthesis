@@ -138,13 +138,17 @@ public class RealiseFormula {
 
 	static class Worker implements NonRecursive.Walker {
 		private final RealiseFormula rf;
-		final TransitionSystem ts;
+		private final TransitionSystem ts;
 		private final Tableau<State> tableau;
 
 		public Worker(RealiseFormula rf, TransitionSystem ts, Tableau<State> tableau) {
 			this.rf = rf;
 			this.ts = ts;
 			this.tableau = tableau;
+		}
+
+		TransitionSystem getTsForTest() {
+			return ts;
 		}
 
 		@Override

@@ -19,8 +19,8 @@
 
 package uniol.synthesis.util;
 
-import java.util.Deque;
 import java.util.ArrayDeque;
+import java.util.Deque;
 
 public class NonRecursive {
 	private final Deque<Walker> todo = new ArrayDeque<Walker>();

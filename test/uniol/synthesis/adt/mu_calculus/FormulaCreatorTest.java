@@ -21,7 +21,6 @@ package uniol.synthesis.adt.mu_calculus;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -31,18 +30,6 @@ import org.testng.annotations.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.testng.Assert.fail;
-
-import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
-import uniol.synthesis.adt.mu_calculus.ConstantFormula;
-import uniol.synthesis.adt.mu_calculus.DisjunctionFormula;
-import uniol.synthesis.adt.mu_calculus.FixedPoint;
-import uniol.synthesis.adt.mu_calculus.FixedPointFormula;
-import uniol.synthesis.adt.mu_calculus.Formula;
-import uniol.synthesis.adt.mu_calculus.LetFormula;
-import uniol.synthesis.adt.mu_calculus.Modality;
-import uniol.synthesis.adt.mu_calculus.ModalityFormula;
-import uniol.synthesis.adt.mu_calculus.NegationFormula;
-import uniol.synthesis.adt.mu_calculus.VariableFormula;
 
 @SuppressWarnings("unchecked")
 public class FormulaCreatorTest {
@@ -59,7 +46,7 @@ public class FormulaCreatorTest {
 			while (true) {
 				list.add(new byte[size]);
 			}
-		} catch(OutOfMemoryError err) {
+		} catch (OutOfMemoryError err) {
 			assert ref.get() == null;
 			return;
 		}

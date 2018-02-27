@@ -29,7 +29,6 @@ import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.*;
 import static uniol.apt.util.matcher.Matchers.pairWith;
 
-import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.FormulaCreator;
 import uniol.synthesis.adt.mu_calculus.Modality;
 import uniol.synthesis.tableau.Tableau;

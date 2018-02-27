@@ -34,9 +34,7 @@ import uniol.synthesis.adt.mu_calculus.FixedPoint;
 import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.adt.mu_calculus.FormulaCreator;
 import uniol.synthesis.adt.mu_calculus.Modality;
-import uniol.synthesis.adt.mu_calculus.VariableFormula;
 import uniol.synthesis.tableau.Tableau;
-import uniol.synthesis.util.NonRecursive;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;

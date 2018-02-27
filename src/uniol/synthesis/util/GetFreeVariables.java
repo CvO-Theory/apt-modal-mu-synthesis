@@ -46,7 +46,7 @@ public class GetFreeVariables extends FormulaTransformer<Map<VariableFormula, In
 		}
 
 		private Map<VariableFormula, Integer> union(List<Map<VariableFormula, Integer>> children) {
-			// TODO: Optimise
+			// If needed, this could likely be optimised somehow
 			Map<VariableFormula, Integer> result = null;
 			for (Map<VariableFormula, Integer> map : children) {
 				if (result == null) {

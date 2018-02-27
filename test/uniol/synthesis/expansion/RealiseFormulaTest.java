@@ -136,7 +136,7 @@ public class RealiseFormulaTest {
 
 		ArgumentCaptor<RealiseFormula.Worker> nextWorkerCaptor = ArgumentCaptor.forClass(RealiseFormula.Worker.class);
 		verify(engine, times(1)).enqueue(nextWorkerCaptor.capture());
-		return nextWorkerCaptor.getValue().ts;
+		return nextWorkerCaptor.getValue().getTsForTest();
 	}
 
 	@Test
