@@ -67,19 +67,19 @@ public class MTSToFormula {
 	}
 
 	protected Formula conjunction(Formula a, Formula b) {
-		Formula True = a.getCreator().constant(true);
-		if (a.equals(True))
+		Formula trueFormula = a.getCreator().constant(true);
+		if (a.equals(trueFormula))
 			return b;
-		if (b.equals(True))
+		if (b.equals(trueFormula))
 			return a;
 		return a.getCreator().conjunction(a, b);
 	}
 
 	protected Formula disjunction(Formula a, Formula b) {
-		Formula False = a.getCreator().constant(false);
-		if (a.equals(False))
+		Formula falseFormula = a.getCreator().constant(false);
+		if (a.equals(falseFormula))
 			return b;
-		if (b.equals(False))
+		if (b.equals(falseFormula))
 			return a;
 		return a.getCreator().disjunction(a, b);
 	}
