@@ -35,20 +35,6 @@ public class DisjunctionFormula extends AbstractFormula {
 		return Collections.unmodifiableList(Arrays.asList(formulas));
 	}
 
-	@Deprecated
-	public Formula getRight() {
-		if (formulas.length != 2)
-			throw new RuntimeException();
-		return formulas[1];
-	}
-
-	@Deprecated
-	public Formula getLeft() {
-		if (formulas.length != 2)
-			throw new RuntimeException();
-		return formulas[0];
-	}
-
 	static DisjunctionFormula disjunction(FormulaCreator creator, List<Formula> children) {
 		// TODO XXX: 'Flatten' disjunctions of disjunctions
 		int hashCode = ~children.hashCode();

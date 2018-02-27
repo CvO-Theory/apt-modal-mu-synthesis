@@ -35,20 +35,6 @@ public class ConjunctionFormula extends AbstractFormula {
 		return Collections.unmodifiableList(Arrays.asList(formulas));
 	}
 
-	@Deprecated
-	public Formula getRight() {
-		if (formulas.length != 2)
-			throw new RuntimeException();
-		return formulas[1];
-	}
-
-	@Deprecated
-	public Formula getLeft() {
-		if (formulas.length != 2)
-			throw new RuntimeException();
-		return formulas[0];
-	}
-
 	static ConjunctionFormula conjunction(FormulaCreator creator, List<Formula> children) {
 		// TODO XXX: 'Flatten' conjunctions of conjunctions
 		int hashCode = children.hashCode();
