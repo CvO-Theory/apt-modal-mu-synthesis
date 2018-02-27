@@ -40,7 +40,7 @@ public class GetFreeVariables extends FormulaTransformer<Map<VariableFormula, In
 		engine.enqueue(new Worker(formula));
 	}
 
-	private class Worker extends FormulaTransformer<Map<VariableFormula, Integer>>.FillCache {
+	final private class Worker extends FormulaTransformer<Map<VariableFormula, Integer>>.FillCache {
 		private Worker(Formula formula) {
 			super(formula);
 		}

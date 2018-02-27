@@ -34,7 +34,7 @@ import uniol.synthesis.adt.mu_calculus.ModalityFormula;
 import uniol.synthesis.adt.mu_calculus.NegationFormula;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
 
-public class PrintFormula extends FormulaWalker {
+final public class PrintFormula extends FormulaWalker {
 	private final Appendable sb;
 
 	private PrintFormula(Appendable sb, Formula formula) {

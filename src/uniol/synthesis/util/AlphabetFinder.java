@@ -40,7 +40,7 @@ public class AlphabetFinder extends FormulaTransformer<Set<String>> {
 		engine.enqueue(new Worker(formula));
 	}
 
-	private class Worker extends FormulaTransformer<Set<String>>.FillCache {
+	final private class Worker extends FormulaTransformer<Set<String>>.FillCache {
 		private Worker(Formula formula) {
 			super(formula);
 		}

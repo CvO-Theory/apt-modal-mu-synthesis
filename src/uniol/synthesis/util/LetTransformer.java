@@ -73,10 +73,10 @@ public class LetTransformer implements NonRecursive.Walker {
 		engine.enqueue(new AssignInfo(rootFormula));
 	}
 
-	private class StepTwo implements NonRecursive.Walker {
+	final private class StepTwo implements NonRecursive.Walker {
 		final private Formula formula;
 
-		public StepTwo(Formula formula) {
+		private StepTwo(Formula formula) {
 			this.formula = formula;
 		}
 
@@ -97,10 +97,10 @@ public class LetTransformer implements NonRecursive.Walker {
 		}
 	}
 
-	static private class ComputeAncestors implements NonRecursive.Walker {
+	final static private class ComputeAncestors implements NonRecursive.Walker {
 		final private FormulaInfo info;
 
-		public ComputeAncestors(FormulaInfo info) {
+		private ComputeAncestors(FormulaInfo info) {
 			this.info = info;
 		}
 
@@ -116,7 +116,7 @@ public class LetTransformer implements NonRecursive.Walker {
 		}
 	}
 
-	private class BuildFormula extends FormulaWalker {
+	final private class BuildFormula extends FormulaWalker {
 		private final FormulaInfo info;
 
 		private BuildFormula(FormulaInfo info) {
@@ -212,7 +212,7 @@ public class LetTransformer implements NonRecursive.Walker {
 		}
 	}
 
-	private class CopyFormula implements NonRecursive.Walker {
+	final private class CopyFormula implements NonRecursive.Walker {
 		private final Formula formula;
 
 		private CopyFormula(Formula formula) {
@@ -225,7 +225,7 @@ public class LetTransformer implements NonRecursive.Walker {
 		}
 	}
 
-	private class BuildLet implements NonRecursive.Walker {
+	final private class BuildLet implements NonRecursive.Walker {
 		private final VariableFormula variable;
 
 		private BuildLet(VariableFormula variable) {
@@ -251,10 +251,10 @@ public class LetTransformer implements NonRecursive.Walker {
 		}
 	}
 
-	private class BuildConjunction extends AbstractBuildFormula {
+	final private class BuildConjunction extends AbstractBuildFormula {
 		private final int children;
 
-		public BuildConjunction(int children) {
+		private BuildConjunction(int children) {
 			this.children = children;
 		}
 
@@ -267,10 +267,10 @@ public class LetTransformer implements NonRecursive.Walker {
 		}
 	}
 
-	private class BuildDisjunction extends AbstractBuildFormula {
+	final private class BuildDisjunction extends AbstractBuildFormula {
 		private final int children;
 
-		public BuildDisjunction(int children) {
+		private BuildDisjunction(int children) {
 			this.children = children;
 		}
 
@@ -290,7 +290,7 @@ public class LetTransformer implements NonRecursive.Walker {
 		}
 	}
 
-	private class BuildModality extends AbstractBuildFormula {
+	final private class BuildModality extends AbstractBuildFormula {
 		private final Modality modality;
 		private final String event;
 
@@ -305,7 +305,7 @@ public class LetTransformer implements NonRecursive.Walker {
 		}
 	}
 
-	private class BuildFixedPoint extends AbstractBuildFormula {
+	final private class BuildFixedPoint extends AbstractBuildFormula {
 		private final FixedPoint fixedPoint;
 		private final VariableFormula variable;
 
@@ -320,7 +320,7 @@ public class LetTransformer implements NonRecursive.Walker {
 		}
 	}
 
-	private class AssignInfo extends FormulaWalker {
+	final private class AssignInfo extends FormulaWalker {
 		private final FormulaInfo parent;
 
 		private AssignInfo(Formula formula) {
@@ -391,7 +391,7 @@ public class LetTransformer implements NonRecursive.Walker {
 		}
 	}
 
-	private class AssignTopoSortNumber implements NonRecursive.Walker {
+	final private class AssignTopoSortNumber implements NonRecursive.Walker {
 		private final FormulaInfo info;
 
 		private AssignTopoSortNumber(FormulaInfo info) {
@@ -405,7 +405,7 @@ public class LetTransformer implements NonRecursive.Walker {
 		}
 	}
 
-	static private class FormulaInfo {
+	final static private class FormulaInfo {
 		final private Formula formula;
 		final private Collection<FormulaInfo> descendants = new HashSet<>();
 		final private Collection<FormulaInfo> parents = new ArrayList<>();
@@ -415,7 +415,7 @@ public class LetTransformer implements NonRecursive.Walker {
 		private FormulaInfo commonAncestor = null; // Computed during computeAncestors() (phase 2)
 		private VariableFormula variable = null;
 
-		public FormulaInfo(FormulaInfo parent, Formula formula) {
+		private FormulaInfo(FormulaInfo parent, Formula formula) {
 			assert !(formula instanceof LetFormula);
 			this.formula = formula;
 			if (parent != null)

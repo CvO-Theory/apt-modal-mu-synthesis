@@ -110,7 +110,7 @@ public class TableauBuilder<S> {
 		engine.enqueue(new CreateTableaus<S>(callback, resultCallback, nodes, selection));
 	}
 
-	static private class CreateTableaus<S> implements NonRecursive.Walker {
+	static final private class CreateTableaus<S> implements NonRecursive.Walker {
 		private final ProgressCallback<S> callback;
 		private final ResultCallback<S> resultCallback;
 		private final Collection<TableauNode<S>> leaves = new ArrayList<>();
@@ -195,7 +195,7 @@ public class TableauBuilder<S> {
 		return walker.getExpansion();
 	}
 
-	static private class ExpandNodeWalker<S> extends FormulaWalker {
+	static final private class ExpandNodeWalker<S> extends FormulaWalker {
 		private final TableauNode<S> node;
 		private Collection<? extends Collection<TableauNode<S>>> expansion;
 

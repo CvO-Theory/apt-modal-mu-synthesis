@@ -37,7 +37,7 @@ public class SubstitutionTransformer extends FormulaFormulaTransformer {
 		engine.enqueue(new Worker(formula));
 	}
 
-	private class Worker extends FormulaFormulaTransformer.FillCache {
+	final private class Worker extends FormulaFormulaTransformer.FillCache {
 		private Worker(Formula formula) {
 			super(formula);
 		}
