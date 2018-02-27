@@ -80,12 +80,14 @@ public class PositiveFormFormulaTransformer {
 				}
 
 				@Override
-				public Formula conjunction(ConjunctionFormula formula, List<Formula> transformedChildren) {
+				public Formula conjunction(ConjunctionFormula formula,
+						List<Formula> transformedChildren) {
 					return formula.getCreator().disjunction(transformedChildren);
 				}
 
 				@Override
-				public Formula disjunction(DisjunctionFormula formula, List<Formula> transformedChildren) {
+				public Formula disjunction(DisjunctionFormula formula,
+						List<Formula> transformedChildren) {
 					return formula.getCreator().conjunction(transformedChildren);
 				}
 

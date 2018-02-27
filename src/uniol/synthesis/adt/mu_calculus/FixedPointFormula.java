@@ -24,7 +24,8 @@ public class FixedPointFormula extends AbstractFormula {
 	final private VariableFormula variable;
 	final private Formula formula;
 
-	protected FixedPointFormula(FormulaCreator creator, FixedPoint fixedPoint, VariableFormula variable, Formula formula) {
+	protected FixedPointFormula(FormulaCreator creator, FixedPoint fixedPoint, VariableFormula variable,
+			Formula formula) {
 		super(creator);
 		this.fixedPoint = fixedPoint;
 		this.variable = variable;
@@ -43,7 +44,8 @@ public class FixedPointFormula extends AbstractFormula {
 		return formula;
 	}
 
-	static FixedPointFormula fixedPoint(FormulaCreator creator, FixedPoint fixedPoint, VariableFormula variable, Formula innerFormula) {
+	static FixedPointFormula fixedPoint(FormulaCreator creator, FixedPoint fixedPoint, VariableFormula variable,
+			Formula innerFormula) {
 		int hashCode = fixedPoint.hashCode() ^ variable.hashCode() ^ innerFormula.hashCode();
 		for (Formula formula : creator.getFormulasWithHashCode(hashCode)) {
 			if (formula instanceof FixedPointFormula) {

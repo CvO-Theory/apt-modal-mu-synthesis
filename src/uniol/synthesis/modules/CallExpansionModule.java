@@ -58,16 +58,18 @@ public class CallExpansionModule extends AbstractModule implements Module {
 				creator.modality(Modality.UNIVERSAL, "b", creator.constant(true)),
 				creator.modality(Modality.UNIVERSAL, "c", creator.constant(true)));
 		Formula exGlobal = creator.conjunction(
-				creator.call("global", creator.modality(Modality.EXISTENTIAL, "a", creator.constant(true))),
+				creator.call("global",
+					creator.modality(Modality.EXISTENTIAL, "a", creator.constant(true))),
 				addEvents);
 		Formula exEventually = creator.conjunction(
 				creator.call("eventually", creator.variable("a")),
 				addEvents);
+		Formula = creator.variable("P");
 		Formula exHide1 = creator.conjunction(
-				creator.call("hide", creator.modality(Modality.EXISTENTIAL, "a", creator.variable("P"))),
+				creator.call("hide", creator.modality(Modality.EXISTENTIAL, "a", p)),
 				addEvents);
 		Formula exHide2 = creator.conjunction(
-				creator.call("hide", creator.modality(Modality.UNIVERSAL, "a", creator.variable("P"))),
+				creator.call("hide", creator.modality(Modality.UNIVERSAL, "a", p)),
 				addEvents);
 		Formula exGlobalExpanded = handleCalls(exGlobal);
 		Formula exEventuallyExpanded = handleCalls(exEventually);
@@ -78,9 +80,9 @@ public class CallExpansionModule extends AbstractModule implements Module {
 			"- eventually(e): every path is either finite or contains event e.\n" +
 			"- hide(beta): hide environment actions in beta.\n" +
 			"\nAll these expansion rely on a global alphabet. That is the alphabet containing all the " +
-			"events which appear inside of modalities in the full formula. The following examples use the " +
-			"subformula " + addEvents + ", which is equivalent to true, to add events b and c to this " +
-			"alphabet.\n" +
+			"events which appear inside of modalities in the full formula. The following examples use " +
+			"the subformula " + addEvents + ", which is equivalent to true, to add events b and c to " +
+			"this alphabet.\n" +
 			"\n" + exGlobal + ", which expresses that in all reachable states event a is enabled, " +
 			"expands to " + exGlobalExpanded + ".\n" +
 			"\n" + exEventually + ", which expresses that eventually a deadlock is reached or event a is " +
@@ -174,7 +176,8 @@ public class CallExpansionModule extends AbstractModule implements Module {
 						replacement = expandOneEventually(argument, fullAlphabet);
 						break;
 					default:
-						throw new RuntimeException("Unsupported function call '" + formula.getFunction() + "'");
+						throw new RuntimeException("Unsupported function call '" +
+								formula.getFunction() + "'");
 				}
 				setCache(formula, replacement);
 			}
@@ -251,7 +254,8 @@ public class CallExpansionModule extends AbstractModule implements Module {
 			public Formula modality(ModalityFormula formula, Formula transformedChild) {
 				FormulaCreator creator = formula.getCreator();
 				VariableFormula var = creator.freshVariable("h");
-				Formula result = creator.modality(formula.getModality(), formula.getEvent(), transformedChild);
+				Formula result = creator.modality(formula.getModality(), formula.getEvent(),
+						transformedChild);
 				boolean conj = formula.getModality().equals(Modality.UNIVERSAL);
 				for (String event : expansionAlphabet) {
 					Formula sub = creator.modality(formula.getModality(), event, var);

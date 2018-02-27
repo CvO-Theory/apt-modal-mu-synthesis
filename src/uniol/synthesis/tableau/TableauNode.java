@@ -92,7 +92,8 @@ public class TableauNode<S> {
 						transformer.transform(pair.getFirst()), pair.getSecond()));
 		}
 		newExpansions = Collections.unmodifiableSet(newExpansions);
-		return new TableauNode<S>(followArcs, transformer.transform(state), formula, this.constantDefinitions, newExpansions);
+		return new TableauNode<S>(followArcs, transformer.transform(state), formula, this.constantDefinitions,
+				newExpansions);
 	}
 
 	public TableauNode<S> createChild(S st, Formula fm) {

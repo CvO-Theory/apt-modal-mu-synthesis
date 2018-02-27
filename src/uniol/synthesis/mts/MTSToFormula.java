@@ -105,9 +105,9 @@ public class MTSToFormula {
 			}
 
 			if (mustArcs.isEmpty() || mode.equals(Mode.GENERIC)) {
-				// Each arc must be allowed by a may arc, so we have a disjunction inside a universal modality.
-				// If there are must arcs in a deterministic system, they already make sure that one of
-				// the valid targets is reached and this code would not allow more.
+				// Each arc must be allowed by a may arc, so we have a disjunction inside a universal
+				// modality. If there are must arcs in a deterministic system, they already make sure
+				// that one of the valid targets is reached and this code would not allow more.
 				Formula mayFormula = creator.constant(false);
 				for (Arc arc : mayArcs) {
 					Formula part = getVariable(creator, arc.getTarget());

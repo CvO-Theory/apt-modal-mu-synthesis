@@ -51,7 +51,8 @@ public class TableauBuilder<S> {
 
 	static private final ProgressCallback<Object> NOP_PROGRESS = new ProgressCallback<Object>() {
 		@Override
-		public void children(TableauNode<Object> node, Collection<? extends Collection<TableauNode<Object>>> children) {
+		public void children(TableauNode<Object> node,
+				Collection<? extends Collection<TableauNode<Object>>> children) {
 		}
 	};
 
@@ -101,7 +102,8 @@ public class TableauBuilder<S> {
 					new TableauNode<S>(followArcs, state, formula)), selection);
 	}
 
-	public void continueTableau(NonRecursive engine, ResultCallback<S> resultCallback, Tableau<S> tableau, TableauSelection selection) {
+	public void continueTableau(NonRecursive engine, ResultCallback<S> resultCallback, Tableau<S> tableau,
+			TableauSelection selection) {
 		expandTableau(engine, resultCallback, tableau.getLeaves(), selection);
 	}
 
@@ -259,7 +261,8 @@ public class TableauBuilder<S> {
 				}
 			} else {
 				Formula inner = substitute(definition.getFormula(), definition.getVariable(), formula);
-				expansion = Collections.singleton(Collections.singleton(node.recordExpansion(formula, inner)));
+				expansion = Collections.singleton(Collections.singleton(node.recordExpansion(formula,
+								inner)));
 			}
 		}
 
@@ -281,13 +284,16 @@ public class TableauBuilder<S> {
 
 		@Override
 		public void walk(NonRecursive engine, FixedPointFormula formula) {
-			VariableFormula freshVariable = formula.getCreator().freshVariable(formula.getVariable().getVariable());
-			expansion = Collections.singleton(Collections.singleton(node.addExpansion(freshVariable, formula)));
+			VariableFormula freshVariable =
+				formula.getCreator().freshVariable(formula.getVariable().getVariable());
+			expansion = Collections.singleton(Collections.singleton(node.addExpansion(freshVariable,
+							formula)));
 		}
 
 		@Override
 		public void walk(NonRecursive engine, LetFormula formula) {
-			Formula result = substitute(formula.getFormula(), formula.getVariable(), formula.getExpansion());
+			Formula result = substitute(formula.getFormula(), formula.getVariable(),
+					formula.getExpansion());
 			expansion = Collections.singleton(Collections.singleton(node.createChild(result)));
 		}
 	}

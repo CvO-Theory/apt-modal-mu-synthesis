@@ -43,7 +43,8 @@ public class LetFormula extends AbstractFormula {
 		return formula;
 	}
 
-	static LetFormula let(FormulaCreator creator, VariableFormula variable, Formula expansion, Formula innerFormula) {
+	static LetFormula let(FormulaCreator creator, VariableFormula variable, Formula expansion,
+			Formula innerFormula) {
 		int hashCode = variable.hashCode() ^ expansion.hashCode() ^ innerFormula.hashCode();
 		for (Formula formula : creator.getFormulasWithHashCode(hashCode)) {
 			if (formula instanceof LetFormula) {

@@ -108,8 +108,9 @@ public class CleanFormFormulaTransformer extends FormulaFormulaTransformer {
 							&& formula.getVariable().equals(newVariable))
 						setCache(formula, formula);
 					else
-						setCache(formula, formula.getCreator().fixedPoint(formula.getFixedPoint(),
-									newVariable, transformedChild));
+						setCache(formula, formula.getCreator().fixedPoint(
+									formula.getFixedPoint(), newVariable,
+									transformedChild));
 				}
 			});
 			if (getCache(formula.getFormula()) == null)

@@ -156,10 +156,12 @@ public class RealiseFormula {
 		public void walk(NonRecursive engine) {
 			// Overapproximate the current ts and transform the tableau to the overapproximated ts
 			TransitionSystem overapproxTS = rf.overapproximateTS.overapproximate(ts);
-			Tableau<State> transformedTableau = tableau.transform(rf.reachingWordTransformerFactory.create(overapproxTS));
+			Tableau<State> transformedTableau =
+				tableau.transform(rf.reachingWordTransformerFactory.create(overapproxTS));
 
 			// For each possible way to continue the tableau, expand the ts
-			for (Tableau<State> currentTableau : rf.continueTableauFactory.continueTableau(transformedTableau)) {
+			for (Tableau<State> currentTableau :
+					rf.continueTableauFactory.continueTableau(transformedTableau)) {
 				if (currentTableau.isSuccessful()) {
 					rf.realisationCallback.foundRealisation(overapproxTS, currentTableau);
 					continue;
@@ -176,16 +178,19 @@ public class RealiseFormula {
 				// Do up to maxStepsWithoutApproximations iterations...
 				for (int i = 0; i < rf.maxStepsWithoutApproximations; i++) {
 					// ...extending the TS with missing arcs...
-					Set<Pair<State, String>> missing = rf.missingArcsFinder.findMissing(currentTableau);
+					Set<Pair<State, String>> missing =
+						rf.missingArcsFinder.findMissing(currentTableau);
 					if (missing.isEmpty()) {
-						debug("Aborting extension in iteration ", i, " since there were no missing arcs");
+						debug("Aborting extension in iteration ", i,
+								" since there were no missing arcs");
 						break;
 					}
 					// Make sure that we do not modify the original overapproximated TS
 					if (currentTs == null)
 						currentTs = new TransitionSystem(overapproxTS);
 					for (Pair<State, String> missingArc : missing) {
-						currentTs.createArc(missingArc.getFirst(), currentTs.createState(), missingArc.getSecond());
+						currentTs.createArc(missingArc.getFirst(), currentTs.createState(),
+								missingArc.getSecond());
 					}
 
 					// ...and then continuing the tableau for the extended ts.
