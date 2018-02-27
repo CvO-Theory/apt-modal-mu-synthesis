@@ -64,7 +64,7 @@ public class CallExpansionModule extends AbstractModule implements Module {
 		Formula exEventually = creator.conjunction(
 				creator.call("eventually", creator.variable("a")),
 				addEvents);
-		Formula = creator.variable("P");
+		Formula p = creator.variable("P");
 		Formula exHide1 = creator.conjunction(
 				creator.call("hide", creator.modality(Modality.EXISTENTIAL, "a", p)),
 				addEvents);

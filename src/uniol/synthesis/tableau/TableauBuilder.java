@@ -49,7 +49,7 @@ public class TableauBuilder<S> {
 
 	static private final ProgressCallback<Object> NOP_PROGRESS = new ProgressCallback<Object>() {
 		@Override
-		void children(TableauNode<Object> node,
+		public void children(TableauNode<Object> node,
 				Collection<? extends Collection<TableauNode<Object>>> children) {
 		}
 	};
