@@ -72,16 +72,16 @@ public class FormulaParser {
 
 		@Override
 		public void exitTermNegation(MuCalculusFormulaParser.TermNegationContext ctx) {
-			Formula formula = formulas.get(ctx.term());
-			formula = creator.negate(formula);
-			formulas.put(ctx, formula);
+			Formula result = formulas.get(ctx.term());
+			result = creator.negate(result);
+			formulas.put(ctx, result);
 		}
 
 		@Override
 		public void exitTermVariable(MuCalculusFormulaParser.TermVariableContext ctx) {
 			String var = ctx.IDENTIFIER().getText();
-			Formula formula = creator.variable(var);
-			formulas.put(ctx, formula);
+			Formula result = creator.variable(var);
+			formulas.put(ctx, result);
 		}
 
 		@Override
