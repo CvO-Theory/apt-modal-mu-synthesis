@@ -82,7 +82,8 @@ public class RealisationModule extends AbstractModule implements Module {
 						private boolean first = true;
 
 						@Override
-						public void foundRealisation(TransitionSystem ts, Tableau<State> tableau) {
+						public void foundRealisation(TransitionSystem ts,
+								Tableau<State> tableau) {
 							try {
 								if (!first)
 									writer.write("\n\n===========\n\n");
