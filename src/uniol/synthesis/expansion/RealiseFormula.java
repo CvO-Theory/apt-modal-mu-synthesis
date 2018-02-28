@@ -185,8 +185,11 @@ public class RealiseFormula {
 						break;
 					}
 					// Make sure that we do not modify the original overapproximated TS
-					if (currentTs == null)
+					if (currentTs == null) {
 						currentTs = new TransitionSystem(overapproxTS);
+						currentTableau = currentTableau.transform(
+								rf.reachingWordTransformerFactory.create(currentTs));
+					}
 					for (Pair<State, String> missingArc : missing) {
 						currentTs.createArc(missingArc.getFirst(), currentTs.createState(),
 								missingArc.getSecond());
