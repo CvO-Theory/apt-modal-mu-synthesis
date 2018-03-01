@@ -28,7 +28,7 @@ import org.apache.commons.collections4.Transformer;
 public class Tableau<S> {
 	private final Collection<TableauNode<S>> leaves;
 
-	public Tableau(Collection<TableauNode<S>> leaves) {
+	Tableau(Collection<TableauNode<S>> leaves) {
 		this.leaves = Collections.unmodifiableCollection(new ArrayList<TableauNode<S>>(leaves));
 	}
 
@@ -48,6 +48,10 @@ public class Tableau<S> {
 		for (TableauNode<S> leave : leaves)
 			result.add(leave.transform(transformer));
 		return new Tableau<S>(result);
+	}
+
+	static public <S> Tableau<S> createInitialTableau(FollowArcs<S> followArcs, S state, Formula formula) {
+		return new Tableau<S>(Collections.singleton(new TableauNode<S>(followArcs, state, formula)));
 	}
 }
 

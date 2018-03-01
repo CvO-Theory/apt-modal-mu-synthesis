@@ -38,7 +38,6 @@ import uniol.synthesis.adt.mu_calculus.Formula;
 import uniol.synthesis.tableau.StateFollowArcs;
 import uniol.synthesis.tableau.Tableau;
 import uniol.synthesis.tableau.TableauBuilder;
-import uniol.synthesis.tableau.TableauNode;
 import uniol.synthesis.util.NonRecursive;
 
 import static uniol.apt.util.DebugUtil.debug;
@@ -234,9 +233,8 @@ public class RealiseFormula {
 		TransitionSystem ts = getEmptyTS();
 		formula = positiveForm(unLet(formula));
 
-		Tableau<State> tableau = new Tableau<State>(Collections.singleton(new TableauNode<State>(
+		new NonRecursive().run(new Worker(this, ts, Tableau.<State>createInitialTableau(
 						new StateFollowArcs(), ts.getInitialState(), formula)));
-		new NonRecursive().run(new Worker(this, ts, tableau));
 	}
 }
 
