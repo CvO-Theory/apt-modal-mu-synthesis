@@ -22,14 +22,22 @@ package uniol.synthesis.tableau;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.collections4.Transformer;
 
+import uniol.synthesis.adt.mu_calculus.Formula;
+
 public class Tableau<S> {
 	private final Collection<TableauNode<S>> leaves;
+	private final Map<S, Set<Formula>> handledClosedFormulas;
 
-	Tableau(Collection<TableauNode<S>> leaves) {
+	Tableau(Collection<TableauNode<S>> leaves, Map<S, Set<Formula>> handledClosedFormulas) {
 		this.leaves = Collections.unmodifiableCollection(new ArrayList<TableauNode<S>>(leaves));
+		// We assume that the sets in the Map are already unmodifiable
+		this.handledClosedFormulas = Collections.unmodifiableMap(handledClosedFormulas);
 	}
 
 	public Collection<TableauNode<S>> getLeaves() {
@@ -43,15 +51,29 @@ public class Tableau<S> {
 		return true;
 	}
 
+	public boolean alreadyHandled(S state, Formula formula) {
+		Set<Formula> handled = handledClosedFormulas.get(state);
+		if (handled == null)
+			return false;
+		return handled.contains(formula);
+	}
+
 	public Tableau<S> transform(final Transformer<S, S> transformer) {
 		Collection<TableauNode<S>> result = new ArrayList<>(leaves.size());
 		for (TableauNode<S> leave : leaves)
 			result.add(leave.transform(transformer));
-		return new Tableau<S>(result);
+
+		Map<S, Set<Formula>> handled = new HashMap<>();
+		for (Map.Entry<S, Set<Formula>> entry : handledClosedFormulas.entrySet()) {
+			handled.put(transformer.transform(entry.getKey()), entry.getValue());
+		}
+
+		return new Tableau<S>(result, handled);
 	}
 
 	static public <S> Tableau<S> createInitialTableau(FollowArcs<S> followArcs, S state, Formula formula) {
-		return new Tableau<S>(Collections.singleton(new TableauNode<S>(followArcs, state, formula)));
+		return new Tableau<S>(Collections.singleton(new TableauNode<S>(followArcs, state, formula)),
+				Collections.<S, Set<Formula>>emptyMap());
 	}
 }
 

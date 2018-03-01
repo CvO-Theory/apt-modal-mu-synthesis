@@ -139,7 +139,8 @@ public class TableauBuilder<S> {
 			ExpandNodeWalker<S> next = todo.poll();
 			if (next == null) {
 				// We are done creating a tableau
-				resultCallback.foundTableau(engine, new Tableau<S>(leaves));
+				resultCallback.foundTableau(engine, new Tableau<S>(leaves,
+							Collections.<S, Set<Formula>>emptyMap()));
 				return;
 			}
 

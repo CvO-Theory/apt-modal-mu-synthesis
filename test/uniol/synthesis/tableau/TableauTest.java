@@ -20,11 +20,16 @@
 package uniol.synthesis.tableau;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import static java.util.Arrays.asList;
 
 import org.apache.commons.collections4.Transformer;
 
 import uniol.apt.adt.ts.State;
+import uniol.synthesis.adt.mu_calculus.Formula;
 
 import org.testng.annotations.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -34,9 +39,11 @@ import static uniol.synthesis.tableau.TableauMatchers.*;
 
 @SuppressWarnings("unchecked")
 public class TableauTest {
+	static private final Map<State, Set<Formula>> EMPTY_MAP = Collections.emptyMap();
+
 	@Test
 	public void testEmpty() {
-		Tableau<State> t = new Tableau<State>(Collections.<TableauNode<State>>emptySet());
+		Tableau<State> t = new Tableau<State>(Collections.<TableauNode<State>>emptySet(), EMPTY_MAP);
 		assertThat(t.getLeaves(), empty());
 	}
 
@@ -44,13 +51,13 @@ public class TableauTest {
 	public void testNotEmpty() {
 		TableauNode<State> n1 = mock(TableauNode.class);
 		TableauNode<State> n2 = mock(TableauNode.class);
-		Tableau<State> t = new Tableau<State>(asList(n1, n2));
+		Tableau<State> t = new Tableau<State>(asList(n1, n2), EMPTY_MAP);
 		assertThat(t.getLeaves(), containsInAnyOrder(n1, n2));
 	}
 
 	@Test
 	public void testSuccessfulEmpty() {
-		Tableau<State> t = new Tableau<State>(Collections.<TableauNode<State>>emptySet());
+		Tableau<State> t = new Tableau<State>(Collections.<TableauNode<State>>emptySet(), EMPTY_MAP);
 		assertThat(t, isSuccessfulTableau(true));
 	}
 
@@ -58,7 +65,7 @@ public class TableauTest {
 	public void testSuccessfulOneSuccess() {
 		TableauNode<State> n1 = mock(TableauNode.class);
 		when(n1.isSuccessful()).thenReturn(true);
-		Tableau<State> t = new Tableau<State>(asList(n1));
+		Tableau<State> t = new Tableau<State>(asList(n1), EMPTY_MAP);
 		assertThat(t, isSuccessfulTableau(true));
 	}
 
@@ -66,7 +73,7 @@ public class TableauTest {
 	public void testSuccessfulOneFails() {
 		TableauNode<State> n1 = mock(TableauNode.class);
 		when(n1.isSuccessful()).thenReturn(false);
-		Tableau<State> t = new Tableau<State>(asList(n1));
+		Tableau<State> t = new Tableau<State>(asList(n1), EMPTY_MAP);
 		assertThat(t, isSuccessfulTableau(false));
 	}
 
@@ -78,7 +85,7 @@ public class TableauTest {
 		when(n1.isSuccessful()).thenReturn(true);
 		when(n2.isSuccessful()).thenReturn(false);
 		when(n3.isSuccessful()).thenReturn(true);
-		Tableau<State> t = new Tableau<State>(asList(n1, n2, n3));
+		Tableau<State> t = new Tableau<State>(asList(n1, n2, n3), EMPTY_MAP);
 		assertThat(t, isSuccessfulTableau(false));
 	}
 
@@ -96,9 +103,39 @@ public class TableauTest {
 		when(n2.transform(transformer)).thenReturn(mapped2);
 		when(n3.transform(transformer)).thenReturn(mapped3);
 
-		Tableau<State> t = new Tableau<State>(asList(n1, n2, n3));
+		Tableau<State> t = new Tableau<State>(asList(n1, n2, n3), EMPTY_MAP);
 
 		assertThat(t.transform(transformer).getLeaves(), containsInAnyOrder(mapped1, mapped2, mapped3));
+	}
+
+	@Test
+	public void testAlreadyHandledNull() {
+		State state = mock(State.class);
+		Formula formula = mock(Formula.class);
+		Tableau<State> t = new Tableau<State>(Collections.<TableauNode<State>>emptySet(), EMPTY_MAP);
+		assertThat(t.alreadyHandled(state, formula), is(false));
+	}
+
+	@Test
+	public void testAlreadyHandledNotFound() {
+		State state = mock(State.class);
+		Formula formula = mock(Formula.class);
+		Map<State, Set<Formula>> map = new HashMap<>();
+		map.put(state, Collections.<Formula>emptySet());
+
+		Tableau<State> t = new Tableau<State>(Collections.<TableauNode<State>>emptySet(), map);
+		assertThat(t.alreadyHandled(state, formula), is(false));
+	}
+
+	@Test
+	public void testAlreadyHandledFound() {
+		State state = mock(State.class);
+		Formula formula = mock(Formula.class);
+		Map<State, Set<Formula>> map = new HashMap<>();
+		map.put(state, new HashSet<>(asList(formula)));
+
+		Tableau<State> t = new Tableau<State>(Collections.<TableauNode<State>>emptySet(), map);
+		assertThat(t.alreadyHandled(state, formula), is(true));
 	}
 }
 

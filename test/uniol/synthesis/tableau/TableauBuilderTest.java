@@ -22,6 +22,7 @@ package uniol.synthesis.tableau;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Set;
 
 import uniol.apt.adt.ts.State;
 import uniol.apt.adt.ts.TransitionSystem;
@@ -523,7 +524,8 @@ public class TableauBuilderTest {
 		Formula right = creator.modality(Modality.UNIVERSAL, "z", True);
 		Formula formula = creator.conjunction(True, right);
 		TableauNode<State> node = new TableauNode<State>(new StateFollowArcs(), state, formula);
-		Tableau<State> tableau = new Tableau<State>(Collections.singleton(node));
+		Tableau<State> tableau = new Tableau<State>(Collections.singleton(node),
+				Collections.<State, Set<Formula>>emptyMap());
 
 		assertThat(continueTableau(tableau), contains(hasLeaves(containsInAnyOrder(
 						hasStateAndFormula(state, True), hasStateAndFormula(state, right)))));
