@@ -342,7 +342,7 @@ public class TableauBuilderTest {
 
 		TableauNode<State> leave = new TableauNode<State>(null, state, True);
 		assertThat(createTableaus(state, formula), contains(both(isSuccessfulTableau(true))
-					.and(hasLeaves(contains(leave, leave)))));
+					.and(hasLeaves(contains(leave)))));
 	}
 
 	@Test
@@ -709,6 +709,46 @@ public class TableauBuilderTest {
 		engine.run();
 
 		assertThat(callCount[0], equalTo(1));
+	}
+
+	@Test
+	public void testClosedFormulaExpandedOnce() {
+		TransitionSystem ts = new TransitionSystem();
+		State[] states = ts.createStates("s0", "s1", "s2", "s3");
+		ts.createArc("s0", "s1", "a");
+		ts.createArc("s1", "s3", "b");
+		ts.createArc("s0", "s2", "b");
+		ts.createArc("s2", "s3", "a");
+
+		FormulaCreator creator = new FormulaCreator();
+		Formula inner = creator.constant(true);
+		// The inner formula must hold in all reachable states
+		Formula formula = creator.fixedPoint(FixedPoint.GREATEST, creator.variable("X"),
+				creator.conjunction(inner,
+					creator.modality(Modality.UNIVERSAL, "a", creator.variable("X")),
+					creator.modality(Modality.UNIVERSAL, "b", creator.variable("X"))));
+
+		Collection<Tableau<State>> tableaus = createTableaus(states[0], formula);
+
+		Formula x0AfterA = creator.modality(Modality.UNIVERSAL, "a", creator.variable("X0"));
+		Formula x0AfterB = creator.modality(Modality.UNIVERSAL, "b", creator.variable("X0"));
+		assertThat(tableaus, contains(both(isSuccessfulTableau(true)).and(hasLeaves(containsInAnyOrder(
+								hasStateAndFormula(states[1], x0AfterA),
+								hasStateAndFormula(states[2], x0AfterB),
+								hasStateAndFormula(states[3], x0AfterA),
+								hasStateAndFormula(states[3], x0AfterA),
+								hasStateAndFormula(states[3], x0AfterB),
+								hasStateAndFormula(states[3], x0AfterB),
+								hasStateAndFormula(states[0], inner),
+								hasStateAndFormula(states[1], inner),
+								hasStateAndFormula(states[2], inner),
+								hasStateAndFormula(states[3], inner))))));
+		Tableau<State> tableau = tableaus.iterator().next();
+		assertThat(tableau.getHandled(), hasEntry(is(states[0]), containsInAnyOrder(inner, formula)));
+		assertThat(tableau.getHandled(), hasEntry(is(states[1]), contains(inner)));
+		assertThat(tableau.getHandled(), hasEntry(is(states[2]), contains(inner)));
+		assertThat(tableau.getHandled(), hasEntry(is(states[3]), contains(inner)));
+		assertThat(tableau.getHandled().entrySet(), hasSize(4));
 	}
 }
 

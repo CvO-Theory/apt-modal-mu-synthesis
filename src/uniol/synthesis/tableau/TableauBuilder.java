@@ -24,6 +24,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import uniol.synthesis.adt.mu_calculus.ConjunctionFormula;
@@ -38,6 +41,7 @@ import uniol.synthesis.adt.mu_calculus.NegationFormula;
 import uniol.synthesis.adt.mu_calculus.VariableFormula;
 import uniol.synthesis.util.FormulaWalker;
 import uniol.synthesis.util.NonRecursive;
+import static uniol.synthesis.util.GetFreeVariables.getFreeVariables;
 import static uniol.synthesis.util.PositiveFormFormulaTransformer.positiveForm;
 import static uniol.synthesis.util.SubstitutionTransformer.substitute;
 import static uniol.synthesis.util.UnLetTransformer.unLet;
@@ -96,34 +100,39 @@ public class TableauBuilder<S> {
 	public void createTableaus(NonRecursive engine, ResultCallback<S> resultCallback, S state, Formula formula,
 			TableauSelection selection) {
 		formula = positiveForm(unLet(formula));
-		expandTableau(engine, resultCallback, Collections.singleton(
-					new TableauNode<S>(followArcs, state, formula)), selection);
+		expandTableau(engine, resultCallback, Tableau.<S>createInitialTableau(followArcs, state, formula),
+				selection);
 	}
 
 	public void continueTableau(NonRecursive engine, ResultCallback<S> resultCallback, Tableau<S> tableau,
 			TableauSelection selection) {
-		expandTableau(engine, resultCallback, tableau.getLeaves(), selection);
+		expandTableau(engine, resultCallback, tableau, selection);
 	}
 
 	private void expandTableau(NonRecursive engine, ResultCallback<S> resultCallback,
-			Collection<TableauNode<S>> nodes, TableauSelection selection) {
-		engine.enqueue(new CreateTableaus<S>(callback, resultCallback, nodes, selection));
+			Tableau<S> tableau, TableauSelection selection) {
+		engine.enqueue(new CreateTableaus<S>(callback, resultCallback, tableau, selection));
 	}
 
 	static final private class CreateTableaus<S> implements NonRecursive.Walker {
 		private final ProgressCallback<S> callback;
 		private final ResultCallback<S> resultCallback;
 		private final Collection<TableauNode<S>> leaves = new ArrayList<>();
+		private final Map<S, Set<Formula>> handledClosedFormulas = new HashMap<>();
 		private final Deque<ExpandNodeWalker<S>> todo = new ArrayDeque<>();
 		private final TableauSelection selection;
 
 		private CreateTableaus(ProgressCallback<S> callback, ResultCallback<S> resultCallback,
-				Collection<TableauNode<S>> nodes, TableauSelection selection) {
+				Tableau<S> tableau, TableauSelection selection) {
 			this.callback = callback;
 			this.resultCallback = resultCallback;
 			this.selection = selection;
-			for (TableauNode<S> node : nodes)
+			for (TableauNode<S> node : tableau.getLeaves())
 				addToTodo(this, node);
+
+			for (Map.Entry<S, Set<Formula>> entry : tableau.getHandled().entrySet()) {
+				this.handledClosedFormulas.put(entry.getKey(), new HashSet<>(entry.getValue()));
+			}
 		}
 
 		private CreateTableaus(CreateTableaus<S> toCopy) {
@@ -132,6 +141,10 @@ public class TableauBuilder<S> {
 			this.leaves.addAll(toCopy.leaves);
 			this.todo.addAll(toCopy.todo);
 			this.selection = toCopy.selection;
+
+			for (Map.Entry<S, Set<Formula>> entry : toCopy.handledClosedFormulas.entrySet()) {
+				this.handledClosedFormulas.put(entry.getKey(), new HashSet<>(entry.getValue()));
+			}
 		}
 
 		@Override
@@ -139,8 +152,12 @@ public class TableauBuilder<S> {
 			ExpandNodeWalker<S> next = todo.poll();
 			if (next == null) {
 				// We are done creating a tableau
-				resultCallback.foundTableau(engine, new Tableau<S>(leaves,
-							Collections.<S, Set<Formula>>emptyMap()));
+				Map<S, Set<Formula>> handled = new HashMap<>();
+				for (Map.Entry<S, Set<Formula>> entry : handledClosedFormulas.entrySet()) {
+					handled.put(entry.getKey(), Collections.unmodifiableSet(
+								new HashSet<>(entry.getValue())));
+				}
+				resultCallback.foundTableau(engine, new Tableau<S>(leaves, handled));
 				return;
 			}
 
@@ -182,11 +199,30 @@ public class TableauBuilder<S> {
 		}
 
 		static private <S> void addToTodo(CreateTableaus<S> creator, TableauNode<S> child) {
+			if (isClosedFormula(child.getFormula())) {
+				Formula formula = child.getFormula();
+				S state = child.getState();
+
+				Set<Formula> handled = creator.handledClosedFormulas.get(state);
+				if (handled == null) {
+					handled = new HashSet<>();
+					creator.handledClosedFormulas.put(state, handled);
+				}
+				if (!handled.add(formula)) {
+					// This formula was already expanded in this state; no need to do so again
+					return;
+				}
+			}
+
 			if (child.getFormula() instanceof DisjunctionFormula) {
 				creator.todo.addLast(new ExpandNodeWalker<S>(child));
 			} else {
 				creator.todo.addFirst(new ExpandNodeWalker<S>(child));
 			}
+		}
+
+		static private boolean isClosedFormula(Formula formula) {
+			return getFreeVariables(formula).isEmpty();
 		}
 	}
 

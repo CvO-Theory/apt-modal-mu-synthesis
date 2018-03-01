@@ -58,6 +58,10 @@ public class Tableau<S> {
 		return handled.contains(formula);
 	}
 
+	Map<S, Set<Formula>> getHandled() {
+		return handledClosedFormulas;
+	}
+
 	public Tableau<S> transform(final Transformer<S, S> transformer) {
 		Collection<TableauNode<S>> result = new ArrayList<>(leaves.size());
 		for (TableauNode<S> leave : leaves)
