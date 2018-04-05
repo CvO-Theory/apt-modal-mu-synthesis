@@ -232,9 +232,12 @@ public class RealiseFormula {
 	public void realise(Formula formula) {
 		TransitionSystem ts = getEmptyTS();
 		formula = positiveForm(unLet(formula));
+		realise(ts, Tableau.<State>createInitialTableau(
+					new StateFollowArcs(), ts.getInitialState(), formula));
+	}
 
-		new NonRecursive().run(new Worker(this, ts, Tableau.<State>createInitialTableau(
-						new StateFollowArcs(), ts.getInitialState(), formula)));
+	public void realise(TransitionSystem ts, Tableau<State> tableau) {
+		new NonRecursive().run(new Worker(this, ts, tableau));
 	}
 }
 

@@ -26,6 +26,11 @@ Currently, this repository contains four additional modules for APT:
 - `realise_pn`: Given a class of Petri nets and a formula, find Petri net
   realisations of the formula, i.e. find Petri nets which have a reachability
   graph that satisfies the given formula.
+- `deadlock_free_realise_pn`: Like `realise_pn`, but requires the resulting
+  Petri nets to not have deadlocks. This is equivalent to adding
+  `Global(&lt;a&gt;true || &lt;b&gt;true || ...)` to the formula, where `a`,
+  `b`, ... is the complete alphabet. However, the approach taken by this module
+  is more efficient than what happens when adding this formula directly.
 - `call_expansion`: Expand some abbreviations in formulas. See this module's
   long description for details.
 
